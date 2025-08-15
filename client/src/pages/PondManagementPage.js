@@ -49,13 +49,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import { format } from 'date-fns';
 import moment from 'moment';
-import { 
-  Calendar, 
-  momentLocalizer,
-  Views
-} from 'react-big-calendar';
-import 'react-big-calendar/lib/css/react-big-calendar.css';
-import '../components/CalendarOverrides.css';
+import CustomCalendar from '../components/CustomCalendar';
 import { 
   BarChart, 
   Bar, 
