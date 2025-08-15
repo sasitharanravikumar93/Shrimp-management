@@ -49,6 +49,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import { format } from 'date-fns';
 import moment from 'moment';
+import { momentLocalizer } from 'react-big-calendar';
 import CustomCalendar from '../components/CustomCalendar';
 import { 
   BarChart, 
@@ -72,13 +73,11 @@ import FeedCalculator from '../components/FeedCalculator';
 import WaterQualityAlert from '../components/WaterQualityAlert';
 import EventSuggestions from '../components/EventSuggestions';
 
-// Set up calendar localizer
-const localizer = momentLocalizer(moment);
-
 const PondManagementPage = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [viewMode, setViewMode] = useState('tabs'); // 'tabs' or 'calendar'
   const [calendarDate, setCalendarDate] = useState(new Date());
+  const [calendarView, setCalendarView] = useState('week'); // 'month', 'week', 'day'
   const [openEventModal, setOpenEventModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [openAddModal, setOpenAddModal] = useState(false);
@@ -217,6 +216,9 @@ const PondManagementPage = () => {
 
   const handleViewModeChange = (mode) => {
     setViewMode(mode);
+    if (mode === 'calendar') {
+      setCalendarView('week'); // Default to week view when switching to calendar
+    }
   };
 
   const handleEventSelect = (event) => {
@@ -992,7 +994,8 @@ const PondManagementPage = () => {
                     onDateChange={handleDateChange}
                     onRangeChange={handleRangeChange}
                     date={calendarDate}
-                    onViewChange={() => {}} // onView handler
+                    view={calendarView}
+                    onViewChange={(view) => setCalendarView(view)}
                   />
                 </Grid>
                 

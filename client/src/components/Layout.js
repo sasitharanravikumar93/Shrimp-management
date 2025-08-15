@@ -106,7 +106,7 @@ const Layout = ({ children, toggleDarkMode, darkMode }) => {
   const mainMenuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
     { 
-      text: 'Pond Management', 
+      text: 'Season Management', 
       icon: <PondIcon />, 
       path: '/pond/1',
       subItems: [
@@ -155,7 +155,9 @@ const Layout = ({ children, toggleDarkMode, darkMode }) => {
           <TextField
             fullWidth
             size="small"
-            placeholder="Search ponds..."
+            select
+            value="Season 2023"
+            placeholder="Select season..."
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -170,7 +172,10 @@ const Layout = ({ children, toggleDarkMode, darkMode }) => {
                 borderRadius: 1,
               }
             }}
-          />
+          >
+            <MenuItem value="Season 2023">Season 2023</MenuItem>
+            <MenuItem value="Season 2024">Season 2024</MenuItem>
+          </TextField>
         </Box>
       )}
       
@@ -220,7 +225,7 @@ const Layout = ({ children, toggleDarkMode, darkMode }) => {
               )}
             </ListItem>
             
-            {/* Sub-menu for Pond Management */}
+            {/* Sub-menu for Season Management */}
             {item.subItems && openPondMenu && !isSidebarCollapsed && (
               <List component="div" disablePadding>
                 {item.subItems.map((subItem) => (
