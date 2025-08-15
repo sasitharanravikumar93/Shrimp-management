@@ -59,7 +59,12 @@ const AdminPage = () => {
   const navigate = useNavigate();
   
   const handleTabChange = (event, newValue) => {
-    setActiveTab(newValue);
+    // If the removed tab (index 3) was selected, default to the first tab (index 0)
+    if (newValue === 3) {
+      setActiveTab(0);
+    } else {
+      setActiveTab(newValue);
+    }
     // Reset filters when changing tabs
     setSearchTerm('');
     setFilter('all');
@@ -216,7 +221,6 @@ const AdminPage = () => {
             <Tab icon={<SeasonIcon />} label="Seasons" />
             <Tab icon={<PondIcon />} label="Ponds" />
             <Tab icon={<CopyIcon />} label="Copy Pond Details" />
-            <Tab icon={<EventIcon />} label="Events" />
           </Tabs>
           
           {/* Search and filter bar */}
@@ -503,84 +507,7 @@ const AdminPage = () => {
               </Grid>
             )}
             
-            {activeTab === 3 && (
-              <Grid container spacing={3}> 
-                <Grid item xs={12}>
-                  <Card variant="outlined">
-                    <CardHeader
-                      title="Manage Events"
-                      action={
-                        <Button 
-                          variant="contained" 
-                          startIcon={<AddIcon />} 
-                          onClick={() => handleOpenDialog('event')}
-                        >
-                          Add New Event
-                        </Button>
-                      }
-                    />
-                    <CardContent>
-                      <TableContainer>
-                        <Table size="small">
-                          <TableHead>
-                            <TableRow>
-                              <TableCell sx={{ fontWeight: 'bold' }}>Title</TableCell>
-                              <TableCell sx={{ fontWeight: 'bold' }}>Date</TableCell>
-                              <TableCell sx={{ fontWeight: 'bold' }}>Pond</TableCell>
-                              <TableCell sx={{ fontWeight: 'bold' }}>Type</TableCell>
-                              <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>
-                            </TableRow>
-                          </TableHead>
-                          <TableBody>
-                            {getPagedData(events).map((event) => (
-                              <TableRow key={event.id}>
-                                <TableCell>{event.title}</TableCell>
-                                <TableCell>{event.date}</TableCell>
-                                <TableCell>{event.pond}</TableCell>
-                                <TableCell>
-                                  <Chip 
-                                    label={event.type} 
-                                    size="small" 
-                                    color={
-                                      event.type === 'Routine' ? 'primary' : 
-                                      event.type === 'Maintenance' ? 'warning' : 
-                                      event.type === 'Monitoring' ? 'success' : 
-                                      'default'
-                                    } 
-                                  />
-                                </TableCell>
-                                <TableCell>
-                                  <Tooltip title="Edit">
-                                    <IconButton size="small" onClick={() => handleOpenDialog('event')}>
-                                      <EditIcon />
-                                    </IconButton>
-                                  </Tooltip>
-                                  <Tooltip title="Delete">
-                                    <IconButton size="small" color="error">
-                                      <DeleteIcon />
-                                    </IconButton>
-                                  </Tooltip>
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </TableContainer>
-                      
-                      {/* Pagination */}
-                      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-                        <Pagination 
-                          count={getTotalPages(events)} 
-                          page={page} 
-                          onChange={handlePageChange} 
-                          color="primary" 
-                        />
-                      </Box>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              </Grid>
-            )}
+            
           </Box>
         </CardContent>
       </Card>

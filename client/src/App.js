@@ -12,6 +12,7 @@ import WaterQualityViewPage from './pages/WaterQualityViewPage';
 import NurseryManagementPage from './pages/NurseryManagementPage';
 import HistoricalInsightsPage from './pages/HistoricalInsightsPage';
 import Layout from './components/Layout';
+import { SeasonProvider } from './context/SeasonContext';
 
 function App() {
   const [darkMode, setDarkMode] = useState(false);
@@ -42,19 +43,21 @@ function App() {
       <ThemeProvider theme={darkMode ? darkTheme : theme}>
         <CssBaseline />
         <Router>
-          <Layout toggleDarkMode={toggleDarkMode} darkMode={darkMode}>
-            <AnimatePresence mode="wait">
-              <Routes>
-                <Route path="/" element={<DashboardPage />} />
-                <Route path="/admin" element={<AdminPage />} />
-                <Route path="/pond/:pondId" element={<PondManagementPage />} />
-                <Route path="/feed-view" element={<FeedViewPage />} />
-                <Route path="/water-quality-view" element={<WaterQualityViewPage />} />
-                <Route path="/nursery" element={<NurseryManagementPage />} />
-                <Route path="/historical-insights" element={<HistoricalInsightsPage />} />
-              </Routes>
-            </AnimatePresence>
-          </Layout>
+          <SeasonProvider>
+            <Layout toggleDarkMode={toggleDarkMode} darkMode={darkMode}>
+              <AnimatePresence mode="wait">
+                <Routes>
+                  <Route path="/" element={<DashboardPage />} />
+                  <Route path="/admin" element={<AdminPage />} />
+                  <Route path="/pond/:pondId" element={<PondManagementPage />} />
+                  <Route path="/feed-view" element={<FeedViewPage />} />
+                  <Route path="/water-quality-view" element={<WaterQualityViewPage />} />
+                  <Route path="/nursery" element={<NurseryManagementPage />} />
+                  <Route path="/historical-insights" element={<HistoricalInsightsPage />} />
+                </Routes>
+              </AnimatePresence>
+            </Layout>
+          </SeasonProvider>
         </Router>
       </ThemeProvider>
     </LazyMotion>

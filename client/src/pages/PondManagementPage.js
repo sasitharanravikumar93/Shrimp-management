@@ -27,7 +27,8 @@ import {
   OutlinedInput,
   ToggleButton,
   ToggleButtonGroup,
-  Badge
+  Badge,
+  InputAdornment // Added InputAdornment
 } from '@mui/material';
 import { 
   Add as AddIcon, 
@@ -41,13 +42,15 @@ import {
   CheckCircle as CheckIcon,
   Close as CloseIcon,
   Info as InfoIcon,
-  TrendingUp as TrendingUpIcon
+  TrendingUp as TrendingUpIcon,
+  Search as SearchIcon // Added SearchIcon
 } from '@mui/icons-material';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import { format } from 'date-fns';
+import { useSeason } from '../context/SeasonContext';
 import moment from 'moment';
 import { momentLocalizer } from 'react-big-calendar';
 import CustomCalendar from '../components/CustomCalendar';
@@ -78,15 +81,18 @@ const PondManagementPage = () => {
   const [viewMode, setViewMode] = useState('tabs'); // 'tabs' or 'calendar'
   const [calendarDate, setCalendarDate] = useState(new Date());
   const [calendarView, setCalendarView] = useState('week'); // 'month', 'week', 'day'
+  const [calendarSearchTerm, setCalendarSearchTerm] = useState('');
+  const [calendarEventTypeFilter, setCalendarEventTypeFilter] = useState('all');
   const [openEventModal, setOpenEventModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [openAddModal, setOpenAddModal] = useState(false);
+  const { selectedSeason } = useSeason();
   
   // Mock data for demonstration
   const pond = { 
     id: 1, 
     name: 'Pond A', 
-    season: 'Season 2023', 
+    season: selectedSeason, 
     status: 'Active', 
     health: 'Good',
     projectedHarvest: '28 days'
@@ -328,6 +334,28 @@ const PondManagementPage = () => {
     y: (entry.totalWeight * 1000 / entry.totalCount).toFixed(2),
     date: formatDate(entry.date)
   }));
+
+  const getFilteredCalendarEvents = (allEvents) => {
+    let filtered = allEvents;
+
+    // Apply search term filter
+    if (calendarSearchTerm) {
+      filtered = filtered.filter(event =>
+        event.title.toLowerCase().includes(calendarSearchTerm.toLowerCase()) ||
+        event.type.toLowerCase().includes(calendarSearchTerm.toLowerCase()) ||
+        event.resource.description.toLowerCase().includes(calendarSearchTerm.toLowerCase())
+      );
+    }
+
+    // Apply event type filter
+    if (calendarEventTypeFilter !== 'all') {
+      filtered = filtered.filter(event =>
+        event.type === calendarEventTypeFilter
+      );
+    }
+
+    return filtered;
+  };
 
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -971,7 +999,7 @@ const PondManagementPage = () => {
           </Card>
         ) : (
           // Calendar View
-          <Card elevation={3}>
+          <Card elevation={3} sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
             <CardHeader
               title="Events Calendar"
               subheader="View and manage events for this pond"
@@ -985,11 +1013,46 @@ const PondManagementPage = () => {
                 </Button>
               }
             />
-            <CardContent>
-              <Grid container spacing={3}>
-                <Grid item xs={12}>
+            <CardContent sx={{ pt: 0, pb: 2 }}> {/* Added CardContent for filter bar */}
+              <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap', alignItems: 'center' }}>
+                <TextField
+                  placeholder="Search events..."
+                  value={calendarSearchTerm}
+                  onChange={(e) => setCalendarSearchTerm(e.target.value)}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon />
+                      </InputAdornment>
+                    ),
+                  }}
+                  sx={{ minWidth: 200 }}
+                />
+                <ToggleButtonGroup
+                  size="small"
+                  value={calendarEventTypeFilter}
+                  exclusive
+                  onChange={(e, newFilter) => {
+                    if (newFilter !== null) {
+                      setCalendarEventTypeFilter(newFilter);
+                    }
+                  }}
+                >
+                  <ToggleButton value="all">All</ToggleButton>
+                  <ToggleButton value="Feeding">Feeding</ToggleButton>
+                  <ToggleButton value="Water Quality">Water Quality</ToggleButton>
+                  <ToggleButton value="Growth Sampling">Growth Sampling</ToggleButton>
+                  <ToggleButton value="Routine">Routine</ToggleButton>
+                  <ToggleButton value="Maintenance">Maintenance</ToggleButton>
+                  <ToggleButton value="Monitoring">Monitoring</ToggleButton>
+                </ToggleButtonGroup>
+              </Box>
+            </CardContent>
+            <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+              <Grid container spacing={3} sx={{ flexGrow: 1 }}>
+                <Grid item xs={12} sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
                   <CustomCalendar
-                    events={events}
+                    events={getFilteredCalendarEvents(events)}
                     onEventSelect={handleEventSelect}
                     onDateChange={handleDateChange}
                     onRangeChange={handleRangeChange}

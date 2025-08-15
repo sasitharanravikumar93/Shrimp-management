@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Drawer, 
-  AppBar, 
-  Toolbar, 
-  Typography, 
-  IconButton, 
-  List, 
-  ListItem, 
-  ListItemIcon, 
+import {
+  Drawer,
+  AppBar,
+  Toolbar,
+  Typography,
+  IconButton,
+  List,
+  ListItem,
+  ListItemIcon,
   ListItemText,
   Divider,
   Box,
@@ -20,9 +20,13 @@ import {
   Tooltip,
   TextField,
   InputAdornment,
-  Badge
+  Badge,
+  Select,
+  FormControl,
+  InputLabel,
+  OutlinedInput
 } from '@mui/material';
-import { 
+import {
   Menu as MenuIcon,
   Dashboard as DashboardIcon,
   AdminPanelSettings as AdminIcon,
@@ -44,6 +48,7 @@ import {
   Brightness7 as LightModeIcon
 } from '@mui/icons-material';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useSeason } from '../context/SeasonContext';
 
 // Collapsible sidebar width constants
 const drawerWidth = 240;
@@ -57,6 +62,7 @@ const Layout = ({ children, toggleDarkMode, darkMode }) => {
   const [reportAnchorEl, setReportAnchorEl] = useState(null);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [openPondMenu, setOpenPondMenu] = useState(false);
+  const { selectedSeason, setSelectedSeason } = useSeason();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -92,9 +98,15 @@ const Layout = ({ children, toggleDarkMode, darkMode }) => {
     handleMenuClose();
   };
 
-  const toggleSidebar = () => {
-    if (!isMobile) {
-      setIsSidebarCollapsed(!isSidebarCollapsed);
+  const expandSidebar = () => {
+    if (!isMobile && isSidebarCollapsed) {
+      setIsSidebarCollapsed(false);
+    }
+  };
+
+  const collapseSidebar = () => {
+    if (!isMobile && !isSidebarCollapsed) {
+      setIsSidebarCollapsed(true);
     }
   };
 
@@ -106,7 +118,7 @@ const Layout = ({ children, toggleDarkMode, darkMode }) => {
   const mainMenuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
     { 
-      text: 'Season Management', 
+      text: 'Pond Management', 
       icon: <PondIcon />, 
       path: '/pond/1',
       subItems: [
@@ -133,8 +145,8 @@ const Layout = ({ children, toggleDarkMode, darkMode }) => {
         flexDirection: 'column',
         backgroundColor: 'inherit'
       }}
-      onMouseEnter={!isMobile ? toggleSidebar : undefined}
-      onMouseLeave={!isMobile ? toggleSidebar : undefined}
+      onMouseEnter={!isMobile ? expandSidebar : undefined}
+      onMouseLeave={!isMobile ? collapseSidebar : undefined}
     >
       {/* Top Section - Logo and Search */}
       <Toolbar>
@@ -156,7 +168,8 @@ const Layout = ({ children, toggleDarkMode, darkMode }) => {
             fullWidth
             size="small"
             select
-            value="Season 2023"
+            value={selectedSeason}
+            onChange={(e) => setSelectedSeason(e.target.value)}
             placeholder="Select season..."
             InputProps={{
               startAdornment: (
@@ -225,7 +238,7 @@ const Layout = ({ children, toggleDarkMode, darkMode }) => {
               )}
             </ListItem>
             
-            {/* Sub-menu for Season Management */}
+            {/* Sub-menu for Pond Management */}
             {item.subItems && openPondMenu && !isSidebarCollapsed && (
               <List component="div" disablePadding>
                 {item.subItems.map((subItem) => (
