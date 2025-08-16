@@ -94,7 +94,7 @@ const AdminPage = () => {
   
   // Form data
   const [formData, setFormData] = useState({
-    name: { en: '', hi: '', ta: '' },
+    name: '',
     startDate: '',
     endDate: '',
     status: '',
@@ -391,7 +391,7 @@ const AdminPage = () => {
 
   // Use real data or fallback to mock data
   const seasons = seasonsData || [];
-  const ponds = pondsData || [];
+  const ponds = pondsData ? pondsData.data : [];
 
   return (
     <Container maxWidth="lg" sx={{ mt: 2, mb: 4 }}>

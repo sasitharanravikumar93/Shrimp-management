@@ -82,12 +82,12 @@ const DashboardPage = () => {
 
   // Filter ponds based on selection and season
   const filteredPonds = useMemo(() => {
-    if (!allPondsData) return [];
+    const ponds = allPondsData?.data || [];
     
     // First filter by season if a season is selected
-    let seasonFilteredPonds = allPondsData;
+    let seasonFilteredPonds = ponds;
     if (selectedSeason) {
-      seasonFilteredPonds = allPondsData.filter(pond => 
+      seasonFilteredPonds = ponds.filter(pond => 
         pond.seasonId === selectedSeason.id
       );
     }

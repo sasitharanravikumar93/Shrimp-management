@@ -80,8 +80,8 @@ const WaterQualityViewPage = () => {
 
   // Filter water quality entries based on search term
   useEffect(() => {
-    if (waterQualityEntriesData) {
-      let filtered = waterQualityEntriesData;
+    if (waterQualityEntriesData && waterQualityEntriesData.data) {
+      let filtered = waterQualityEntriesData.data;
       
       // Apply search filter
       if (search) {
@@ -133,8 +133,8 @@ const WaterQualityViewPage = () => {
   };
 
   const getPondName = (pondId) => {
-    if (!pondsData) return 'Unknown Pond';
-    const pond = pondsData.find(p => p._id === pondId || p.id === pondId);
+    if (!pondsData || !pondsData.data) return 'Unknown Pond';
+    const pond = pondsData.data.find(p => p._id === pondId || p.id === pondId);
     return pond ? pond.name : 'Unknown Pond';
   };
 
@@ -157,8 +157,8 @@ const WaterQualityViewPage = () => {
   }
 
   // Use real data or fallback to mock data
-  const waterQualityEntries = filteredWaterQualityEntries.length > 0 ? filteredWaterQualityEntries : (waterQualityEntriesData || []);
-  const ponds = pondsData || [];
+  const waterQualityEntries = filteredWaterQualityEntries.length > 0 ? filteredWaterQualityEntries : (waterQualityEntriesData ? waterQualityEntriesData.data : []);
+  const ponds = pondsData ? pondsData.data : [];
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>

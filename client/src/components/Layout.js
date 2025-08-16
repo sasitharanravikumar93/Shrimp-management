@@ -48,6 +48,8 @@ import {
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useSeason } from '../context/SeasonContext';
 import LanguageSwitcher from './LanguageSwitcher';
+import { useApiData } from '../hooks/useApi';
+import { getSeasons } from '../services/api';
 
 // Collapsible sidebar width constants
 const drawerWidth = 240;
@@ -63,6 +65,7 @@ const Layout = ({ children, toggleDarkMode, darkMode }) => {
   const [openPondMenu, setOpenPondMenu] = useState(false);
   const { selectedSeason, setSelectedSeason } = useSeason();
   const location = useLocation();
+  const { data: seasons = [], loading: seasonsLoading, error: seasonsError } = useApiData(getSeasons, [], 'seasons');
 
   // Auto-collapse sidebar on mobile
   useEffect(() => {
@@ -185,8 +188,17 @@ const Layout = ({ children, toggleDarkMode, darkMode }) => {
               }
             }}
           >
-            <MenuItem value="Season 2023">Season 2023</MenuItem>
-            <MenuItem value="Season 2024">Season 2024</MenuItem>
+            {seasonsLoading ? (
+              <MenuItem disabled>Loading seasons...</MenuItem>
+            ) : seasonsError ? (
+              <MenuItem disabled>Error loading seasons</MenuItem>
+            ) : (
+              seasons && seasons.map((season) => (
+                <MenuItem key={season._id} value={season._id}>
+                  {season.name}
+                </MenuItem>
+              ))
+            )}
           </TextField>
         </Box>
       )}

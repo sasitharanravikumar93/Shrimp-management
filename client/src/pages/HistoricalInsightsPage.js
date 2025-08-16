@@ -123,7 +123,7 @@ const HistoricalInsightsPage = () => {
   // Calculate metrics
   const calculateMetrics = () => {
     const filteredFeedInputs = filterDataByDateRange(
-      filterDataByPonds(feedInputsData || [], selectedPonds),
+      filterDataByPonds(feedInputsData ? feedInputsData.data : [], selectedPonds),
       startDate,
       endDate
     );
@@ -135,7 +135,7 @@ const HistoricalInsightsPage = () => {
     );
     
     const filteredWaterQualityInputs = filterDataByDateRange(
-      filterDataByPonds(waterQualityInputsData || [], selectedPonds),
+      filterDataByPonds(waterQualityInputsData ? waterQualityInputsData.data : [], selectedPonds),
       startDate,
       endDate
     );
@@ -184,7 +184,7 @@ const HistoricalInsightsPage = () => {
   // Generate chart data for visualization
   const generateChartData = () => {
     const filteredFeedInputs = filterDataByDateRange(
-      filterDataByPonds(feedInputsData || [], selectedPonds),
+      filterDataByPonds(feedInputsData ? feedInputsData.data : [], selectedPonds),
       startDate,
       endDate
     );
@@ -196,7 +196,7 @@ const HistoricalInsightsPage = () => {
     );
     
     const filteredWaterQualityInputs = filterDataByDateRange(
-      filterDataByPonds(waterQualityInputsData || [], selectedPonds),
+      filterDataByPonds(waterQualityInputsData ? waterQualityInputsData.data : [], selectedPonds),
       startDate,
       endDate
     );
@@ -309,7 +309,7 @@ const HistoricalInsightsPage = () => {
 
   // Use real data or fallback to mock data
   const seasonOptions = seasonsData || [];
-  const pondOptions = pondsData || [];
+  const pondOptions = pondsData ? pondsData.data : [];
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
