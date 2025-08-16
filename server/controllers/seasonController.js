@@ -1,3 +1,4 @@
+const logger = require('../logger');
 const Season = require('../models/Season');
 const User = require('../models/User');
 
@@ -54,6 +55,7 @@ const translateDocuments = (docs, language) => {
 
 // Create a new season
 exports.createSeason = async (req, res) => {
+  logger.info('Creating a new season', { body: req.body });
   try {
     const { name, startDate, endDate, status } = req.body;
     
@@ -79,11 +81,13 @@ exports.createSeason = async (req, res) => {
       return res.status(400).json({ message: error.message });
     }
     res.status(500).json({ message: 'Error creating season', error: error.message });
+    logger.error('Error creating season', { error: error.message, stack: error.stack });
   }
 };
 
 // Get all seasons
 exports.getAllSeasons = async (req, res) => {
+  logger.info('Getting all seasons');
   try {
     const language = getLanguageForUser(req);
     const seasons = await Season.find().sort({ startDate: -1 }); // Sort by start date, newest first
@@ -91,11 +95,13 @@ exports.getAllSeasons = async (req, res) => {
     res.json(translatedSeasons);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching seasons', error: error.message });
+    logger.error('Error fetching seasons', { error: error.message, stack: error.stack });
   }
 };
 
 // Get a season by ID
 exports.getSeasonById = async (req, res) => {
+  logger.info(`Getting season by ID: ${req.params.id}`);
   try {
     const language = getLanguageForUser(req);
     const season = await Season.findById(req.params.id);
@@ -109,11 +115,13 @@ exports.getSeasonById = async (req, res) => {
       return res.status(400).json({ message: 'Invalid season ID' });
     }
     res.status(500).json({ message: 'Error fetching season', error: error.message });
+    logger.error(`Error fetching season with ID: ${req.params.id}`, { error: error.message, stack: error.stack });
   }
 };
 
 // Update a season by ID
 exports.updateSeason = async (req, res) => {
+  logger.info(`Updating season by ID: ${req.params.id}`, { body: req.body });
   try {
     const { name, startDate, endDate, status } = req.body;
     
@@ -152,11 +160,13 @@ exports.updateSeason = async (req, res) => {
       return res.status(400).json({ message: 'Invalid season ID' });
     }
     res.status(500).json({ message: 'Error updating season', error: error.message });
+    logger.error(`Error updating season with ID: ${req.params.id}`, { error: error.message, stack: error.stack });
   }
 };
 
 // Delete a season by ID
 exports.deleteSeason = async (req, res) => {
+  logger.info(`Deleting season by ID: ${req.params.id}`);
   try {
     const season = await Season.findByIdAndDelete(req.params.id);
     
@@ -170,5 +180,6 @@ exports.deleteSeason = async (req, res) => {
       return res.status(400).json({ message: 'Invalid season ID' });
     }
     res.status(500).json({ message: 'Error deleting season', error: error.message });
+    logger.error(`Error deleting season with ID: ${req.params.id}`, { error: error.message, stack: error.stack });
   }
 };

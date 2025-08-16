@@ -1,8 +1,10 @@
+const logger = require('../logger');
 const Pond = require('../models/Pond');
 const Season = require('../models/Season');
 
 // Copy pond details from one season to another
 exports.copyPondDetails = async (req, res) => {
+  logger.info('Copying pond details', { body: req.body });
   try {
     const { sourceSeasonId, targetSeasonId } = req.body;
     
@@ -56,5 +58,6 @@ exports.copyPondDetails = async (req, res) => {
       return res.status(400).json({ message: 'Invalid season ID format' });
     }
     res.status(500).json({ message: 'Error copying pond details', error: error.message });
+    logger.error('Error copying pond details', { error: error.message, stack: error.stack });
   }
 };

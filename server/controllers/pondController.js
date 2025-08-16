@@ -125,6 +125,7 @@ exports.getPondById = async (req, res) => {
 
 // Update a pond by ID
 exports.updatePond = async (req, res) => {
+  logger.info(`Updating pond by ID: ${req.params.id}`, { body: req.body });
   try {
     const { name, size, capacity, seasonId, status } = req.body;
     
@@ -169,11 +170,13 @@ exports.updatePond = async (req, res) => {
       return res.status(400).json({ message: 'Invalid pond ID' });
     }
     res.status(500).json({ message: 'Error updating pond', error: error.message });
+    logger.error(`Error updating pond with ID: ${req.params.id}`, { error: error.message, stack: error.stack });
   }
 };
 
 // Delete a pond by ID
 exports.deletePond = async (req, res) => {
+  logger.info(`Deleting pond by ID: ${req.params.id}`);
   try {
     const pond = await Pond.findByIdAndDelete(req.params.id);
     
@@ -187,11 +190,13 @@ exports.deletePond = async (req, res) => {
       return res.status(400).json({ message: 'Invalid pond ID' });
     }
     res.status(500).json({ message: 'Error deleting pond', error: error.message });
+    logger.error(`Error deleting pond with ID: ${req.params.id}`, { error: error.message, stack: error.stack });
   }
 };
 
 // Get ponds by season ID
 exports.getPondsBySeasonId = async (req, res) => {
+  logger.info(`Getting ponds for season ID: ${req.params.seasonId}`);
   try {
     const language = getLanguageForUser(req);
     const { seasonId } = req.params;
@@ -210,5 +215,6 @@ exports.getPondsBySeasonId = async (req, res) => {
       return res.status(400).json({ message: 'Invalid season ID' });
     }
     res.status(500).json({ message: 'Error fetching ponds for season', error: error.message });
+    logger.error(`Error fetching ponds for season ID: ${req.params.seasonId}`, { error: error.message, stack: error.stack });
   }
 };

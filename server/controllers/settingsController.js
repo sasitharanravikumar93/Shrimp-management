@@ -1,7 +1,9 @@
+const logger = require('../logger');
 const User = require('../models/User');
 
 // Update user's language preference
 exports.updateLanguage = async (req, res) => {
+  logger.info('Updating user language preference', { userId: req.user ? req.user.id : 'N/A', body: req.body });
   try {
     const { language } = req.body;
     
@@ -29,7 +31,7 @@ exports.updateLanguage = async (req, res) => {
       user 
     });
   } catch (error) {
-    console.error('Error updating language preference:', error);
     res.status(500).json({ message: 'Server error' });
+    logger.error('Error updating language preference', { error: error.message, stack: error.stack, userId: req.user ? req.user.id : 'N/A' });
   }
 };

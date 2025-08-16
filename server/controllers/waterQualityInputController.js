@@ -1,3 +1,4 @@
+const logger = require('../logger');
 const WaterQualityInput = require('../models/WaterQualityInput');
 const Pond = require('../models/Pond');
 const Season = require('../models/Season');
@@ -6,6 +7,7 @@ const { createInventoryAdjustment } = require('../controllers/inventoryControlle
 
 // Create a new water quality input
 exports.createWaterQualityInput = async (req, res) => {
+  logger.info('Creating a new water quality input', { body: req.body });
   try {
     const { date, time, pondId, pH, dissolvedOxygen, temperature, salinity, ammonia, nitrite, alkalinity, seasonId, inventoryItemId, quantityUsed } = req.body;
     
@@ -79,11 +81,13 @@ exports.createWaterQualityInput = async (req, res) => {
     res.status(201).json(populatedWaterQualityInput);
   } catch (error) {
     res.status(500).json({ message: 'Error creating water quality input', error: error.message });
+    logger.error('Error creating water quality input', { error: error.message, stack: error.stack });
   }
 };
 
 // Get all water quality inputs
 exports.getAllWaterQualityInputs = async (req, res) => {
+  logger.info('Getting all water quality inputs', { query: req.query });
   try {
     const { seasonId } = req.query;
     let query = {};
@@ -96,11 +100,13 @@ exports.getAllWaterQualityInputs = async (req, res) => {
     res.json(waterQualityInputs);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching water quality inputs', error: error.message });
+    logger.error('Error fetching water quality inputs', { error: error.message, stack: error.stack });
   }
 };
 
 // Get a water quality input by ID
 exports.getWaterQualityInputById = async (req, res) => {
+  logger.info(`Getting water quality input by ID: ${req.params.id}`);
   try {
     const waterQualityInput = await WaterQualityInput.findById(req.params.id)
       .populate('pondId', 'name')
@@ -114,11 +120,13 @@ exports.getWaterQualityInputById = async (req, res) => {
       return res.status(400).json({ message: 'Invalid water quality input ID' });
     }
     res.status(500).json({ message: 'Error fetching water quality input', error: error.message });
+    logger.error(`Error fetching water quality input with ID: ${req.params.id}`, { error: error.message, stack: error.stack });
   }
 };
 
 // Update a water quality input by ID
 exports.updateWaterQualityInput = async (req, res) => {
+  logger.info(`Updating water quality input by ID: ${req.params.id}`, { body: req.body });
   try {
     const { date, time, pondId, pH, dissolvedOxygen, temperature, salinity, ammonia, nitrite, alkalinity, seasonId } = req.body;
     
@@ -172,11 +180,13 @@ exports.updateWaterQualityInput = async (req, res) => {
       return res.status(400).json({ message: 'Invalid water quality input ID' });
     }
     res.status(500).json({ message: 'Error updating water quality input', error: error.message });
+    logger.error(`Error updating water quality input with ID: ${req.params.id}`, { error: error.message, stack: error.stack });
   }
 };
 
 // Delete a water quality input by ID
 exports.deleteWaterQualityInput = async (req, res) => {
+  logger.info(`Deleting water quality input by ID: ${req.params.id}`);
   try {
     const waterQualityInput = await WaterQualityInput.findByIdAndDelete(req.params.id);
     
@@ -190,11 +200,13 @@ exports.deleteWaterQualityInput = async (req, res) => {
       return res.status(400).json({ message: 'Invalid water quality input ID' });
     }
     res.status(500).json({ message: 'Error deleting water quality input', error: error.message });
+    logger.error(`Error deleting water quality input with ID: ${req.params.id}`, { error: error.message, stack: error.stack });
   }
 };
 
 // Get water quality inputs by pond ID
 exports.getWaterQualityInputsByPondId = async (req, res) => {
+  logger.info(`Getting water quality inputs for pond ID: ${req.params.pondId}`, { query: req.query });
   try {
     const { pondId } = req.params;
     const { seasonId } = req.query; // Get seasonId from query
@@ -219,11 +231,13 @@ exports.getWaterQualityInputsByPondId = async (req, res) => {
       return res.status(400).json({ message: 'Invalid pond ID' });
     }
     res.status(500).json({ message: 'Error fetching water quality inputs for pond', error: error.message });
+    logger.error(`Error fetching water quality inputs for pond ID: ${req.params.pondId}`, { error: error.message, stack: error.stack });
   }
 };
 
 // Get water quality inputs by date range
 exports.getWaterQualityInputsByDateRange = async (req, res) => {
+  logger.info('Getting water quality inputs by date range', { query: req.query });
   try {
     const { startDate, endDate, seasonId } = req.query;
     
@@ -249,11 +263,13 @@ exports.getWaterQualityInputsByDateRange = async (req, res) => {
     res.json(waterQualityInputs);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching water quality inputs by date range', error: error.message });
+    logger.error('Error fetching water quality inputs by date range', { error: error.message, stack: error.stack });
   }
 };
 
 // Get water quality inputs by season ID
 exports.getWaterQualityInputsBySeasonId = async (req, res) => {
+  logger.info(`Getting water quality inputs for season ID: ${req.params.seasonId}`);
   try {
     const { seasonId } = req.params;
     
@@ -272,5 +288,6 @@ exports.getWaterQualityInputsBySeasonId = async (req, res) => {
       return res.status(400).json({ message: 'Invalid season ID' });
     }
     res.status(500).json({ message: 'Error fetching water quality inputs for season', error: error.message });
+    logger.error(`Error fetching water quality inputs for season ID: ${req.params.seasonId}`, { error: error.message, stack: error.stack });
   }
 };
