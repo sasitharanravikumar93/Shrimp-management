@@ -36,6 +36,7 @@ app.use('/api/water-quality-inputs', require('./routes/waterQualityInputs'));
 app.use('/api/nursery-batches', require('./routes/nurseryBatches'));
 app.use('/api/events', require('./routes/events'));
 app.use('/api/inventory-items', require('./routes/inventoryRoutes')); // New inventory routes
+app.use('/api/settings', require('./routes/settings')); // Settings route for user preferences
 // Add more route imports here
 
 // Basic route for testing

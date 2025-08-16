@@ -19,10 +19,13 @@ import SpaIcon from '@mui/icons-material/Spa';
 import HistoryIcon from '@mui/icons-material/History';
 import InventoryIcon from '@mui/icons-material/Inventory'; // New import
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 const drawerWidth = 240;
 
 const Sidebar = () => {
+  const { t } = useTranslation();
+  
   return (
     <Drawer
       variant="permanent"
@@ -34,7 +37,7 @@ const Sidebar = () => {
     >
       <Toolbar>
         <Typography variant="h6" noWrap component="div">
-          Shrimp Farm
+          {t('app_title')}
         </Typography>
       </Toolbar>
       <Divider />
@@ -43,61 +46,61 @@ const Sidebar = () => {
           <ListItemIcon>
             <DashboardIcon />
           </ListItemIcon>
-          <ListItemText primary="Dashboard" />
+          <ListItemText primary={t('dashboard')} />
         </ListItem>
         <ListItem button component={Link} to="/feed-input">
           <ListItemIcon>
             <InputIcon />
           </ListItemIcon>
-          <ListItemText primary="Feed Input" />
+          <ListItemText primary={t('feed_inputs')} />
         </ListItem>
         <ListItem button component={Link} to="/growth-sampling">
           <ListItemIcon>
             <ShowChartIcon />
           </ListItemIcon>
-          <ListItemText primary="Growth Sampling" />
+          <ListItemText primary={t('growth_sampling')} />
         </ListItem>
         <ListItem button component={Link} to="/water-quality-input">
           <ListItemIcon>
             <WaterDropIcon />
           </ListItemIcon>
-          <ListItemText primary="Water Quality Input" />
+          <ListItemText primary={t('water_quality')} />
         </ListItem>
         <ListItem button component={Link} to="/nursery-management">
           <ListItemIcon>
             <SpaIcon />
           </ListItemIcon>
-          <ListItemText primary="Nursery Management" />
+          <ListItemText primary={t('nursery_batches')} />
         </ListItem>
         <ListItem button component={Link} to="/inventory-management"> {/* New Inventory Management Link */}
           <ListItemIcon>
             <InventoryIcon />
           </ListItemIcon>
-          <ListItemText primary="Inventory Management" />
+          <ListItemText primary={t('inventory')} />
         </ListItem>
         <ListItem button component={Link} to="/admin">
           <ListItemIcon>
             <AdminPanelSettingsIcon />
           </ListItemIcon>
-          <ListItemText primary="Admin" />
+          <ListItemText primary={t('admin')} />
         </ListItem>
         <ListItem button component={Link} to="/feed-view">
           <ListItemIcon>
             <HistoryIcon />
           </ListItemIcon>
-          <ListItemText primary="Feed History" />
+          <ListItemText primary={t('feed_inputs')} />
         </ListItem>
         <ListItem button component={Link} to="/water-quality-view">
           <ListItemIcon>
             <HistoryIcon />
           </ListItemIcon>
-          <ListItemText primary="Water Quality History" />
+          <ListItemText primary={t('water_quality')} />
         </ListItem>
         <ListItem button component={Link} to="/historical-insights">
           <ListItemIcon>
             <HistoryIcon />
           </ListItemIcon>
-          <ListItemText primary="Historical Insights" />
+          <ListItemText primary={t('historical_insights')} />
         </ListItem>
       </List>
     </Drawer>

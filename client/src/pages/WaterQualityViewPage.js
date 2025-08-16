@@ -32,14 +32,15 @@ import {
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { format } from 'date-fns';
 import { useApiData } from '../hooks/useApi';
 import { 
   getWaterQualityInputs, 
   getPonds 
 } from '../services/api';
+import { useTranslation } from 'react-i18next';
 
 const WaterQualityViewPage = () => {
+  const { t, i18n } = useTranslation();
   const [startDate, setStartDate] = useState(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)); // 30 days ago
   const [endDate, setEndDate] = useState(new Date());
   const [pond, setPond] = useState('');
@@ -125,9 +126,9 @@ const WaterQualityViewPage = () => {
 
   const formatTime = (time) => {
     try {
-      return format(new Date(time), 'HH:mm');
+      return new Date(time).toLocaleTimeString(i18n.language, { hour: '2-digit', minute: '2-digit' });
     } catch (e) {
-      return 'Invalid Time';
+      return t('invalid_time');
     }
   };
 
@@ -294,7 +295,7 @@ const WaterQualityViewPage = () => {
                 {waterQualityEntries.map((entry) => (
                   <TableRow key={entry._id || entry.id}>
                     <TableCell>
-                      {entry.date ? format(new Date(entry.date), 'yyyy-MM-dd') : 'N/A'}
+                      {entry.date ? new Date(entry.date).toLocaleDateString(i18n.language) : 'N/A'}
                     </TableCell>
                     <TableCell>
                       {entry.time ? formatTime(entry.time) : 'N/A'}

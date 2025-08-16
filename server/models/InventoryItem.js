@@ -2,10 +2,9 @@ const mongoose = require('mongoose');
 
 const inventoryItemSchema = new mongoose.Schema({
   itemName: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true
+    type: Map,
+    of: String,
+    required: true
   },
   itemType: {
     type: String,

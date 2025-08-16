@@ -34,7 +34,9 @@ import {
   Alert,
   FormControl,
   InputLabel,
-  Select
+  Select,
+  FormControlLabel,
+  Checkbox
 } from '@mui/material';
 import { 
   Add as AddIcon,
@@ -64,8 +66,10 @@ import {
   copyPondDetails
 } from '../services/api';
 import { format } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 const AdminPage = () => {
+  const { t, i18n } = useTranslation();
   const [activeTab, setActiveTab] = useState(0);
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogType, setDialogType] = useState(''); // 'season', 'pond'
@@ -89,7 +93,7 @@ const AdminPage = () => {
   
   // Form data
   const [formData, setFormData] = useState({
-    name: '',
+    name: { en: '', hi: '', ta: '' },
     startDate: '',
     endDate: '',
     status: '',
@@ -144,14 +148,14 @@ const AdminPage = () => {
       // Populate form with existing data
       if (type === 'season') {
         setFormData({
-          name: item.name || '',
+          name: typeof item.name === 'object' ? item.name : { en: item.name || '', hi: '', ta: '' },
           startDate: item.startDate ? format(new Date(item.startDate), 'yyyy-MM-dd') : '',
           endDate: item.endDate ? format(new Date(item.endDate), 'yyyy-MM-dd') : '',
           status: item.status || ''
         });
       } else if (type === 'pond') {
         setFormData({
-          name: item.name || '',
+          name: typeof item.name === 'object' ? item.name : { en: item.name || '', hi: '', ta: '' },
           size: item.size || '',
           capacity: item.capacity || '',
           seasonId: item.seasonId || item.season || '',
@@ -161,7 +165,7 @@ const AdminPage = () => {
     } else {
       // Reset form for new item
       setFormData({
-        name: '',
+        name: { en: '', hi: '', ta: '' },
         startDate: '',
         endDate: '',
         status: '',
@@ -245,6 +249,17 @@ const AdminPage = () => {
     }));
   };
 
+  // Handle multilingual name input changes
+  const handleNameChange = (language, value) => {
+    setFormData(prev => ({
+      ...prev,
+      name: {
+        ...prev.name,
+        [language]: value
+      }
+    }));
+  };
+
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -298,7 +313,7 @@ const AdminPage = () => {
 
   // Handle delete
   const handleDelete = async (type, id) => {
-    if (window.confirm(`Are you sure you want to delete this ${type}?`)) {
+    if (window.confirm(`${t('areYouSure')} ${t('delete')} ${type}?`)) {
       try {
         if (type === 'season') {
           await deleteSeasonMutation(id);
@@ -316,16 +331,16 @@ const AdminPage = () => {
   // Handle copy pond details
   const handleCopyPondDetails = async () => {
     if (!sourceSeason || !targetSeason) {
-      alert('Please select both source and target seasons');
+      alert(t('select_source_target_seasons'));
       return;
     }
     
     try {
       await copyPondDetailsMutation(sourceSeason, targetSeason);
-      alert('Pond details copied successfully');
+      alert(t('pond_details_copied_successfully'));
     } catch (error) {
       console.error('Error copying pond details:', error);
-      alert('Failed to copy pond details');
+      alert(t('failed_to_copy_pond_details'));
     }
   };
 
@@ -347,7 +362,7 @@ const AdminPage = () => {
   const yieldData = useMemo(() => (seasonsData || [])
     .filter(season => season.status === 'Completed')
     .map(season => ({
-      name: season.name,
+      name: typeof season.name === 'object' ? season.name.en : season.name,
       yield: season.yield ? parseFloat(season.yield.toString().replace(' tons', '')) || 0 : 0
     })), [seasonsData]);
 
@@ -367,7 +382,7 @@ const AdminPage = () => {
     return (
       <Container maxWidth="lg" sx={{ mt: 2, mb: 4 }}>
         <Alert severity="error">
-          Error loading data: {seasonsError || pondsError}
+          {t('error_loading_data')}: {seasonsError || pondsError}
         </Alert>
       </Container>
     );
@@ -381,14 +396,14 @@ const AdminPage = () => {
     <Container maxWidth="lg" sx={{ mt: 2, mb: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4" component="h1" gutterBottom>
-          Administration
+          {t('administration')}
         </Typography>
         <Button 
           variant="contained" 
           startIcon={<ExportIcon />} 
           onClick={() => exportToCSV(activeTab === 0 ? seasons : activeTab === 1 ? ponds : [], 'admin-data')}
         >
-          Export Data
+          {t('export_data')}
         </Button>
       </Box>
       
@@ -414,16 +429,16 @@ const AdminPage = () => {
               }
             }}
           >
-            <Tab icon={<SeasonIcon />} label="Seasons" />
-            <Tab icon={<PondIcon />} label="Ponds" />
-            <Tab icon={<CopyIcon />} label="Copy Pond Details" />
+            <Tab icon={<SeasonIcon />} label={t('seasons')} />
+            <Tab icon={<PondIcon />} label={t('ponds')} />
+            <Tab icon={<CopyIcon />} label={t('copy_pond_details')} />
           </Tabs>
           
           {/* Search and filter bar */}
           {activeTab !== 2 && (
             <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
               <TextField
-                placeholder="Search..."
+                placeholder={t('search')}
                 value={searchTerm}
                 onChange={handleSearch}
                 InputProps={{
@@ -442,19 +457,19 @@ const AdminPage = () => {
                 exclusive
                 onChange={handleFilterChange}
               >
-                <ToggleButton value="all">All</ToggleButton>
+                <ToggleButton value="all">{t('all')}</ToggleButton>
                 {activeTab === 0 && (
                   <>
-                    <ToggleButton value="active">Active</ToggleButton>
-                    <ToggleButton value="planning">Planning</ToggleButton>
-                    <ToggleButton value="completed">Completed</ToggleButton>
+                    <ToggleButton value="active">{t('active')}</ToggleButton>
+                    <ToggleButton value="planning">{t('planning')}</ToggleButton>
+                    <ToggleButton value="completed">{t('completed')}</ToggleButton>
                   </>
                 )}
                 {activeTab === 1 && (
                   <>
-                    <ToggleButton value="active">Active</ToggleButton>
-                    <ToggleButton value="planning">Planning</ToggleButton>
-                    <ToggleButton value="inactive">Inactive</ToggleButton>
+                    <ToggleButton value="active">{t('active')}</ToggleButton>
+                    <ToggleButton value="planning">{t('planning')}</ToggleButton>
+                    <ToggleButton value="inactive">{t('inactive')}</ToggleButton>
                   </>
                 )}
               </ToggleButtonGroup>
@@ -467,14 +482,14 @@ const AdminPage = () => {
                 <Grid item xs={12}>
                   <Card variant="outlined">
                     <CardHeader
-                      title="Manage Seasons"
+                      title={t('manage_seasons')}
                       action={
                         <Button 
                           variant="contained" 
                           startIcon={<AddIcon />} 
                           onClick={() => handleOpenDialog('season')}
                         >
-                          Add New Season
+                          {t('add_new_season')}
                         </Button>
                       }
                     />
@@ -488,10 +503,10 @@ const AdminPage = () => {
                           >
                             <CartesianGrid strokeDasharray="3 3" />
                             <XAxis dataKey="name" />
-                            <YAxis label={{ value: 'Yield (tons)', angle: -90, position: 'insideLeft' }} />
+                            <YAxis label={{ value: t('yield_tons'), angle: -90, position: 'insideLeft' }} />
                             <RechartsTooltip />
                             <Legend />
-                            <Bar dataKey="yield" name="Season Yield" fill="#007BFF" />
+                            <Bar dataKey="yield" name={t('season_yield')} fill="#007BFF" />
                           </BarChart>
                         </ResponsiveContainer>
                       </Box>
@@ -501,17 +516,21 @@ const AdminPage = () => {
                         <Table size="small">
                           <TableHead>
                             <TableRow>
-                              <TableCell sx={{ fontWeight: 'bold' }}>Name</TableCell>
-                              <TableCell sx={{ fontWeight: 'bold' }}>Start Date</TableCell>
-                              <TableCell sx={{ fontWeight: 'bold' }}>End Date</TableCell>
-                              <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
-                              <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>
+                              <TableCell sx={{ fontWeight: 'bold' }}>{t('name')}</TableCell>
+                              <TableCell sx={{ fontWeight: 'bold' }}>{t('startDate')}</TableCell>
+                              <TableCell sx={{ fontWeight: 'bold' }}>{t('endDate')}</TableCell>
+                              <TableCell sx={{ fontWeight: 'bold' }}>{t('status')}</TableCell>
+                              <TableCell sx={{ fontWeight: 'bold' }}>{t('actions')}</TableCell>
                             </TableRow>
                           </TableHead>
                           <TableBody>
                             {getPagedData(seasons).map((season) => (
                               <TableRow key={season._id || season.id}>
-                                <TableCell>{season.name}</TableCell>
+                                <TableCell>
+                                  {typeof season.name === 'object' 
+                                    ? season.name[i18n.language] || season.name.en 
+                                    : season.name}
+                                </TableCell>
                                 <TableCell>
                                   {season.startDate ? format(new Date(season.startDate), 'yyyy-MM-dd') : 'N/A'}
                                 </TableCell>
@@ -530,7 +549,7 @@ const AdminPage = () => {
                                   />
                                 </TableCell>
                                 <TableCell>
-                                  <Tooltip title="Edit">
+                                  <Tooltip title={t('edit')}>
                                     <IconButton 
                                       size="small" 
                                       onClick={() => handleOpenDialog('season', season)}
@@ -538,7 +557,7 @@ const AdminPage = () => {
                                       <EditIcon />
                                     </IconButton>
                                   </Tooltip>
-                                  <Tooltip title="Delete">
+                                  <Tooltip title={t('delete')}>
                                     <IconButton 
                                       size="small" 
                                       color="error"
@@ -575,14 +594,14 @@ const AdminPage = () => {
                 <Grid item xs={12}>
                   <Card variant="outlined">
                     <CardHeader
-                      title="Manage Ponds"
+                      title={t('manage_ponds')}
                       action={
                         <Button 
                           variant="contained" 
                           startIcon={<AddIcon />} 
                           onClick={() => handleOpenDialog('pond')}
                         >
-                          Add New Pond
+                          {t('add_new_pond')}
                         </Button>
                       }
                     />
@@ -591,12 +610,12 @@ const AdminPage = () => {
                         <Table size="small">
                           <TableHead>
                             <TableRow>
-                              <TableCell sx={{ fontWeight: 'bold' }}>Name</TableCell>
-                              <TableCell sx={{ fontWeight: 'bold' }}>Size (m²)</TableCell>
-                              <TableCell sx={{ fontWeight: 'bold' }}>Capacity</TableCell>
-                              <TableCell sx={{ fontWeight: 'bold' }}>Season</TableCell>
-                              <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
-                              <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>
+                              <TableCell sx={{ fontWeight: 'bold' }}>{t('name')}</TableCell>
+                              <TableCell sx={{ fontWeight: 'bold' }}>{t('size_m2')}</TableCell>
+                              <TableCell sx={{ fontWeight: 'bold' }}>{t('capacity')}</TableCell>
+                              <TableCell sx={{ fontWeight: 'bold' }}>{t('season')}</TableCell>
+                              <TableCell sx={{ fontWeight: 'bold' }}>{t('status')}</TableCell>
+                              <TableCell sx={{ fontWeight: 'bold' }}>{t('actions')}</TableCell>
                             </TableRow>
                           </TableHead>
                           <TableBody>
@@ -608,14 +627,20 @@ const AdminPage = () => {
                                     onClick={() => navigate(`/pond/${pond._id || pond.id}`)}
                                     sx={{ justifyContent: 'flex-start', padding: 0, minWidth: 0, textAlign: 'left' }}
                                   >
-                                    {pond.name}
+                                    {typeof pond.name === 'object' 
+                                      ? pond.name[i18n.language] || pond.name.en 
+                                      : pond.name}
                                   </Button>
                                 </TableCell>
                                 <TableCell>{pond.size}</TableCell>
                                 <TableCell>{pond.capacity}</TableCell>
                                 <TableCell>
                                   {pond.seasonId ? 
-                                    (typeof pond.seasonId === 'object' ? pond.seasonId.name : pond.seasonId) : 
+                                    (typeof pond.seasonId === 'object' ? 
+                                      (typeof pond.seasonId.name === 'object' 
+                                        ? pond.seasonId.name[i18n.language] || pond.seasonId.name.en 
+                                        : pond.seasonId.name) : 
+                                      pond.seasonId) : 
                                     'N/A'
                                   }
                                 </TableCell>
@@ -631,7 +656,7 @@ const AdminPage = () => {
                                   />
                                 </TableCell>
                                 <TableCell>
-                                  <Tooltip title="Edit">
+                                  <Tooltip title={t('edit')}>
                                     <IconButton 
                                       size="small" 
                                       onClick={() => handleOpenDialog('pond', pond)}
@@ -639,7 +664,7 @@ const AdminPage = () => {
                                       <EditIcon />
                                     </IconButton>
                                   </Tooltip>
-                                  <Tooltip title="Delete">
+                                  <Tooltip title={t('delete')}>
                                     <IconButton 
                                       size="small" 
                                       color="error"
@@ -675,24 +700,26 @@ const AdminPage = () => {
               <Grid container spacing={3}> 
                 <Grid item xs={12}>
                   <Card variant="outlined">
-                    <CardHeader title="Copy Pond Details" />
+                    <CardHeader title={t('copy_pond_details')} />
                     <CardContent>
                       <Typography variant="body1" paragraph>
-                        Select a source season and a target season to copy pond configurations.
+                        {t('select_source_target_seasons_description')}
                       </Typography>
                       <Grid container spacing={2} sx={{ mb: 3 }}>
                         <Grid item xs={12} md={6}>
                           <FormControl fullWidth variant="outlined">
-                            <InputLabel id="source-season-label">Source Season</InputLabel>
+                            <InputLabel id="source-season-label">{t('source_season')}</InputLabel>
                             <Select
                               labelId="source-season-label"
                               value={sourceSeason}
                               onChange={(e) => setSourceSeason(e.target.value)}
-                              label="Source Season"
+                              label={t('source_season')}
                             >
                               {seasons.map((season) => (
                                 <MenuItem key={season._id || season.id} value={season._id || season.id}>
-                                  {season.name}
+                                  {typeof season.name === 'object' 
+                                    ? season.name[i18n.language] || season.name.en 
+                                    : season.name}
                                 </MenuItem>
                               ))}
                             </Select>
@@ -700,16 +727,18 @@ const AdminPage = () => {
                         </Grid>
                         <Grid item xs={12} md={6}>
                           <FormControl fullWidth variant="outlined">
-                            <InputLabel id="target-season-label">Target Season</InputLabel>
+                            <InputLabel id="target-season-label">{t('target_season')}</InputLabel>
                             <Select
                               labelId="target-season-label"
                               value={targetSeason}
                               onChange={(e) => setTargetSeason(e.target.value)}
-                              label="Target Season"
+                              label={t('target_season')}
                             >
                               {seasons.map((season) => (
                                 <MenuItem key={season._id || season.id} value={season._id || season.id}>
-                                  {season.name}
+                                  {typeof season.name === 'object' 
+                                    ? season.name[i18n.language] || season.name.en 
+                                    : season.name}
                                 </MenuItem>
                               ))}
                             </Select>
@@ -722,7 +751,7 @@ const AdminPage = () => {
                         onClick={handleCopyPondDetails}
                         disabled={copyPondDetailsLoading}
                       >
-                        {copyPondDetailsLoading ? 'Copying...' : 'Copy Pond Details'}
+                        {copyPondDetailsLoading ? t('copying') : t('copy_pond_details')}
                       </Button>
                     </CardContent>
                   </Card>
@@ -736,8 +765,8 @@ const AdminPage = () => {
       {/* Dialog for adding/editing items */}
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
         <DialogTitle>
-          {editingItem ? 'Edit ' : 'Add New '}
-          {dialogType === 'season' ? 'Season' : 'Pond'}
+          {editingItem ? t('edit') : t('add_new')} 
+          {dialogType === 'season' ? t('season') : t('pond')}
         </DialogTitle>
         <DialogContent>
           <form onSubmit={handleSubmit}>
@@ -746,19 +775,40 @@ const AdminPage = () => {
                 <TextField
                   autoFocus
                   margin="dense"
-                  name="name"
-                  label="Season Name"
+                  label={`${t('name')} (${t('english')})`}
                   type="text"
                   fullWidth
                   variant="outlined"
-                  value={formData.name}
-                  onChange={handleInputChange}
+                  value={formData.name.en}
+                  onChange={(e) => handleNameChange('en', e.target.value)}
+                  required
+                />
+                <TextField
+                  margin="dense"
+                  label={`${t('name')} (${t('hindi')})`}
+                  type="text"
+                  fullWidth
+                  variant="outlined"
+                  sx={{ mt: 2 }}
+                  value={formData.name.hi}
+                  onChange={(e) => handleNameChange('hi', e.target.value)}
+                  required
+                />
+                <TextField
+                  margin="dense"
+                  label={`${t('name')} (${t('tamil')})`}
+                  type="text"
+                  fullWidth
+                  variant="outlined"
+                  sx={{ mt: 2 }}
+                  value={formData.name.ta}
+                  onChange={(e) => handleNameChange('ta', e.target.value)}
                   required
                 />
                 <TextField
                   margin="dense"
                   name="startDate"
-                  label="Start Date"
+                  label={t('startDate')}
                   type="date"
                   fullWidth
                   variant="outlined"
@@ -773,7 +823,7 @@ const AdminPage = () => {
                 <TextField
                   margin="dense"
                   name="endDate"
-                  label="End Date"
+                  label={t('endDate')}
                   type="date"
                   fullWidth
                   variant="outlined"
@@ -789,7 +839,7 @@ const AdminPage = () => {
                   margin="dense"
                   name="status"
                   select
-                  label="Status"
+                  label={t('status')}
                   fullWidth
                   variant="outlined"
                   sx={{ mt: 2 }}
@@ -797,9 +847,9 @@ const AdminPage = () => {
                   onChange={handleInputChange}
                   required
                 >
-                  <MenuItem value="Planning">Planning</MenuItem>
-                  <MenuItem value="Active">Active</MenuItem>
-                  <MenuItem value="Completed">Completed</MenuItem>
+                  <MenuItem value="Planning">{t('planning')}</MenuItem>
+                  <MenuItem value="Active">{t('active')}</MenuItem>
+                  <MenuItem value="Completed">{t('completed')}</MenuItem>
                 </TextField>
               </>
             )}
@@ -809,19 +859,40 @@ const AdminPage = () => {
                 <TextField
                   autoFocus
                   margin="dense"
-                  name="name"
-                  label="Pond Name"
+                  label={`${t('name')} (${t('english')})`}
                   type="text"
                   fullWidth
                   variant="outlined"
-                  value={formData.name}
-                  onChange={handleInputChange}
+                  value={formData.name.en}
+                  onChange={(e) => handleNameChange('en', e.target.value)}
+                  required
+                />
+                <TextField
+                  margin="dense"
+                  label={`${t('name')} (${t('hindi')})`}
+                  type="text"
+                  fullWidth
+                  variant="outlined"
+                  sx={{ mt: 2 }}
+                  value={formData.name.hi}
+                  onChange={(e) => handleNameChange('hi', e.target.value)}
+                  required
+                />
+                <TextField
+                  margin="dense"
+                  label={`${t('name')} (${t('tamil')})`}
+                  type="text"
+                  fullWidth
+                  variant="outlined"
+                  sx={{ mt: 2 }}
+                  value={formData.name.ta}
+                  onChange={(e) => handleNameChange('ta', e.target.value)}
                   required
                 />
                 <TextField
                   margin="dense"
                   name="size"
-                  label="Size (m²)"
+                  label={`${t('size')} (m²)`}
                   type="number"
                   fullWidth
                   variant="outlined"
@@ -833,7 +904,7 @@ const AdminPage = () => {
                 <TextField
                   margin="dense"
                   name="capacity"
-                  label="Capacity"
+                  label={t('capacity')}
                   type="number"
                   fullWidth
                   variant="outlined"
@@ -846,7 +917,7 @@ const AdminPage = () => {
                   margin="dense"
                   name="seasonId"
                   select
-                  label="Season"
+                  label={t('season')}
                   fullWidth
                   variant="outlined"
                   sx={{ mt: 2 }}
@@ -856,7 +927,9 @@ const AdminPage = () => {
                 >
                   {seasons.map((season) => (
                     <MenuItem key={season._id || season.id} value={season._id || season.id}>
-                      {season.name}
+                      {typeof season.name === 'object' 
+                        ? season.name[i18n.language] || season.name.en 
+                        : season.name}
                     </MenuItem>
                   ))}
                 </TextField>
@@ -864,7 +937,7 @@ const AdminPage = () => {
                   margin="dense"
                   name="status"
                   select
-                  label="Status"
+                  label={t('status')}
                   fullWidth
                   variant="outlined"
                   sx={{ mt: 2 }}
@@ -872,25 +945,25 @@ const AdminPage = () => {
                   onChange={handleInputChange}
                   required
                 >
-                  <MenuItem value="Planning">Planning</MenuItem>
-                  <MenuItem value="Active">Active</MenuItem>
-                  <MenuItem value="Inactive">Inactive</MenuItem>
-                  <MenuItem value="Completed">Completed</MenuItem>
+                  <MenuItem value="Planning">{t('planning')}</MenuItem>
+                  <MenuItem value="Active">{t('active')}</MenuItem>
+                  <MenuItem value="Inactive">{t('inactive')}</MenuItem>
+                  <MenuItem value="Completed">{t('completed')}</MenuItem>
                 </TextField>
               </>
             )}
           </form>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
+          <Button onClick={handleCloseDialog}>{t('cancel')}</Button>
           <Button 
             onClick={handleSubmit} 
             variant="contained"
             disabled={createSeasonLoading || updateSeasonLoading || createPondLoading || updatePondLoading}
           >
             {createSeasonLoading || updateSeasonLoading || createPondLoading || updatePondLoading ? 
-             'Saving...' : 
-             editingItem ? 'Update' : 'Save'}
+             t('saving') : 
+             editingItem ? t('update') : t('save')}
           </Button>
         </DialogActions>
       </Dialog>

@@ -51,13 +51,15 @@ import {
   getSeasons
 } from '../services/api';
 import { format } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 const NurseryManagementPage = () => {
+  const { t, i18n } = useTranslation();
   const [activeTab, setActiveTab] = useState(0);
   const [openDialog, setOpenDialog] = useState(false);
   const [editingBatch, setEditingBatch] = useState(null);
   const [formData, setFormData] = useState({
-    batchName: '',
+    batchName: { en: '', hi: '', ta: '' },
     startDate: new Date(),
     initialCount: '',
     species: '',
@@ -94,7 +96,7 @@ const NurseryManagementPage = () => {
     if (batch) {
       setEditingBatch(batch);
       setFormData({
-        batchName: batch.batchName || batch.name || '',
+        batchName: typeof batch.batchName === 'object' ? batch.batchName : { en: batch.batchName || batch.name || '', hi: '', ta: '' },
         startDate: batch.startDate ? new Date(batch.startDate) : new Date(),
         initialCount: batch.initialCount || '',
         species: batch.species || '',
@@ -105,7 +107,7 @@ const NurseryManagementPage = () => {
     } else {
       setEditingBatch(null);
       setFormData({
-        batchName: '',
+        batchName: { en: '', hi: '', ta: '' },
         startDate: new Date(),
         initialCount: '',
         species: '',
@@ -127,6 +129,17 @@ const NurseryManagementPage = () => {
     setFormData(prev => ({
       ...prev,
       [name]: value
+    }));
+  };
+
+  // Handle multilingual batch name input changes
+  const handleBatchNameChange = (language, value) => {
+    setFormData(prev => ({
+      ...prev,
+      batchName: {
+        ...prev.batchName,
+        [language]: value
+      }
     }));
   };
 
@@ -167,7 +180,7 @@ const NurseryManagementPage = () => {
   };
 
   const handleDeleteBatch = async (batchId) => {
-    if (window.confirm('Are you sure you want to delete this nursery batch?')) {
+    if (window.confirm(`${t('areYouSure')} ${t('delete')} ${t('nursery_batch')}?`)) {
       try {
         await deleteBatchMutation(batchId);
         refetchNurseryBatches();
@@ -193,7 +206,7 @@ const NurseryManagementPage = () => {
     return (
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
         <Alert severity="error">
-          Error loading data: {nurseryBatchesError || seasonsError}
+          {t('error_loading_data')}: {nurseryBatchesError || seasonsError}
         </Alert>
       </Container>
     );
@@ -206,7 +219,7 @@ const NurseryManagementPage = () => {
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       <Typography variant="h4" component="h1" gutterBottom>
-        Nursery Management
+        {t('nursery_management')}
       </Typography>
       
       <Card elevation={3}>
@@ -218,7 +231,7 @@ const NurseryManagementPage = () => {
             variant="scrollable"
             scrollButtons="auto"
           >
-            <Tab label="Nursery Batches" />
+            <Tab label={t('nursery_batches')} />
           </Tabs>
           
           <Divider sx={{ mb: 3 }} />
@@ -228,14 +241,14 @@ const NurseryManagementPage = () => {
               <Grid item xs={12}>
                 <Card variant="outlined">
                   <CardHeader
-                    title="Manage Nursery Batches"
+                    title={t('manage_nursery_batches')}
                     action={
                       <Button 
                         variant="contained" 
                         startIcon={<AddIcon />} 
                         onClick={() => handleOpenDialog()}
                       >
-                        Add New Batch
+                        {t('add_new_batch')}
                       </Button>
                     }
                   />
@@ -244,20 +257,24 @@ const NurseryManagementPage = () => {
                       <Table>
                         <TableHead>
                           <TableRow>
-                            <TableCell>Batch Name</TableCell>
-                            <TableCell>Start Date</TableCell>
-                            <TableCell>Initial Count</TableCell>
-                            <TableCell>Species</TableCell>
-                            <TableCell>Source</TableCell>
-                            <TableCell>Season</TableCell>
-                            <TableCell>Status</TableCell>
-                            <TableCell>Actions</TableCell>
+                            <TableCell>{t('batchName')}</TableCell>
+                            <TableCell>{t('startDate')}</TableCell>
+                            <TableCell>{t('initialCount')}</TableCell>
+                            <TableCell>{t('species')}</TableCell>
+                            <TableCell>{t('source')}</TableCell>
+                            <TableCell>{t('season')}</TableCell>
+                            <TableCell>{t('status')}</TableCell>
+                            <TableCell>{t('actions')}</TableCell>
                           </TableRow>
                         </TableHead>
                         <TableBody>
                           {nurseryBatches.map((batch) => (
                             <TableRow key={batch._id || batch.id}>
-                              <TableCell>{batch.batchName || batch.name}</TableCell>
+                              <TableCell>
+                                {typeof batch.batchName === 'object' 
+                                  ? batch.batchName[i18n.language] || batch.batchName.en 
+                                  : batch.batchName}
+                              </TableCell>
                               <TableCell>
                                 {batch.startDate ? format(new Date(batch.startDate), 'yyyy-MM-dd') : 'N/A'}
                               </TableCell>
@@ -266,7 +283,11 @@ const NurseryManagementPage = () => {
                               <TableCell>{batch.source}</TableCell>
                               <TableCell>
                                 {batch.seasonId ? 
-                                  (typeof batch.seasonId === 'object' ? batch.seasonId.name : batch.seasonId) : 
+                                  (typeof batch.seasonId === 'object' ? 
+                                    (typeof batch.seasonId.name === 'object' 
+                                      ? batch.seasonId.name[i18n.language] || batch.seasonId.name.en 
+                                      : batch.seasonId.name) : 
+                                    batch.seasonId) : 
                                   'N/A'
                                 }
                               </TableCell>
@@ -282,7 +303,7 @@ const NurseryManagementPage = () => {
                                 />
                               </TableCell>
                               <TableCell>
-                                <Tooltip title="Edit">
+                                <Tooltip title={t('edit')}>
                                   <IconButton 
                                     size="small" 
                                     onClick={() => handleOpenDialog(batch)}
@@ -290,7 +311,7 @@ const NurseryManagementPage = () => {
                                     <EditIcon />
                                   </IconButton>
                                 </Tooltip>
-                                <Tooltip title="Delete">
+                                <Tooltip title={t('delete')}>
                                   <IconButton 
                                     size="small" 
                                     color="error" 
@@ -317,23 +338,42 @@ const NurseryManagementPage = () => {
       {/* Dialog for adding/editing nursery batches */}
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
         <DialogTitle>
-          {editingBatch ? 'Edit Nursery Batch' : 'Add New Nursery Batch'}
+          {editingBatch ? t('edit_nursery_batch') : t('add_new_nursery_batch')}
         </DialogTitle>
         <DialogContent>
           <LocalizationProvider dateAdapter={AdapterDateFns}>
             <TextField
               autoFocus
               margin="dense"
-              name="batchName"
-              label="Batch Name"
+              label={`${t('batchName')} (${t('english')})`}
               type="text"
               fullWidth
               variant="outlined"
-              value={formData.batchName}
-              onChange={handleInputChange}
+              value={formData.batchName.en}
+              onChange={(e) => handleBatchNameChange('en', e.target.value)}
+            />
+            <TextField
+              margin="dense"
+              label={`${t('batchName')} (${t('hindi')})`}
+              type="text"
+              fullWidth
+              variant="outlined"
+              sx={{ mt: 2 }}
+              value={formData.batchName.hi}
+              onChange={(e) => handleBatchNameChange('hi', e.target.value)}
+            />
+            <TextField
+              margin="dense"
+              label={`${t('batchName')} (${t('tamil')})`}
+              type="text"
+              fullWidth
+              variant="outlined"
+              sx={{ mt: 2 }}
+              value={formData.batchName.ta}
+              onChange={(e) => handleBatchNameChange('ta', e.target.value)}
             />
             <DatePicker
-              label="Start Date"
+              label={t('startDate')}
               value={formData.startDate}
               onChange={handleDateChange}
               renderInput={(params) => <TextField {...params} fullWidth variant="outlined" sx={{ mt: 2 }} />}
@@ -341,7 +381,7 @@ const NurseryManagementPage = () => {
             <TextField
               margin="dense"
               name="initialCount"
-              label="Initial Count"
+              label={t('initialCount')}
               type="number"
               fullWidth
               variant="outlined"
@@ -352,7 +392,7 @@ const NurseryManagementPage = () => {
             <TextField
               margin="dense"
               name="species"
-              label="Species"
+              label={t('species')}
               type="text"
               fullWidth
               variant="outlined"
@@ -363,7 +403,7 @@ const NurseryManagementPage = () => {
             <TextField
               margin="dense"
               name="source"
-              label="Source"
+              label={t('source')}
               type="text"
               fullWidth
               variant="outlined"
@@ -372,46 +412,48 @@ const NurseryManagementPage = () => {
               onChange={handleInputChange}
             />
             <FormControl fullWidth variant="outlined" margin="dense" sx={{ mt: 2 }}>
-              <InputLabel id="season-select-label">Season</InputLabel>
+              <InputLabel id="season-select-label">{t('season')}</InputLabel>
               <Select
                 labelId="season-select-label"
                 name="seasonId"
                 value={formData.seasonId}
                 onChange={handleInputChange}
-                label="Season"
+                label={t('season')}
               >
                 {seasons.map((season) => (
                   <MenuItem key={season._id || season.id} value={season._id || season.id}>
-                    {season.name}
+                    {typeof season.name === 'object' 
+                      ? season.name[i18n.language] || season.name.en 
+                      : season.name}
                   </MenuItem>
                 ))}
               </Select>
             </FormControl>
             <FormControl fullWidth variant="outlined" margin="dense" sx={{ mt: 2 }}>
-              <InputLabel id="status-select-label">Status</InputLabel>
+              <InputLabel id="status-select-label">{t('status')}</InputLabel>
               <Select
                 labelId="status-select-label"
                 name="status"
                 value={formData.status}
                 onChange={handleInputChange}
-                label="Status"
+                label={t('status')}
               >
-                <MenuItem value="Active">Active</MenuItem>
-                <MenuItem value="Inactive">Inactive</MenuItem>
-                <MenuItem value="Completed">Completed</MenuItem>
+                <MenuItem value="Active">{t('active')}</MenuItem>
+                <MenuItem value="Inactive">{t('inactive')}</MenuItem>
+                <MenuItem value="Completed">{t('completed')}</MenuItem>
               </Select>
             </FormControl>
           </LocalizationProvider>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
+          <Button onClick={handleCloseDialog}>{t('cancel')}</Button>
           <Button 
             onClick={handleSubmit} 
             variant="contained"
             disabled={createBatchLoading || updateBatchLoading}
           >
-            {createBatchLoading || updateBatchLoading ? 'Saving...' : 
-             editingBatch ? 'Update Batch' : 'Save Batch'}
+            {createBatchLoading || updateBatchLoading ? t('saving') : 
+             editingBatch ? t('update_batch') : t('save_batch')}
           </Button>
         </DialogActions>
       </Dialog>

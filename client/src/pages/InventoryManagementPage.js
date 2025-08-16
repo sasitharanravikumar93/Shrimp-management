@@ -25,8 +25,11 @@ import HistoryIcon from '@mui/icons-material/History';
 import InventoryForm from '../components/InventoryForm';
 import InventoryAdjustmentModal from '../components/InventoryAdjustmentModal';
 import AdjustmentHistoryModal from '../components/AdjustmentHistoryModal'; // New import
+import useApi from '../hooks/useApi';
+import { useTranslation } from 'react-i18next';
 
 const InventoryManagementPage = () => {
+  const { t, i18n } = useTranslation();
   const [inventoryItems, setInventoryItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -48,7 +51,7 @@ const InventoryManagementPage = () => {
       setInventoryItems(response.data);
     } catch (err) {
       console.error('Error fetching inventory items:', err);
-      setError('Failed to fetch inventory items. Please try again.');
+      setError(t('failed_to_fetch_inventory_items'));
     } finally {
       setLoading(false);
     }
@@ -63,7 +66,10 @@ const InventoryManagementPage = () => {
   };
 
   const filteredItems = inventoryItems.filter(item =>
-    (item.itemName && item.itemName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (item.itemName && 
+      (typeof item.itemName === 'object' 
+        ? (item.itemName[i18n.language] || item.itemName.en || '').toLowerCase().includes(searchTerm.toLowerCase())
+        : item.itemName.toLowerCase().includes(searchTerm.toLowerCase()))) ||
     (item.itemType && item.itemType.toLowerCase().includes(searchTerm.toLowerCase())) ||
     (item.supplier && item.supplier.toLowerCase().includes(searchTerm.toLowerCase()))
   );
@@ -110,13 +116,13 @@ const InventoryManagementPage = () => {
   };
 
   const handleDeleteItem = async (id) => {
-    if (window.confirm('Are you sure you want to delete this inventory item? This action is not reversible.')) {
+    if (window.confirm(`${t('areYouSure')} ${t('delete')} ${t('inventory_item')}? ${t('action_not_reversible')}`)) {
       try {
         await api.delete(`/inventory/${id}`);
         fetchInventoryItems(); // Refresh list
       } catch (err) {
         console.error('Error deleting inventory item:', err);
-        setError('Failed to delete inventory item. Please try again.');
+        setError(t('failed_to_delete_inventory_item'));
       }
     }
   };
@@ -124,30 +130,38 @@ const InventoryManagementPage = () => {
   // Helper to determine status
   const getItemStatus = (item) => {
     const currentQty = item.currentQuantity;
-    if (currentQty <= 0) return 'Out of Stock';
-    if (item.lowStockThreshold && currentQty <= item.lowStockThreshold) return 'Low Stock';
-    return 'In Stock';
+    if (currentQty <= 0) return t('out_of_stock');
+    if (item.lowStockThreshold && currentQty <= item.lowStockThreshold) return t('low_stock');
+    return t('in_stock');
+  };
+
+  // Helper to get item name based on language
+  const getItemName = (item) => {
+    if (typeof item.itemName === 'object') {
+      return item.itemName[i18n.language] || item.itemName.en || '';
+    }
+    return item.itemName || '';
   };
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h4" component="h1">
-          Inventory Management
+          {t('inventory_management')}
         </Typography>
         <Button
           variant="contained"
           startIcon={<AddIcon />}
           onClick={() => handleOpenForm()}
         >
-          Add New Item
+          {t('add_new_item')}
         </Button>
       </Box>
 
       <Paper sx={{ p: 3, mb: 3 }}>
         <TextField
           fullWidth
-          label="Search Inventory"
+          label={t('search_inventory')}
           variant="outlined"
           value={searchTerm}
           onChange={handleSearchChange}
@@ -179,28 +193,28 @@ const InventoryManagementPage = () => {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell>Item Name</TableCell>
-                  <TableCell>Type</TableCell>
-                  <TableCell>Supplier</TableCell>
-                  <TableCell>Unit</TableCell>
-                  <TableCell align="right">Cost/Unit</TableCell>
-                  <TableCell align="right">Current Qty</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>Actions</TableCell>
+                  <TableCell>{t('itemName')}</TableCell>
+                  <TableCell>{t('itemType')}</TableCell>
+                  <TableCell>{t('supplier')}</TableCell>
+                  <TableCell>{t('unit')}</TableCell>
+                  <TableCell align="right">{t('costPerUnit')}</TableCell>
+                  <TableCell align="right">{t('current_quantity')}</TableCell>
+                  <TableCell>{t('status')}</TableCell>
+                  <TableCell>{t('actions')}</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {filteredItems.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={8} align="center">
-                      No inventory items found.
+                      {t('no_inventory_items_found')}
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredItems.map((item) => (
                     <TableRow key={item._id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
                       <TableCell component="th" scope="row">
-                        {item.itemName}
+                        {getItemName(item)}
                       </TableCell>
                       <TableCell>{item.itemType}</TableCell>
                       <TableCell>{item.supplier}</TableCell>
@@ -212,9 +226,9 @@ const InventoryManagementPage = () => {
                           variant="body2"
                           sx={{
                             color:
-                              getItemStatus(item) === 'Low Stock'
+                              getItemStatus(item) === t('low_stock')
                                 ? 'orange'
-                                : getItemStatus(item) === 'Out of Stock'
+                                : getItemStatus(item) === t('out_of_stock')
                                 ? 'red'
                                 : 'green',
                             fontWeight: 'bold',

@@ -20,11 +20,7 @@ import {
   Tooltip,
   TextField,
   InputAdornment,
-  Badge,
-  Select,
-  FormControl,
-  InputLabel,
-  OutlinedInput
+  Badge
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -45,10 +41,13 @@ import {
   Restaurant as FeedIcon,
   Science as GrowthIcon,
   Brightness4 as DarkModeIcon,
-  Brightness7 as LightModeIcon
+  Brightness7 as LightModeIcon,
+  Language as LanguageIcon,
+  Inventory as InventoryIcon
 } from '@mui/icons-material';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useSeason } from '../context/SeasonContext';
+import LanguageSwitcher from './LanguageSwitcher';
 
 // Collapsible sidebar width constants
 const drawerWidth = 240;
@@ -128,6 +127,7 @@ const Layout = ({ children, toggleDarkMode, darkMode }) => {
     },
     { text: 'Admin', icon: <AdminIcon />, path: '/admin' },
     { text: 'Nursery', icon: <NurseryIcon />, path: '/nursery' },
+    { text: 'Inventory Management', icon: <InventoryIcon />, path: '/inventory' },
     { text: 'Historical Insights', icon: <HistoryIcon />, path: '/historical-insights' },
   ];
 
@@ -444,6 +444,15 @@ const Layout = ({ children, toggleDarkMode, darkMode }) => {
             <SettingsIcon fontSize="small" />
           </ListItemIcon>
           <ListItemText>Settings</ListItemText>
+        </MenuItem>
+        <Divider />
+        <MenuItem>
+          <ListItemIcon>
+            <LanguageIcon fontSize="small" />
+          </ListItemIcon>
+          <Box sx={{ width: 200 }}>
+            <LanguageSwitcher />
+          </Box>
         </MenuItem>
         <Divider />
         <MenuItem onClick={handleLogout}>

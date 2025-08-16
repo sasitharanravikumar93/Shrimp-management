@@ -14,6 +14,7 @@ import {
   TrendingFlat as TrendingFlatIcon
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 
 const KPICard = ({ 
   title, 
@@ -28,6 +29,8 @@ const KPICard = ({
   suffix = '',
   delay = 0
 }) => {
+  const { t } = useTranslation();
+  
   // Format value based on type
   const formatValue = (val) => {
     if (isCurrency) {
@@ -66,7 +69,7 @@ const KPICard = ({
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <Box>
               <Typography variant="body2" color="text.secondary" gutterBottom>
-                {title}
+                {t(title)}
               </Typography>
               <Typography variant="h5" component="div" sx={{ fontWeight: 600, mb: 1 }}>
                 {formatValue(value)}
@@ -118,6 +121,8 @@ export const CircularKPICard = ({
   size = 120,
   delay = 0
 }) => {
+  const { t } = useTranslation();
+  
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
@@ -177,7 +182,7 @@ export const CircularKPICard = ({
           </Box>
         </Box>
         <Typography variant="h6" component="div" sx={{ fontWeight: 600, textAlign: 'center' }}>
-          {title}
+          {t(title)}
         </Typography>
         {(change !== 0 || changeText) && (
           <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>

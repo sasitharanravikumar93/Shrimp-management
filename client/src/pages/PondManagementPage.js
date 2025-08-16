@@ -44,7 +44,6 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
-import { format } from 'date-fns';
 import { useSeason } from '../context/SeasonContext';
 import { useParams } from 'react-router-dom';
 import { useApiData, useApiMutation } from '../hooks/useApi';
@@ -82,8 +81,10 @@ import HarvestProjection from '../components/HarvestProjection';
 import FeedCalculator from '../components/FeedCalculator';
 import WaterQualityAlert from '../components/WaterQualityAlert';
 import EventSuggestions from '../components/EventSuggestions';
+import { useTranslation } from 'react-i18next';
 
 const PondManagementPage = () => {
+  const { t, i18n } = useTranslation();
   const api = useApi(); // Initialize useApi
 
   const [feedInventoryItems, setFeedInventoryItems] = useState([]);
@@ -319,21 +320,21 @@ const PondManagementPage = () => {
     setOpenAddModal(false);
   };
 
-  // Format date for display
+  // Format date for display using locale-aware formatting
   const formatDate = (date) => {
     try {
-      return format(new Date(date), 'yyyy-MM-dd');
+      return new Date(date).toLocaleDateString(i18n.language);
     } catch (e) {
-      return 'Invalid Date';
+      return t('invalid_date');
     }
   };
 
-  // Format time for display
+  // Format time for display using locale-aware formatting
   const formatTime = (time) => {
     try {
-      return format(new Date(time), 'HH:mm');
+      return new Date(time).toLocaleTimeString(i18n.language, { hour: '2-digit', minute: '2-digit' });
     } catch (e) {
-      return 'Invalid Time';
+      return t('invalid_time');
     }
   };
 
@@ -1223,10 +1224,10 @@ const PondManagementPage = () => {
                                       {event.title}
                                     </Typography>
                                     <Typography variant="body2" color="text.secondary">
-                                      {format(new Date(event.start), 'MMM d, yyyy')}
+                                      {new Date(event.start).toLocaleDateString(i18n.language, { year: 'numeric', month: 'short', day: 'numeric' })}
                                     </Typography>
                                     <Typography variant="body2" color="text.secondary">
-                                      {format(new Date(event.start), 'HH:mm')} - {format(new Date(event.end), 'HH:mm')}
+                                      {new Date(event.start).toLocaleTimeString(i18n.language, { hour: '2-digit', minute: '2-digit' })} - {new Date(event.end).toLocaleTimeString(i18n.language, { hour: '2-digit', minute: '2-digit' })}
                                     </Typography>
                                   </Box>
                                   <Chip 
@@ -1293,10 +1294,10 @@ const PondManagementPage = () => {
           {selectedEvent && (
             <Box>
               <Typography variant="body1" sx={{ mb: 2 }}>
-                <strong>Date:</strong> {format(new Date(selectedEvent.start), 'MMM d, yyyy')}
+                <strong>{t('date')}:</strong> {new Date(selectedEvent.start).toLocaleDateString(i18n.language, { year: 'numeric', month: 'short', day: 'numeric' })}
               </Typography>
               <Typography variant="body1" sx={{ mb: 2 }}>
-                <strong>Time:</strong> {format(new Date(selectedEvent.start), 'HH:mm')} - {format(new Date(selectedEvent.end), 'HH:mm')}
+                <strong>{t('time')}:</strong> {new Date(selectedEvent.start).toLocaleTimeString(i18n.language, { hour: '2-digit', minute: '2-digit' })} - {new Date(selectedEvent.end).toLocaleTimeString(i18n.language, { hour: '2-digit', minute: '2-digit' })}
               </Typography>
               <Typography variant="body1" sx={{ mb: 2 }}>
                 <strong>Type:</strong> {selectedEvent.type}
