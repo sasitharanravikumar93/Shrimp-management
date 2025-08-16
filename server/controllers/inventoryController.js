@@ -1,3 +1,4 @@
+const logger = require('../logger');
 const InventoryItem = require('../models/InventoryItem');
 const InventoryAdjustment = require('../models/InventoryAdjustment');
 const mongoose = require('mongoose');
@@ -14,7 +15,7 @@ const getLanguageForUser = (req) => {
   if (req.headers['accept-language']) {
     const acceptedLanguages = req.headers['accept-language'].split(',').map(lang => lang.trim().split(';')[0]);
     for (const lang of acceptedLanguages) {
-      if (['en', 'hi', 'ta'].includes(lang)) {
+      if (['en', 'hi', 'ta', 'kn', 'te'].includes(lang)) {
         return lang;
       }
     }
@@ -63,6 +64,7 @@ const calculateCurrentQuantity = async (inventoryItemId) => {
 
 // Create a new inventory item
 exports.createInventoryItem = async (req, res) => {
+  logger.info('Creating a new inventory item', { body: req.body });
   try {
     const { itemName, itemType, supplier, purchaseDate, unit, costPerUnit, lowStockThreshold } = req.body;
 
@@ -87,11 +89,13 @@ exports.createInventoryItem = async (req, res) => {
       return res.status(400).json({ message: 'Inventory item with this name already exists.' });
     }
     res.status(500).json({ message: 'Error creating inventory item', error: error.message });
+    logger.error('Error creating inventory item', { error: error.message, stack: error.stack });
   }
 };
 
 // Get all inventory items (active by default)
 exports.getAllInventoryItems = async (req, res) => {
+  logger.info('Getting all inventory items', { query: req.query });
   try {
     const language = getLanguageForUser(req);
     const { itemType, search, includeInactive } = req.query;
@@ -122,11 +126,13 @@ exports.getAllInventoryItems = async (req, res) => {
     res.json(itemsWithQuantity);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching inventory items', error: error.message });
+    logger.error('Error fetching inventory items', { error: error.message, stack: error.stack });
   }
 };
 
 // Get a single inventory item by ID
 exports.getInventoryItemById = async (req, res) => {
+  logger.info(`Getting inventory item by ID: ${req.params.id}`);
   try {
     const language = getLanguageForUser(req);
     const inventoryItem = await InventoryItem.findById(req.params.id);
@@ -141,11 +147,13 @@ exports.getInventoryItemById = async (req, res) => {
       return res.status(400).json({ message: 'Invalid inventory item ID' });
     }
     res.status(500).json({ message: 'Error fetching inventory item', error: error.message });
+    logger.error(`Error fetching inventory item with ID: ${req.params.id}`, { error: error.message, stack: error.stack });
   }
 };
 
 // Update an inventory item
 exports.updateInventoryItem = async (req, res) => {
+  logger.info(`Updating inventory item by ID: ${req.params.id}`, { body: req.body });
   try {
     const { itemName, itemType, supplier, purchaseDate, unit, costPerUnit, lowStockThreshold } = req.body;
     
@@ -182,11 +190,13 @@ exports.updateInventoryItem = async (req, res) => {
       return res.status(400).json({ message: 'Inventory item with this name already exists.' });
     }
     res.status(500).json({ message: 'Error updating inventory item', error: error.message });
+    logger.error(`Error updating inventory item with ID: ${req.params.id}`, { error: error.message, stack: error.stack });
   }
 };
 
 // Soft delete an inventory item
 exports.deleteInventoryItem = async (req, res) => {
+  logger.info(`Soft-deleting inventory item by ID: ${req.params.id}`);
   try {
     const inventoryItem = await InventoryItem.findByIdAndUpdate(
       req.params.id,
@@ -204,11 +214,13 @@ exports.deleteInventoryItem = async (req, res) => {
       return res.status(400).json({ message: 'Invalid inventory item ID' });
     }
     res.status(500).json({ message: 'Error soft-deleting inventory item', error: error.message });
+    logger.error(`Error soft-deleting inventory item with ID: ${req.params.id}`, { error: error.message, stack: error.stack });
   }
 };
 
 // Create an inventory adjustment
 exports.createInventoryAdjustment = async (req, res) => {
+  logger.info('Creating a new inventory adjustment', { body: req.body });
   try {
     const { inventoryItemId, adjustmentType, quantityChange, reason, relatedDocument, relatedDocumentModel } = req.body;
 
@@ -244,6 +256,7 @@ exports.createInventoryAdjustment = async (req, res) => {
   } catch (error) {
     if (res && typeof res.status === 'function') {
       res.status(500).json({ message: 'Error creating inventory adjustment', error: error.message });
+      logger.error('Error creating inventory adjustment', { error: error.message, stack: error.stack });
     } else {
       throw new Error(`Error creating inventory adjustment: ${error.message}`);
     }
@@ -252,6 +265,7 @@ exports.createInventoryAdjustment = async (req, res) => {
 
 // Get adjustments for a specific inventory item
 exports.getInventoryAdjustmentsByItemId = async (req, res) => {
+  logger.info(`Getting inventory adjustments for item ID: ${req.params.id}`);
   try {
     const { id } = req.params; // inventoryItemId
 
@@ -268,11 +282,13 @@ exports.getInventoryAdjustmentsByItemId = async (req, res) => {
       return res.status(400).json({ message: 'Invalid inventory item ID' });
     }
     res.status(500).json({ message: 'Error fetching inventory adjustments', error: error.message });
+    logger.error(`Error fetching inventory adjustments for item ID: ${req.params.id}`, { error: error.message, stack: error.stack });
   }
 };
 
 // Get aggregated inventory data (current quantity and usage)
 exports.getAggregatedInventoryData = async (req, res) => {
+  logger.info('Getting aggregated inventory data', { query: req.query });
   try {
     const language = getLanguageForUser(req);
     const { seasonId, pondId, itemType, itemName } = req.query;
@@ -463,5 +479,6 @@ exports.getAggregatedInventoryData = async (req, res) => {
 
   } catch (error) {
     res.status(500).json({ message: 'Error fetching aggregated inventory data', error: error.message });
+    logger.error('Error fetching aggregated inventory data', { error: error.message, stack: error.stack });
   }
 };

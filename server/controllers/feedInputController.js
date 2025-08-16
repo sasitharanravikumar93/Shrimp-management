@@ -1,3 +1,4 @@
+const logger = require('../logger');
 const FeedInput = require('../models/FeedInput');
 const Pond = require('../models/Pond');
 const Season = require('../models/Season');
@@ -7,6 +8,7 @@ const Event = require('../models/Event'); // New import
 
 // Create a new feed input
 exports.createFeedInput = async (req, res) => {
+  logger.info('Creating a new feed input', { body: req.body });
   try {
     const { date, time, pondId, inventoryItemId, quantity, seasonId } = req.body;
     
@@ -68,11 +70,13 @@ exports.createFeedInput = async (req, res) => {
     res.status(201).json(feedInput);
   } catch (error) {
     res.status(500).json({ message: 'Error creating feed input', error: error.message });
+    logger.error('Error creating feed input', { error: error.message, stack: error.stack });
   }
 };
 
 // Get all feed inputs
 exports.getAllFeedInputs = async (req, res) => {
+  logger.info('Getting all feed inputs', { query: req.query });
   try {
     const { seasonId } = req.query;
     let query = {};
@@ -86,11 +90,13 @@ exports.getAllFeedInputs = async (req, res) => {
     res.json(feedInputs);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching feed inputs', error: error.message });
+    logger.error('Error fetching feed inputs', { error: error.message, stack: error.stack });
   }
 };
 
 // Get a feed input by ID
 exports.getFeedInputById = async (req, res) => {
+  logger.info(`Getting feed input by ID: ${req.params.id}`);
   try {
     const feedInput = await FeedInput.findById(req.params.id)
       .populate('pondId', 'name')
@@ -105,12 +111,14 @@ exports.getFeedInputById = async (req, res) => {
       return res.status(400).json({ message: 'Invalid feed input ID' });
     }
     res.status(500).json({ message: 'Error fetching feed input', error: error.message });
+    logger.error(`Error fetching feed input with ID: ${req.params.id}`, { error: error.message, stack: error.stack });
   }
 };
 
 // Update a feed input by ID
 // Update a feed input by ID
 exports.updateFeedInput = async (req, res) => {
+  logger.info(`Updating feed input by ID: ${req.params.id}`, { body: req.body });
   try {
     const { date, time, pondId, inventoryItemId, quantity, seasonId } = req.body;
     
@@ -156,11 +164,13 @@ exports.updateFeedInput = async (req, res) => {
       return res.status(400).json({ message: 'Invalid feed input ID' });
     }
     res.status(500).json({ message: 'Error updating feed input', error: error.message });
+    logger.error(`Error updating feed input with ID: ${req.params.id}`, { error: error.message, stack: error.stack });
   }
 };
 
 // Delete a feed input by ID
 exports.deleteFeedInput = async (req, res) => {
+  logger.info(`Deleting feed input by ID: ${req.params.id}`);
   try {
     const feedInput = await FeedInput.findById(req.params.id); // Find first to get details for reversal
     
@@ -190,11 +200,13 @@ exports.deleteFeedInput = async (req, res) => {
       return res.status(400).json({ message: 'Invalid feed input ID' });
     }
     res.status(500).json({ message: 'Error deleting feed input', error: error.message });
+    logger.error(`Error deleting feed input with ID: ${req.params.id}`, { error: error.message, stack: error.stack });
   }
 };
 
 // Get feed inputs by pond ID
 exports.getFeedInputsByPondId = async (req, res) => {
+  logger.info(`Getting feed inputs for pond ID: ${req.params.pondId}`, { query: req.query });
   try {
     const { pondId } = req.params;
     const { seasonId } = req.query; // Get seasonId from query
@@ -220,11 +232,13 @@ exports.getFeedInputsByPondId = async (req, res) => {
       return res.status(400).json({ message: 'Invalid pond ID' });
     }
     res.status(500).json({ message: 'Error fetching feed inputs for pond', error: error.message });
+    logger.error(`Error fetching feed inputs for pond ID: ${req.params.pondId}`, { error: error.message, stack: error.stack });
   }
 };
 
 // Get feed inputs by date range
 exports.getFeedInputsByDateRange = async (req, res) => {
+  logger.info('Getting feed inputs by date range', { query: req.query });
   try {
     const { startDate, endDate, seasonId } = req.query;
     
@@ -251,11 +265,13 @@ exports.getFeedInputsByDateRange = async (req, res) => {
     res.json(feedInputs);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching feed inputs by date range', error: error.message });
+    logger.error('Error fetching feed inputs by date range', { error: error.message, stack: error.stack });
   }
 };
 
 // Get feed inputs by season ID
 exports.getFeedInputsBySeasonId = async (req, res) => {
+  logger.info(`Getting feed inputs for season ID: ${req.params.seasonId}`);
   try {
     const { seasonId } = req.params;
     
@@ -275,5 +291,6 @@ exports.getFeedInputsBySeasonId = async (req, res) => {
       return res.status(400).json({ message: 'Invalid season ID' });
     }
     res.status(500).json({ message: 'Error fetching feed inputs for season', error: error.message });
+    logger.error(`Error fetching feed inputs for season ID: ${req.params.seasonId}`, { error: error.message, stack: error.stack });
   }
 };

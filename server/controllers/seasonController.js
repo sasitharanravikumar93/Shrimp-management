@@ -12,7 +12,7 @@ const getLanguageForUser = (req) => {
   if (req.headers['accept-language']) {
     const acceptedLanguages = req.headers['accept-language'].split(',').map(lang => lang.trim().split(';')[0]);
     for (const lang of acceptedLanguages) {
-      if (['en', 'hi', 'ta'].includes(lang)) {
+      if (['en', 'hi', 'ta', 'kn', 'te'].includes(lang)) {
         return lang;
       }
     }

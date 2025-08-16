@@ -1,3 +1,4 @@
+const logger = require('../logger');
 const GrowthSampling = require('../models/GrowthSampling');
 const Pond = require('../models/Pond');
 const Season = require('../models/Season');
@@ -6,6 +7,7 @@ const eventController = require('./eventController'); // New import
 
 // Create a new growth sampling entry
 exports.createGrowthSampling = async (req, res) => {
+  logger.info('Creating a new growth sampling entry', { body: req.body });
   try {
     const { date, time, pondId, totalWeight, totalCount, seasonId } = req.body;
     
@@ -87,11 +89,13 @@ exports.createGrowthSampling = async (req, res) => {
     res.status(201).json(populatedGrowthSampling);
   } catch (error) {
     res.status(500).json({ message: 'Error creating growth sampling entry', error: error.message });
+    logger.error('Error creating growth sampling entry', { error: error.message, stack: error.stack });
   }
 };
 
 // Get all growth sampling entries
 exports.getAllGrowthSamplings = async (req, res) => {
+  logger.info('Getting all growth sampling entries', { query: req.query });
   try {
     const { seasonId } = req.query;
     let query = {};
@@ -104,11 +108,13 @@ exports.getAllGrowthSamplings = async (req, res) => {
     res.json(growthSamplings);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching growth sampling entries', error: error.message });
+    logger.error('Error fetching growth sampling entries', { error: error.message, stack: error.stack });
   }
 };
 
 // Get a growth sampling entry by ID
 exports.getGrowthSamplingById = async (req, res) => {
+  logger.info(`Getting growth sampling entry by ID: ${req.params.id}`);
   try {
     const growthSampling = await GrowthSampling.findById(req.params.id)
       .populate('pondId', 'name')
@@ -122,11 +128,13 @@ exports.getGrowthSamplingById = async (req, res) => {
       return res.status(400).json({ message: 'Invalid growth sampling entry ID' });
     }
     res.status(500).json({ message: 'Error fetching growth sampling entry', error: error.message });
+    logger.error(`Error fetching growth sampling entry with ID: ${req.params.id}`, { error: error.message, stack: error.stack });
   }
 };
 
 // Update a growth sampling entry by ID
 exports.updateGrowthSampling = async (req, res) => {
+  logger.info(`Updating growth sampling entry by ID: ${req.params.id}`, { body: req.body });
   try {
     const { date, time, pondId, totalWeight, totalCount, seasonId } = req.body;
     
@@ -165,11 +173,13 @@ exports.updateGrowthSampling = async (req, res) => {
       return res.status(400).json({ message: 'Invalid growth sampling entry ID' });
     }
     res.status(500).json({ message: 'Error updating growth sampling entry', error: error.message });
+    logger.error(`Error updating growth sampling entry with ID: ${req.params.id}`, { error: error.message, stack: error.stack });
   }
 };
 
 // Delete a growth sampling entry by ID
 exports.deleteGrowthSampling = async (req, res) => {
+  logger.info(`Deleting growth sampling entry by ID: ${req.params.id}`);
   try {
     const growthSampling = await GrowthSampling.findByIdAndDelete(req.params.id);
     
@@ -183,11 +193,13 @@ exports.deleteGrowthSampling = async (req, res) => {
       return res.status(400).json({ message: 'Invalid growth sampling entry ID' });
     }
     res.status(500).json({ message: 'Error deleting growth sampling entry', error: error.message });
+    logger.error(`Error deleting growth sampling entry with ID: ${req.params.id}`, { error: error.message, stack: error.stack });
   }
 };
 
 // Get growth sampling entries by pond ID
 exports.getGrowthSamplingsByPondId = async (req, res) => {
+  logger.info(`Getting growth sampling entries for pond ID: ${req.params.pondId}`, { query: req.query });
   try {
     const { pondId } = req.params;
     const { seasonId } = req.query; // Get seasonId from query
@@ -212,11 +224,13 @@ exports.getGrowthSamplingsByPondId = async (req, res) => {
       return res.status(400).json({ message: 'Invalid pond ID' });
     }
     res.status(500).json({ message: 'Error fetching growth sampling entries for pond', error: error.message });
+    logger.error(`Error fetching growth sampling entries for pond ID: ${req.params.pondId}`, { error: error.message, stack: error.stack });
   }
 };
 
 // Get growth sampling entries by date range
 exports.getGrowthSamplingsByDateRange = async (req, res) => {
+  logger.info('Getting growth sampling entries by date range', { query: req.query });
   try {
     const { startDate, endDate, seasonId } = req.query;
     
@@ -242,11 +256,13 @@ exports.getGrowthSamplingsByDateRange = async (req, res) => {
     res.json(growthSamplings);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching growth sampling entries by date range', error: error.message });
+    logger.error('Error fetching growth sampling entries by date range', { error: error.message, stack: error.stack });
   }
 };
 
 // Get growth sampling entries by season ID
 exports.getGrowthSamplingsBySeasonId = async (req, res) => {
+  logger.info(`Getting growth sampling entries for season ID: ${req.params.seasonId}`);
   try {
     const { seasonId } = req.params;
     
@@ -265,5 +281,6 @@ exports.getGrowthSamplingsBySeasonId = async (req, res) => {
       return res.status(400).json({ message: 'Invalid season ID' });
     }
     res.status(500).json({ message: 'Error fetching growth sampling entries for season', error: error.message });
+    logger.error(`Error fetching growth sampling entries for season ID: ${req.params.seasonId}`, { error: error.message, stack: error.stack });
   }
 };

@@ -1,3 +1,4 @@
+const logger = require('../logger');
 const Event = require('../models/Event');
 const Pond = require('../models/Pond');
 const Season = require('../models/Season');
@@ -8,6 +9,7 @@ const inventoryController = require('./inventoryController'); // New import
 
 // Create a new event
 exports.createEvent = async (req, res) => {
+  logger.info('Creating a new event', { body: req.body });
   try {
     const { eventType, date, pondId, seasonId, details } = req.body;
 
@@ -106,11 +108,13 @@ exports.createEvent = async (req, res) => {
     res.status(201).json(populatedEvent);
   } catch (error) {
     res.status(500).json({ message: 'Error creating event', error: error.message });
+    logger.error('Error creating event', { error: error.message, stack: error.stack });
   }
 };
 
 // Get all events
 exports.getAllEvents = async (req, res) => {
+  logger.info('Getting all events');
   try {
     const events = await Event.find()
       .populate('pondId', 'name')
@@ -127,11 +131,13 @@ exports.getAllEvents = async (req, res) => {
     res.json(events);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching events', error: error.message });
+    logger.error('Error fetching events', { error: error.message, stack: error.stack });
   }
 };
 
 // Get an event by ID
 exports.getEventById = async (req, res) => {
+  logger.info(`Getting event by ID: ${req.params.id}`);
   try {
     const event = await Event.findById(req.params.id)
       .populate('pondId', 'name')
@@ -152,11 +158,13 @@ exports.getEventById = async (req, res) => {
       return res.status(400).json({ message: 'Invalid event ID' });
     }
     res.status(500).json({ message: 'Error fetching event', error: error.message });
+    logger.error(`Error fetching event with ID: ${req.params.id}`, { error: error.message, stack: error.stack });
   }
 };
 
 // Update an event by ID
 exports.updateEvent = async (req, res) => {
+  logger.info(`Updating event by ID: ${req.params.id}`, { body: req.body });
   try {
     const { eventType, date, pondId, seasonId, details } = req.body;
 
@@ -251,11 +259,13 @@ exports.updateEvent = async (req, res) => {
       return res.status(400).json({ message: 'Invalid event ID' });
     }
     res.status(500).json({ message: 'Error updating event', error: error.message });
+    logger.error(`Error updating event with ID: ${req.params.id}`, { error: error.message, stack: error.stack });
   }
 };
 
 // Delete an event by ID
 exports.deleteEvent = async (req, res) => {
+  logger.info(`Deleting event by ID: ${req.params.id}`);
   try {
     const event = await Event.findById(req.params.id); // Find first to get details for reversal
     
@@ -285,11 +295,13 @@ exports.deleteEvent = async (req, res) => {
       return res.status(400).json({ message: 'Invalid event ID' });
     }
     res.status(500).json({ message: 'Error deleting event', error: error.message });
+    logger.error(`Error deleting event with ID: ${req.params.id}`, { error: error.message, stack: error.stack });
   }
 };
 
 // Get events by pond ID
 exports.getEventsByPondId = async (req, res) => {
+  logger.info(`Getting events for pond ID: ${req.params.pondId}`);
   try {
     const { pondId } = req.params;
     
@@ -317,11 +329,13 @@ exports.getEventsByPondId = async (req, res) => {
       return res.status(400).json({ message: 'Invalid pond ID' });
     }
     res.status(500).json({ message: 'Error fetching events for pond', error: error.message });
+    logger.error(`Error fetching events for pond ID: ${req.params.pondId}`, { error: error.message, stack: error.stack });
   }
 };
 
 // Get events by season ID
 exports.getEventsBySeasonId = async (req, res) => {
+  logger.info(`Getting events for season ID: ${req.params.seasonId}`);
   try {
     const { seasonId } = req.params;
     
@@ -349,11 +363,13 @@ exports.getEventsBySeasonId = async (req, res) => {
       return res.status(400).json({ message: 'Invalid season ID' });
     }
     res.status(500).json({ message: 'Error fetching events for season', error: error.message });
+    logger.error(`Error fetching events for season ID: ${req.params.seasonId}`, { error: error.message, stack: error.stack });
   }
 };
 
 // Get events by date range
 exports.getEventsByDateRange = async (req, res) => {
+  logger.info('Getting events by date range', { query: req.query });
   try {
     const { startDate, endDate } = req.query;
     
@@ -381,5 +397,6 @@ exports.getEventsByDateRange = async (req, res) => {
     res.json(events);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching events by date range', error: error.message });
+    logger.error('Error fetching events by date range', { error: error.message, stack: error.stack });
   }
 };

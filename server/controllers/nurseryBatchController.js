@@ -1,3 +1,4 @@
+const logger = require('../logger');
 const NurseryBatch = require('../models/NurseryBatch');
 const Season = require('../models/Season');
 const User = require('../models/User');
@@ -13,7 +14,7 @@ const getLanguageForUser = (req) => {
   if (req.headers['accept-language']) {
     const acceptedLanguages = req.headers['accept-language'].split(',').map(lang => lang.trim().split(';')[0]);
     for (const lang of acceptedLanguages) {
-      if (['en', 'hi', 'ta'].includes(lang)) {
+      if (['en', 'hi', 'ta', 'kn', 'te'].includes(lang)) {
         return lang;
       }
     }
@@ -55,6 +56,7 @@ const translateDocuments = (docs, language) => {
 
 // Create a new nursery batch
 exports.createNurseryBatch = async (req, res) => {
+  logger.info('Creating a new nursery batch', { body: req.body });
   try {
     const { batchName, startDate, initialCount, species, source, seasonId } = req.body;
     
@@ -96,11 +98,13 @@ exports.createNurseryBatch = async (req, res) => {
       return res.status(400).json({ message: 'Nursery batch name already exists' });
     }
     res.status(500).json({ message: 'Error creating nursery batch', error: error.message });
+    logger.error('Error creating nursery batch', { error: error.message, stack: error.stack });
   }
 };
 
 // Get all nursery batches
 exports.getAllNurseryBatches = async (req, res) => {
+  logger.info('Getting all nursery batches');
   try {
     const language = getLanguageForUser(req);
     const nurseryBatches = await NurseryBatch.find().populate('seasonId', 'name');
@@ -108,11 +112,13 @@ exports.getAllNurseryBatches = async (req, res) => {
     res.json(translatedNurseryBatches);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching nursery batches', error: error.message });
+    logger.error('Error fetching nursery batches', { error: error.message, stack: error.stack });
   }
 };
 
 // Get a nursery batch by ID
 exports.getNurseryBatchById = async (req, res) => {
+  logger.info(`Getting nursery batch by ID: ${req.params.id}`);
   try {
     const language = getLanguageForUser(req);
     const nurseryBatch = await NurseryBatch.findById(req.params.id).populate('seasonId', 'name');
@@ -126,11 +132,13 @@ exports.getNurseryBatchById = async (req, res) => {
       return res.status(400).json({ message: 'Invalid nursery batch ID' });
     }
     res.status(500).json({ message: 'Error fetching nursery batch', error: error.message });
+    logger.error(`Error fetching nursery batch with ID: ${req.params.id}`, { error: error.message, stack: error.stack });
   }
 };
 
 // Update a nursery batch by ID
 exports.updateNurseryBatch = async (req, res) => {
+  logger.info(`Updating nursery batch by ID: ${req.params.id}`, { body: req.body });
   try {
     const { batchName, startDate, initialCount, species, source, seasonId } = req.body;
     
@@ -173,11 +181,13 @@ exports.updateNurseryBatch = async (req, res) => {
       return res.status(400).json({ message: 'Invalid nursery batch ID' });
     }
     res.status(500).json({ message: 'Error updating nursery batch', error: error.message });
+    logger.error(`Error updating nursery batch with ID: ${req.params.id}`, { error: error.message, stack: error.stack });
   }
 };
 
 // Delete a nursery batch by ID
 exports.deleteNurseryBatch = async (req, res) => {
+  logger.info(`Deleting nursery batch by ID: ${req.params.id}`);
   try {
     const nurseryBatch = await NurseryBatch.findByIdAndDelete(req.params.id);
     
@@ -191,11 +201,13 @@ exports.deleteNurseryBatch = async (req, res) => {
       return res.status(400).json({ message: 'Invalid nursery batch ID' });
     }
     res.status(500).json({ message: 'Error deleting nursery batch', error: error.message });
+    logger.error(`Error deleting nursery batch with ID: ${req.params.id}`, { error: error.message, stack: error.stack });
   }
 };
 
 // Get nursery batches by season ID
 exports.getNurseryBatchesBySeasonId = async (req, res) => {
+  logger.info(`Getting nursery batches for season ID: ${req.params.seasonId}`);
   try {
     const language = getLanguageForUser(req);
     const { seasonId } = req.params;
@@ -214,5 +226,6 @@ exports.getNurseryBatchesBySeasonId = async (req, res) => {
       return res.status(400).json({ message: 'Invalid season ID' });
     }
     res.status(500).json({ message: 'Error fetching nursery batches for season', error: error.message });
+    logger.error(`Error fetching nursery batches for season ID: ${req.params.seasonId}`, { error: error.message, stack: error.stack });
   }
 };

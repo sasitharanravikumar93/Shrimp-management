@@ -17,7 +17,7 @@ i18n
     fallbackLng: 'en',
     
     // Languages we support
-    supportedLngs: ['en', 'hi', 'ta'],
+    supportedLngs: ['en', 'hi', 'ta', 'kn', 'te'],
     
     // Debug mode
     debug: false,

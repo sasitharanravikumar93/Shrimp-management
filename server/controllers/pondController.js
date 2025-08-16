@@ -1,3 +1,4 @@
+const logger = require('../logger');
 const Pond = require('../models/Pond');
 const Season = require('../models/Season');
 const User = require('../models/User');
@@ -13,7 +14,7 @@ const getLanguageForUser = (req) => {
   if (req.headers['accept-language']) {
     const acceptedLanguages = req.headers['accept-language'].split(',').map(lang => lang.trim().split(';')[0]);
     for (const lang of acceptedLanguages) {
-      if (['en', 'hi', 'ta'].includes(lang)) {
+      if (['en', 'hi', 'ta', 'kn', 'te'].includes(lang)) {
         return lang;
       }
     }
@@ -55,6 +56,7 @@ const translateDocuments = (docs, language) => {
 
 // Create a new pond
 exports.createPond = async (req, res) => {
+  logger.info('Creating a new pond', { body: req.body });
   try {
     const { name, size, capacity, seasonId, status } = req.body;
     
@@ -83,11 +85,13 @@ exports.createPond = async (req, res) => {
       return res.status(400).json({ message: 'Pond name already exists in this season' });
     }
     res.status(500).json({ message: 'Error creating pond', error: error.message });
+    logger.error('Error creating pond', { error: error.message, stack: error.stack });
   }
 };
 
 // Get all ponds
 exports.getAllPonds = async (req, res) => {
+  logger.info('Getting all ponds');
   try {
     const language = getLanguageForUser(req);
     const ponds = await Pond.find().populate('seasonId', 'name');
@@ -95,11 +99,13 @@ exports.getAllPonds = async (req, res) => {
     res.json(translatedPonds);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching ponds', error: error.message });
+    logger.error('Error fetching ponds', { error: error.message, stack: error.stack });
   }
 };
 
 // Get a pond by ID
 exports.getPondById = async (req, res) => {
+  logger.info(`Getting pond by ID: ${req.params.id}`);
   try {
     const language = getLanguageForUser(req);
     const pond = await Pond.findById(req.params.id).populate('seasonId', 'name');
@@ -113,6 +119,7 @@ exports.getPondById = async (req, res) => {
       return res.status(400).json({ message: 'Invalid pond ID' });
     }
     res.status(500).json({ message: 'Error fetching pond', error: error.message });
+    logger.error(`Error fetching pond with ID: ${req.params.id}`, { error: error.message, stack: error.stack });
   }
 };
 

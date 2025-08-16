@@ -6,10 +6,10 @@ exports.updateLanguage = async (req, res) => {
     const { language } = req.body;
     
     // Validate language
-    const supportedLanguages = ['en', 'hi', 'ta'];
+    const supportedLanguages = ['en', 'hi', 'ta', 'kn', 'te'];
     if (!supportedLanguages.includes(language)) {
       return res.status(400).json({ 
-        message: 'Invalid language. Supported languages are: en, hi, ta' 
+        message: 'Invalid language. Supported languages are: en, hi, ta, kn, te' 
       });
     }
     
