@@ -20,11 +20,6 @@ const inventoryItemSchema = new mongoose.Schema({
     type: Date,
     required: true
   },
-  initialQuantity: {
-    type: Number,
-    required: true,
-    min: 0
-  },
   unit: {
     type: String,
     required: true,

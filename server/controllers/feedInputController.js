@@ -56,7 +56,7 @@ exports.createFeedInput = async (req, res) => {
       body: {
         inventoryItemId: inventoryItemId,
         adjustmentType: 'Usage',
-        quantityChange: -quantity, // Deduct quantity
+        quantityChange: -Math.abs(quantity), // Deduct quantity
         reason: `Feed usage for pond ${pond.name}`,
         relatedDocument: feedInput._id,
         relatedDocumentModel: 'FeedInput'

@@ -21,9 +21,10 @@ import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import useApi from '../hooks/useApi'; // Assuming useApi is available for API calls
-import InventoryForm from '../components/InventoryForm'; // To be created
-import InventoryAdjustmentModal from '../components/InventoryAdjustmentModal'; // To be created
+import HistoryIcon from '@mui/icons-material/History';
+import InventoryForm from '../components/InventoryForm';
+import InventoryAdjustmentModal from '../components/InventoryAdjustmentModal';
+import AdjustmentHistoryModal from '../components/AdjustmentHistoryModal'; // New import
 
 const InventoryManagementPage = () => {
   const [inventoryItems, setInventoryItems] = useState([]);
@@ -34,6 +35,8 @@ const InventoryManagementPage = () => {
   const [editingItem, setEditingItem] = useState(null);
   const [openAdjustmentModal, setOpenAdjustmentModal] = useState(false);
   const [adjustingItem, setAdjustingItem] = useState(null);
+  const [openHistoryModal, setOpenHistoryModal] = useState(false);
+  const [historyItem, setHistoryItem] = useState(null);
 
   const api = useApi();
 
@@ -60,9 +63,9 @@ const InventoryManagementPage = () => {
   };
 
   const filteredItems = inventoryItems.filter(item =>
-    item.itemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.itemType.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.supplier.toLowerCase().includes(searchTerm.toLowerCase())
+    (item.itemName && item.itemName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (item.itemType && item.itemType.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (item.supplier && item.supplier.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const handleOpenForm = (item = null) => {
@@ -76,6 +79,15 @@ const InventoryManagementPage = () => {
     fetchInventoryItems(); // Refresh data after form submission
   };
 
+  const handleSaveForm = (savedItem) => {
+    fetchInventoryItems(); // Refresh data
+    // If it was a new item, open the adjustment modal to prompt for initial purchase
+    if (!editingItem) {
+      setAdjustingItem(savedItem);
+      setOpenAdjustmentModal(true);
+    }
+  };
+
   const handleOpenAdjustmentModal = (item) => {
     setAdjustingItem(item);
     setOpenAdjustmentModal(true);
@@ -87,8 +99,18 @@ const InventoryManagementPage = () => {
     fetchInventoryItems(); // Refresh data after adjustment
   };
 
+  const handleOpenHistoryModal = (item) => {
+    setHistoryItem(item);
+    setOpenHistoryModal(true);
+  };
+
+  const handleCloseHistoryModal = () => {
+    setOpenHistoryModal(false);
+    setHistoryItem(null);
+  };
+
   const handleDeleteItem = async (id) => {
-    if (window.confirm('Are you sure you want to delete this inventory item?')) {
+    if (window.confirm('Are you sure you want to delete this inventory item? This action is not reversible.')) {
       try {
         await api.delete(`/inventory/${id}`);
         fetchInventoryItems(); // Refresh list
@@ -99,16 +121,9 @@ const InventoryManagementPage = () => {
     }
   };
 
-  // Helper to calculate current quantity (initial - adjustments)
-  const calculateCurrentQuantity = (item) => {
-    // This will need to be properly implemented with backend logic
-    // For now, we'll use initialQuantity as a placeholder
-    return item.initialQuantity;
-  };
-
   // Helper to determine status
   const getItemStatus = (item) => {
-    const currentQty = calculateCurrentQuantity(item);
+    const currentQty = item.currentQuantity;
     if (currentQty <= 0) return 'Out of Stock';
     if (item.lowStockThreshold && currentQty <= item.lowStockThreshold) return 'Low Stock';
     return 'In Stock';
@@ -169,7 +184,6 @@ const InventoryManagementPage = () => {
                   <TableCell>Supplier</TableCell>
                   <TableCell>Unit</TableCell>
                   <TableCell align="right">Cost/Unit</TableCell>
-                  <TableCell align="right">Initial Qty</TableCell>
                   <TableCell align="right">Current Qty</TableCell>
                   <TableCell>Status</TableCell>
                   <TableCell>Actions</TableCell>
@@ -178,7 +192,7 @@ const InventoryManagementPage = () => {
               <TableBody>
                 {filteredItems.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={9} align="center">
+                    <TableCell colSpan={8} align="center">
                       No inventory items found.
                     </TableCell>
                   </TableRow>
@@ -192,8 +206,7 @@ const InventoryManagementPage = () => {
                       <TableCell>{item.supplier}</TableCell>
                       <TableCell>{item.unit}</TableCell>
                       <TableCell align="right">{item.costPerUnit}</TableCell>
-                      <TableCell align="right">{item.initialQuantity}</TableCell>
-                      <TableCell align="right">{calculateCurrentQuantity(item)}</TableCell>
+                      <TableCell align="right">{item.currentQuantity}</TableCell>
                       <TableCell>
                         <Typography
                           variant="body2"
@@ -215,7 +228,10 @@ const InventoryManagementPage = () => {
                           <EditIcon />
                         </IconButton>
                         <IconButton color="secondary" onClick={() => handleOpenAdjustmentModal(item)}>
-                          <AddIcon /> {/* Using AddIcon for adjustment for now */}
+                          <AddIcon />
+                        </IconButton>
+                        <IconButton onClick={() => handleOpenHistoryModal(item)}>
+                          <HistoryIcon />
                         </IconButton>
                         <IconButton color="error" onClick={() => handleDeleteItem(item._id)}>
                           <DeleteIcon />
@@ -235,6 +251,7 @@ const InventoryManagementPage = () => {
           open={openForm}
           onClose={handleCloseForm}
           item={editingItem}
+          onSave={handleSaveForm}
         />
       )}
 
@@ -243,6 +260,14 @@ const InventoryManagementPage = () => {
           open={openAdjustmentModal}
           onClose={handleCloseAdjustmentModal}
           item={adjustingItem}
+        />
+      )}
+
+      {openHistoryModal && (
+        <AdjustmentHistoryModal
+          open={openHistoryModal}
+          onClose={handleCloseHistoryModal}
+          item={historyItem}
         />
       )}
     </Container>

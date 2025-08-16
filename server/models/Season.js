@@ -2,10 +2,9 @@ const mongoose = require('mongoose');
 
 const seasonSchema = new mongoose.Schema({
   name: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true
+    type: Map,
+    of: String,
+    required: true
   },
   startDate: {
     type: Date,

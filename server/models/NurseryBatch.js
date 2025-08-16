@@ -2,10 +2,9 @@ const mongoose = require('mongoose');
 
 const nurseryBatchSchema = new mongoose.Schema({
   batchName: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true
+    type: Map,
+    of: String,
+    required: true
   },
   startDate: {
     type: Date,

@@ -188,14 +188,13 @@ const PondManagementPage = () => {
     defaultValues: {
       date: new Date(),
       time: new Date(),
-      feedType: '',
+      inventoryItemId: '',
       quantity: '',
       pH: '',
       dissolvedOxygen: '',
       temperature: '',
       salinity: '',
-      chemicalUsed: '',
-      chemicalQuantityUsed: '',
+      quantityUsed: '',
       totalWeight: '',
       totalCount: '',
       title: '',
@@ -260,9 +259,10 @@ const PondManagementPage = () => {
         // Create feed input
         await createFeedInputMutation({
           pondId,
+          seasonId: selectedSeason._id,
           date: data.date,
           time: data.time,
-          feedType: data.feedType,
+          inventoryItemId: data.inventoryItemId,
           quantity: parseFloat(data.quantity)
         });
         refetchFeedEntries();
@@ -270,14 +270,15 @@ const PondManagementPage = () => {
         // Create water quality input
         await createWaterQualityInputMutation({
           pondId,
+          seasonId: selectedSeason._id,
           date: data.date,
           time: data.time,
           pH: parseFloat(data.pH),
           dissolvedOxygen: parseFloat(data.dissolvedOxygen),
           temperature: parseFloat(data.temperature),
           salinity: parseFloat(data.salinity),
-          chemicalUsed: data.chemicalUsed,
-          chemicalQuantityUsed: parseFloat(data.chemicalQuantityUsed)
+          inventoryItemId: data.inventoryItemId,
+          quantityUsed: parseFloat(data.quantityUsed)
         });
         refetchWaterQualityEntries();
       } else if (activeTab === 2 || data.eventType === 'Growth Sampling') {
@@ -577,7 +578,7 @@ const PondManagementPage = () => {
                             
                             <Grid item xs={12}>
                               <Controller
-                                name="feedType"
+                                name="inventoryItemId"
                                 control={control}
                                 render={({ field }) => (
                                   <TextField
@@ -818,7 +819,7 @@ const PondManagementPage = () => {
 
                             <Grid item xs={12} md={6}>
                               <Controller
-                                name="chemicalUsed"
+                                name="inventoryItemId"
                                 control={control}
                                 render={({ field }) => (
                                   <TextField
@@ -842,7 +843,7 @@ const PondManagementPage = () => {
 
                             <Grid item xs={12} md={6}>
                               <Controller
-                                name="chemicalQuantityUsed"
+                                name="quantityUsed"
                                 control={control}
                                 render={({ field }) => (
                                   <TextField

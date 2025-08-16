@@ -2,9 +2,9 @@ const mongoose = require('mongoose');
 
 const pondSchema = new mongoose.Schema({
   name: {
-    type: String,
-    required: true,
-    trim: true
+    type: Map,
+    of: String,
+    required: true
   },
   size: {
     type: Number, // e.g., area in sq meters or acres

@@ -1,5 +1,57 @@
 const NurseryBatch = require('../models/NurseryBatch');
 const Season = require('../models/Season');
+const User = require('../models/User');
+
+// Helper function to get the appropriate language for a user
+const getLanguageForUser = (req) => {
+  // Priority 1: User's language preference from their profile
+  if (req.user && req.user.language) {
+    return req.user.language;
+  }
+  
+  // Priority 2: Accept-Language header
+  if (req.headers['accept-language']) {
+    const acceptedLanguages = req.headers['accept-language'].split(',').map(lang => lang.trim().split(';')[0]);
+    for (const lang of acceptedLanguages) {
+      if (['en', 'hi', 'ta'].includes(lang)) {
+        return lang;
+      }
+    }
+  }
+  
+  // Priority 3: Default language
+  return 'en';
+};
+
+// Helper function to translate a document with multilingual fields
+const translateDocument = (doc, language) => {
+  if (!doc) return doc;
+  
+  // Convert Mongoose document to plain object if needed
+  const plainDoc = doc.toObject ? doc.toObject() : doc;
+  
+  // Process batchName field if it's a Map
+  if (plainDoc.batchName && typeof plainDoc.batchName === 'object' && !(plainDoc.batchName instanceof Date)) {
+    if (plainDoc.batchName.get) {
+      // It's a Map
+      plainDoc.batchName = plainDoc.batchName.get(language) || plainDoc.batchName.get('en') || '';
+    } else if (plainDoc.batchName[language]) {
+      // It's a plain object
+      plainDoc.batchName = plainDoc.batchName[language];
+    } else if (plainDoc.batchName['en']) {
+      plainDoc.batchName = plainDoc.batchName['en'];
+    } else {
+      plainDoc.batchName = '';
+    }
+  }
+  
+  return plainDoc;
+};
+
+// Helper function to translate an array of documents
+const translateDocuments = (docs, language) => {
+  return docs.map(doc => translateDocument(doc, language));
+};
 
 // Create a new nursery batch
 exports.createNurseryBatch = async (req, res) => {
@@ -11,6 +63,11 @@ exports.createNurseryBatch = async (req, res) => {
       return res.status(400).json({ 
         message: 'Batch name, start date, initial count, species, source, and season ID are required' 
       });
+    }
+    
+    // Validate that batchName is an object with language keys
+    if (typeof batchName !== 'object' || Array.isArray(batchName)) {
+      return res.status(400).json({ message: 'Batch name must be an object with language keys (e.g., { "en": "Batch A", "ta": "பேட்ச் ஏ" })' });
     }
     
     // Check if season exists
@@ -45,8 +102,10 @@ exports.createNurseryBatch = async (req, res) => {
 // Get all nursery batches
 exports.getAllNurseryBatches = async (req, res) => {
   try {
+    const language = getLanguageForUser(req);
     const nurseryBatches = await NurseryBatch.find().populate('seasonId', 'name');
-    res.json(nurseryBatches);
+    const translatedNurseryBatches = translateDocuments(nurseryBatches, language);
+    res.json(translatedNurseryBatches);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching nursery batches', error: error.message });
   }
@@ -55,11 +114,13 @@ exports.getAllNurseryBatches = async (req, res) => {
 // Get a nursery batch by ID
 exports.getNurseryBatchById = async (req, res) => {
   try {
+    const language = getLanguageForUser(req);
     const nurseryBatch = await NurseryBatch.findById(req.params.id).populate('seasonId', 'name');
     if (!nurseryBatch) {
       return res.status(404).json({ message: 'Nursery batch not found' });
     }
-    res.json(nurseryBatch);
+    const translatedNurseryBatch = translateDocument(nurseryBatch, language);
+    res.json(translatedNurseryBatch);
   } catch (error) {
     if (error.name === 'CastError') {
       return res.status(400).json({ message: 'Invalid nursery batch ID' });
@@ -73,11 +134,9 @@ exports.updateNurseryBatch = async (req, res) => {
   try {
     const { batchName, startDate, initialCount, species, source, seasonId } = req.body;
     
-    // Basic validation
-    if (!batchName || !startDate || !initialCount || !species || !source || !seasonId) {
-      return res.status(400).json({ 
-        message: 'Batch name, start date, initial count, species, source, and season ID are required' 
-      });
+    // Validate that batchName is an object with language keys if provided
+    if (batchName !== undefined && (typeof batchName !== 'object' || Array.isArray(batchName))) {
+      return res.status(400).json({ message: 'Batch name must be an object with language keys (e.g., { "en": "Batch A", "ta": "பேட்ச் ஏ" })' });
     }
     
     // Check if season exists
@@ -86,16 +145,18 @@ exports.updateNurseryBatch = async (req, res) => {
       return res.status(404).json({ message: 'Season not found' });
     }
     
+    // Prepare update object with only provided fields
+    const updateData = {};
+    if (batchName !== undefined) updateData.batchName = batchName;
+    if (startDate !== undefined) updateData.startDate = startDate;
+    if (initialCount !== undefined) updateData.initialCount = initialCount;
+    if (species !== undefined) updateData.species = species;
+    if (source !== undefined) updateData.source = source;
+    if (seasonId !== undefined) updateData.seasonId = seasonId;
+    
     const nurseryBatch = await NurseryBatch.findByIdAndUpdate(
       req.params.id,
-      { 
-        batchName, 
-        startDate, 
-        initialCount, 
-        species, 
-        source, 
-        seasonId 
-      },
+      updateData,
       { new: true, runValidators: true }
     ).populate('seasonId', 'name');
     
@@ -136,6 +197,7 @@ exports.deleteNurseryBatch = async (req, res) => {
 // Get nursery batches by season ID
 exports.getNurseryBatchesBySeasonId = async (req, res) => {
   try {
+    const language = getLanguageForUser(req);
     const { seasonId } = req.params;
     
     // Check if season exists
@@ -145,7 +207,8 @@ exports.getNurseryBatchesBySeasonId = async (req, res) => {
     }
     
     const nurseryBatches = await NurseryBatch.find({ seasonId }).populate('seasonId', 'name');
-    res.json(nurseryBatches);
+    const translatedNurseryBatches = translateDocuments(nurseryBatches, language);
+    res.json(translatedNurseryBatches);
   } catch (error) {
     if (error.name === 'CastError') {
       return res.status(400).json({ message: 'Invalid season ID' });

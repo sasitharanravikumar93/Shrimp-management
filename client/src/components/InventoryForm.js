@@ -22,14 +22,13 @@ import useApi from '../hooks/useApi';
 const itemTypes = ['Feed', 'Chemical', 'Probiotic', 'Other'];
 const units = ['kg', 'g', 'litre', 'ml', 'bag', 'bottle'];
 
-const InventoryForm = ({ open, onClose, item }) => {
+const InventoryForm = ({ open, onClose, item, onSave }) => {
   const api = useApi();
   const [formData, setFormData] = useState({
     itemName: '',
     itemType: '',
     supplier: '',
     purchaseDate: null,
-    initialQuantity: '',
     unit: '',
     costPerUnit: '',
     lowStockThreshold: '',
@@ -43,7 +42,6 @@ const InventoryForm = ({ open, onClose, item }) => {
         itemType: item.itemType || '',
         supplier: item.supplier || '',
         purchaseDate: item.purchaseDate ? new Date(item.purchaseDate) : null,
-        initialQuantity: item.initialQuantity || '',
         unit: item.unit || '',
         costPerUnit: item.costPerUnit || '',
         lowStockThreshold: item.lowStockThreshold || '',
@@ -54,7 +52,6 @@ const InventoryForm = ({ open, onClose, item }) => {
         itemType: '',
         supplier: '',
         purchaseDate: null,
-        initialQuantity: '',
         unit: '',
         costPerUnit: '',
         lowStockThreshold: '',
@@ -83,9 +80,6 @@ const InventoryForm = ({ open, onClose, item }) => {
     if (!formData.itemName) tempErrors.itemName = 'Item Name is required';
     if (!formData.itemType) tempErrors.itemType = 'Item Type is required';
     if (!formData.purchaseDate) tempErrors.purchaseDate = 'Purchase Date is required';
-    if (formData.initialQuantity === '' || isNaN(formData.initialQuantity) || formData.initialQuantity < 0) {
-      tempErrors.initialQuantity = 'Initial Quantity must be a non-negative number';
-    }
     if (!formData.unit) tempErrors.unit = 'Unit is required';
     if (formData.costPerUnit === '' || isNaN(formData.costPerUnit) || formData.costPerUnit < 0) {
       tempErrors.costPerUnit = 'Cost Per Unit must be a non-negative number';
@@ -102,16 +96,17 @@ const InventoryForm = ({ open, onClose, item }) => {
       try {
         const dataToSend = {
           ...formData,
-          initialQuantity: parseFloat(formData.initialQuantity),
           costPerUnit: parseFloat(formData.costPerUnit),
           lowStockThreshold: formData.lowStockThreshold !== '' ? parseFloat(formData.lowStockThreshold) : undefined,
           purchaseDate: formData.purchaseDate ? formData.purchaseDate.toISOString() : null,
         };
 
         if (item) {
-          await api.put(`/inventory/${item._id}`, dataToSend);
+          const updatedItem = await api.put(`/inventory/${item._id}`, dataToSend);
+          onSave(updatedItem.data);
         } else {
-          await api.post('/inventory', dataToSend);
+          const newItem = await api.post('/inventory', dataToSend);
+          onSave(newItem.data);
         }
         onClose();
       } catch (err) {
@@ -179,18 +174,6 @@ const InventoryForm = ({ open, onClose, item }) => {
                       helperText={errors.purchaseDate}
                     />
                   )}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label="Initial Quantity"
-                  name="initialQuantity"
-                  type="number"
-                  value={formData.initialQuantity}
-                  onChange={handleChange}
-                  error={!!errors.initialQuantity}
-                  helperText={errors.initialQuantity}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
