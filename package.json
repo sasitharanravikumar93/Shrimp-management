@@ -1,0 +1,46 @@
+{
+  "name": "shrimp-farm-management-system",
+  "version": "2.0.0",
+  "description": "A comprehensive shrimp farm management system with real-time data integration",
+  "main": "index.js",
+  "scripts": {
+    "start": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd server && npm start",
+    "client": "cd client && npm start",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "build": "cd client && npm run build",
+    "test": "cd client && npm test",
+    "test:server": "cd server && npm test",
+    "test:client": "cd client && npm test",
+    "lint": "cd client && npm run lint && cd ../server && npm run lint",
+    "install:all": "npm install && cd client && npm install && cd ../server && npm install",
+    "clean": "rm -rf client/node_modules server/node_modules node_modules",
+    "docs": "echo 'Generating documentation...'"
+  },
+  "keywords": [
+    "shrimp",
+    "farm",
+    "management",
+    "aquaculture",
+    "react",
+    "nodejs",
+    "mongodb"
+  ],
+  "author": "Shrimp Farm Management Team",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^7.6.0"
+  },
+  "engines": {
+    "node": ">=14.0.0",
+    "npm": ">=6.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/example/shrimp-farm-management-system.git"
+  },
+  "bugs": {
+    "url": "https://github.com/example/shrimp-farm-management-system/issues"
+  },
+  "homepage": "https://github.com/example/shrimp-farm-management-system#readme"
+}

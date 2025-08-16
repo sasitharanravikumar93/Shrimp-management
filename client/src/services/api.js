@@ -1,7 +1,7 @@
 // api.js
 const API_BASE_URL = 'http://localhost:5001/api';
 
-// Helper function for API calls
+// Helper function for API calls with better error handling
 const apiCall = async (endpoint, method = 'GET', data = null) => {
   const url = `${API_BASE_URL}${endpoint}`;
   const options = {
@@ -19,10 +19,28 @@ const apiCall = async (endpoint, method = 'GET', data = null) => {
     const response = await fetch(url, options);
     
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorText = await response.text();
+      let errorMessage = `HTTP error! status: ${response.status}`;
+      
+      try {
+        const errorData = JSON.parse(errorText);
+        errorMessage = errorData.message || errorMessage;
+      } catch (e) {
+        // If parsing fails, use the raw text if it's not empty
+        if (errorText.trim()) {
+          errorMessage = errorText;
+        }
+      }
+      
+      throw new Error(errorMessage);
     }
     
-    return await response.json();
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      return await response.json();
+    } else {
+      return await response.text();
+    }
   } catch (error) {
     console.error('API call failed:', error);
     throw error;

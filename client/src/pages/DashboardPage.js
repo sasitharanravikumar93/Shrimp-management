@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Typography, 
   Grid, 
@@ -16,7 +16,9 @@ import {
   Select,
   MenuItem,
   ToggleButton,
-  ToggleButtonGroup
+  ToggleButtonGroup,
+  CircularProgress,
+  Alert
 } from '@mui/material';
 import { 
   Agriculture as AgricultureIcon,
@@ -49,6 +51,9 @@ import {
   Cell
 } from 'recharts';
 import { useNavigate } from 'react-router-dom';
+import { useSeason } from '../context/SeasonContext';
+import { useApiData } from '../hooks/useApi';
+import { getPonds } from '../services/api';
 import KPICard, { CircularKPICard } from '../components/KPICard';
 import AlertBanner from '../components/AlertBanner';
 import AquacultureTooltip from '../components/AquacultureTooltip';
@@ -62,65 +67,115 @@ const DashboardPage = () => {
   const navigate = useNavigate();
   const [filter, setFilter] = useState('all');
   const [timeRange, setTimeRange] = useState('week');
+  const { selectedSeason } = useSeason();
   
   // Alert banner state
   const [showAlert, setShowAlert] = useState(true);
   
-  // Placeholder data for ponds
-  const ponds = [
-    { id: 1, name: 'Pond A', status: 'Active', health: 'Good', progress: 75, healthScore: 85 },
-    { id: 2, name: 'Pond B', status: 'Active', health: 'Fair', progress: 60, healthScore: 65 },
-    { id: 3, name: 'Pond C', status: 'Inactive', health: 'N/A', progress: 0, healthScore: 0 },
-    { id: 4, name: 'Pond D', status: 'Active', health: 'Good', progress: 90, healthScore: 92 },
-    { id: 5, name: 'Pond E', status: 'Active', health: 'Poor', progress: 40, healthScore: 35 },
-    { id: 6, name: 'Pond F', status: 'Active', health: 'Good', progress: 70, healthScore: 78 }
-  ];
+  // Fetch all ponds data with caching
+  const { 
+    data: allPondsData, 
+    loading: allPondsLoading, 
+    error: allPondsError,
+    refetch: refetchPonds
+  } = useApiData(getPonds, [], 'ponds');
 
-  // Filter ponds based on selection
-  const filteredPonds = filter === 'all' 
-    ? ponds 
-    : ponds.filter(pond => pond.status.toLowerCase() === filter);
+  // Filter ponds based on selection and season
+  const filteredPonds = useMemo(() => {
+    if (!allPondsData) return [];
+    
+    // First filter by season if a season is selected
+    let seasonFilteredPonds = allPondsData;
+    if (selectedSeason) {
+      seasonFilteredPonds = allPondsData.filter(pond => 
+        pond.seasonId === selectedSeason.id
+      );
+    }
+    
+    // Then filter by status
+    if (filter === 'all') {
+      return seasonFilteredPonds;
+    } else {
+      return seasonFilteredPonds.filter(pond => 
+        pond.status?.toLowerCase() === filter
+      );
+    }
+  }, [allPondsData, filter, selectedSeason]);
 
-  // Summary data
-  const summaryData = [
-    { title: 'Total Ponds', value: 12, change: 2, changeText: '+2 from last week', icon: <PondIcon />, color: '#007BFF' },
-    { title: 'Active Seasons', value: 3, change: 0, icon: <AgricultureIcon />, color: '#28A745' },
-    { title: 'Avg. Growth Rate', value: 1.2, suffix: 'g/day', change: 0.1, changeText: '+0.1 from last week', icon: <GrowthIcon />, color: '#FD7E14' },
-    { title: 'Feed Efficiency', value: 1.4, suffix: ':1', change: -0.1, changeText: '-0.1 from last week', icon: <RestaurantIcon />, color: '#007BFF' },
-    { title: 'Water Quality', value: 85, suffix: '%', change: 5, changeText: '+5% from last week', icon: <WaterIcon />, color: '#28A745' },
-    { title: 'Feed Consumption', value: 1250, suffix: 'kg', change: 12, changeText: '+12% from last week', icon: <RestaurantIcon />, color: '#FD7E14' }
-  ];
+  // Calculate summary data based on real data
+  const calculateSummaryData = () => {
+    if (!filteredPonds) return [];
+    
+    const totalPonds = filteredPonds.length;
+    const activePonds = filteredPonds.filter(pond => pond.status === 'Active').length;
+    
+    return [
+      { 
+        title: 'Total Ponds', 
+        value: totalPonds, 
+        change: 0, 
+        icon: <PondIcon />, 
+        color: '#007BFF' 
+      },
+      { 
+        title: 'Active Ponds', 
+        value: activePonds, 
+        change: 0, 
+        icon: <AgricultureIcon />, 
+        color: '#28A745' 
+      },
+      { 
+        title: 'Avg. Growth Rate', 
+        value: 1.2, 
+        suffix: 'g/day', 
+        change: 0.1, 
+        changeText: '+0.1 from last week', 
+        icon: <GrowthIcon />, 
+        color: '#FD7E14' 
+      },
+      { 
+        title: 'Feed Efficiency', 
+        value: 1.4, 
+        suffix: ':1', 
+        change: -0.1, 
+        changeText: '-0.1 from last week', 
+        icon: <RestaurantIcon />, 
+        color: '#007BFF' 
+      },
+      { 
+        title: 'Water Quality', 
+        value: 85, 
+        suffix: '%', 
+        change: 5, 
+        changeText: '+5% from last week', 
+        icon: <WaterIcon />, 
+        color: '#28A745' 
+      },
+      { 
+        title: 'Feed Consumption', 
+        value: 1250, 
+        suffix: 'kg', 
+        change: 12, 
+        changeText: '+12% from last week', 
+        icon: <RestaurantIcon />, 
+        color: '#FD7E14' 
+      }
+    ];
+  };
 
-  // Water quality data
-  const waterQualityData = [
-    { pond: 'Pond A', pH: 7.2, do: 5.5, temp: 28.5 },
-    { pond: 'Pond B', pH: 6.8, do: 4.2, temp: 29.0 },
-    { pond: 'Pond C', pH: 7.0, do: 5.0, temp: 28.0 },
-    { pond: 'Pond D', pH: 7.5, do: 6.2, temp: 27.5 },
-    { pond: 'Pond E', pH: 6.5, do: 3.8, temp: 30.0 },
-    { pond: 'Pond F', pH: 7.1, do: 5.8, temp: 28.2 }
-  ];
+  const summaryData = useMemo(() => calculateSummaryData(), [filteredPonds]);
 
-  // Feed consumption data
-  const feedConsumptionData = [
-    { date: 'Mon', amount: 120 },
-    { date: 'Tue', amount: 140 },
-    { date: 'Wed', amount: 110 },
-    { date: 'Thu', amount: 150 },
-    { date: 'Fri', amount: 130 },
-    { date: 'Sat', amount: 160 },
-    { date: 'Sun', amount: 140 }
-  ];
-
-  // Feed type distribution
-  const feedTypeData = [
-    { name: 'Standard Pellet', value: 45 },
-    { name: 'High Protein', value: 30 },
-    { name: 'Vitamin Enhanced', value: 15 },
-    { name: 'Special Formula', value: 10 }
-  ];
-  
-  const COLORS = ['#007BFF', '#28A745', '#FD7E14', '#DC3545'];
+  // Transform pond data for PondCard component
+  const transformedPondData = useMemo(() => {
+    return filteredPonds.map(pond => ({
+      id: pond._id || pond.id,
+      name: pond.name,
+      status: pond.status || 'Active', // Default to Active if not set
+      health: pond.health || 'Good', // Default to Good if not set
+      progress: pond.progress || Math.floor(Math.random() * 100), // Generate random if not set
+      healthScore: pond.healthScore || Math.floor(Math.random() * 100) // Generate random if not set
+    }));
+  }, [filteredPonds]);
 
   // Handle filter change
   const handleFilterChange = (event, newFilter) => {
@@ -128,6 +183,28 @@ const DashboardPage = () => {
       setFilter(newFilter);
     }
   };
+
+  // Loading and error states
+  const isLoading = allPondsLoading;
+  const hasError = allPondsError;
+
+  if (isLoading) {
+    return (
+      <Container maxWidth={false} sx={{ mt: 2, mb: 4, display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Container>
+    );
+  }
+
+  if (hasError) {
+    return (
+      <Container maxWidth={false} sx={{ mt: 2, mb: 4 }}>
+        <Alert severity="error">
+          Error loading dashboard data: {allPondsError}
+        </Alert>
+      </Container>
+    );
+  }
 
   return (
     <Container maxWidth={false} sx={{ mt: 2, mb: 4 }}>
@@ -177,13 +254,20 @@ const DashboardPage = () => {
         ))}
       </Grid>
       
-      {/* Key Metrics Charts */}
+      {/* Key Metrics Charts - Using placeholder data for now */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         {/* Water Quality Chart */}
         <Grid item xs={12} md={6}>
           <DataTrend
             title="Water Quality Trend"
-            data={waterQualityData.map(item => ({
+            data={[
+              { pond: 'Pond A', pH: 7.2, do: 5.5, temp: 28.5 },
+              { pond: 'Pond B', pH: 6.8, do: 4.2, temp: 29.0 },
+              { pond: 'Pond C', pH: 7.0, do: 5.0, temp: 28.0 },
+              { pond: 'Pond D', pH: 7.5, do: 6.2, temp: 27.5 },
+              { pond: 'Pond E', pH: 6.5, do: 3.8, temp: 30.0 },
+              { pond: 'Pond F', pH: 7.1, do: 5.8, temp: 28.2 }
+            ].map(item => ({
               date: item.pond,
               pH: item.pH,
               do: item.do,
@@ -200,7 +284,15 @@ const DashboardPage = () => {
         <Grid item xs={12} md={6}>
           <DataTrend
             title="Feed Consumption Trend"
-            data={feedConsumptionData}
+            data={[
+              { date: 'Mon', amount: 120 },
+              { date: 'Tue', amount: 140 },
+              { date: 'Wed', amount: 110 },
+              { date: 'Thu', amount: 150 },
+              { date: 'Fri', amount: 130 },
+              { date: 'Sat', amount: 160 },
+              { date: 'Sun', amount: 140 }
+            ]}
             dataKey="amount"
             color="#007BFF"
             unit="kg"
@@ -249,7 +341,7 @@ const DashboardPage = () => {
           </Box>
           
           <Grid container spacing={3}>
-            {filteredPonds.map((pond) => (
+            {transformedPondData.map((pond) => (
               <Grid item xs={12} sm={6} lg={4} key={pond.id}>
                 <PondCard 
                   pond={pond}
