@@ -32,4 +32,10 @@ const feedInputSchema = new mongoose.Schema({
   timestamps: true
 });
 
+// Add indexes for better query performance
+feedInputSchema.index({ pondId: 1 });
+feedInputSchema.index({ seasonId: 1 });
+feedInputSchema.index({ date: -1 });
+feedInputSchema.index({ pondId: 1, date: -1 });
+
 module.exports = mongoose.model('FeedInput', feedInputSchema);

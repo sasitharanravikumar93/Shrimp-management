@@ -3,6 +3,7 @@ const router = express.Router();
 const seasonController = require('../controllers/seasonController');
 const pondCopyController = require('../controllers/pondCopyController');
 const Season = require('../models/Season'); // Import the Season model
+const { cacheMiddleware, clearCache } = require('../middleware/cache');
 
 // Middleware to validate season data for creation
 const validateSeasonCreation = async (req, res, next) => {
@@ -75,17 +76,25 @@ const validateSeasonDatesAndActive = async (req, res, next) => {
 // POST /api/seasons - Create a new season
 router.post('/', validateSeasonCreation, seasonController.createSeason);
 
-// GET /api/seasons - Get all seasons
-router.get('/', seasonController.getAllSeasons);
+// GET /api/seasons - Get all seasons (with caching)
+router.get('/', cacheMiddleware, seasonController.getAllSeasons);
 
 // GET /api/seasons/:id - Get a season by ID
 router.get('/:id', seasonController.getSeasonById);
 
 // PUT /api/seasons/:id - Update a season by ID
-router.put('/:id', validateSeasonUpdate, seasonController.updateSeason);
+router.put('/:id', validateSeasonUpdate, seasonController.updateSeason, (req, res, next) => {
+    // Clear cache when a season is updated
+    clearCache('/api/seasons');
+    next();
+});
 
 // DELETE /api/seasons/:id - Delete a season by ID
-router.delete('/:id', seasonController.deleteSeason);
+router.delete('/:id', seasonController.deleteSeason, (req, res, next) => {
+    // Clear cache when a season is deleted
+    clearCache('/api/seasons');
+    next();
+});
 
 // POST /api/seasons/copy-ponds - Copy pond details from one season to another
 router.post('/copy-ponds', pondCopyController.copyPondDetails);

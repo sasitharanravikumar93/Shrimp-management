@@ -74,20 +74,182 @@ exports.createFeedInput = async (req, res) => {
   }
 };
 
-// Get all feed inputs
+// Create multiple feed inputs in batch
+exports.createFeedInputsBatch = async (req, res) => {
+  logger.info('Creating feed inputs in batch', { body: req.body });
+  try {
+    const { feedInputs } = req.body;
+    
+    // Basic validation
+    if (!Array.isArray(feedInputs) || feedInputs.length === 0) {
+      return res.status(400).json({ message: 'Feed inputs must be a non-empty array' });
+    }
+    
+    const results = {
+      success: [],
+      errors: []
+    };
+    
+    // Process each feed input in the batch
+    for (const feedInputData of feedInputs) {
+      try {
+        const { date, time, pondId, inventoryItemId, quantity, seasonId, updatedAt } = feedInputData;
+        
+        // Basic validation for each item
+        if (!date || !time || !pondId || !inventoryItemId || quantity === undefined || !seasonId) {
+          results.errors.push({
+            data: feedInputData,
+            error: 'Date, time, pond ID, inventory item ID, quantity, and season ID are required'
+          });
+          continue;
+        }
+        
+        // Check if pond exists
+        const pond = await Pond.findById(pondId);
+        if (!pond) {
+          results.errors.push({
+            data: feedInputData,
+            error: 'Pond not found'
+          });
+          continue;
+        }
+
+        // Check if season exists
+        const season = await Season.findById(seasonId);
+        if (!season) {
+          results.errors.push({
+            data: feedInputData,
+            error: 'Season not found'
+          });
+          continue;
+        }
+
+        // Validate: Stocking event must exist for this pond and season
+        const stockingEvent = await Event.findOne({
+          pondId: pondId,
+          seasonId: seasonId,
+          eventType: 'Stocking',
+          'details.stockingDate': { $lte: new Date(date) } // Stocking must have occurred on or before the feed date
+        });
+
+        if (!stockingEvent) {
+          results.errors.push({
+            data: feedInputData,
+            error: 'Cannot add feed input: No stocking event found for this pond and season on or before the given date.'
+          });
+          continue;
+        }
+
+        // Check if inventory item exists and is of type 'Feed'
+        const inventoryItem = await InventoryItem.findById(inventoryItemId);
+        if (!inventoryItem) {
+          results.errors.push({
+            data: feedInputData,
+            error: 'Inventory item not found'
+          });
+          continue;
+        }
+        if (inventoryItem.itemType !== 'Feed') {
+          results.errors.push({
+            data: feedInputData,
+            error: 'Selected inventory item is not a feed type'
+          });
+          continue;
+        }
+        
+        // For conflict resolution, check if a record with the same identifiers already exists
+        // and if the incoming updatedAt is older than the existing one
+        if (updatedAt) {
+          const existingFeedInput = await FeedInput.findOne({ 
+            pondId, 
+            inventoryItemId, 
+            date: new Date(date),
+            time
+          });
+          
+          if (existingFeedInput && existingFeedInput.updatedAt > new Date(updatedAt)) {
+            // Server version is newer, skip this record
+            results.errors.push({
+              data: feedInputData,
+              error: 'Server version is newer, skipping record'
+            });
+            continue;
+          }
+        }
+        
+        // Create or update the feed input
+        const feedInput = new FeedInput({ date, time, pondId, inventoryItemId, quantity, seasonId });
+        await feedInput.save();
+        
+        // Deduct quantity from inventory
+        await inventoryController.createInventoryAdjustment({
+          body: {
+            inventoryItemId: inventoryItemId,
+            adjustmentType: 'Usage',
+            quantityChange: -Math.abs(quantity), // Deduct quantity
+            reason: `Feed usage for pond ${pond.name}`,
+            relatedDocument: feedInput._id,
+            relatedDocumentModel: 'FeedInput'
+          }
+        }, { // Mock res object for internal call
+          status: () => ({ json: () => {} })
+        });
+        
+        results.success.push(feedInput);
+      } catch (error) {
+        results.errors.push({
+          data: feedInputData,
+          error: error.message
+        });
+      }
+    }
+    
+    res.status(201).json({
+      message: `Processed ${feedInputs.length} feed inputs: ${results.success.length} succeeded, ${results.errors.length} failed`,
+      results
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Error creating feed inputs in batch', error: error.message });
+    logger.error('Error creating feed inputs in batch', { error: error.message, stack: error.stack });
+  }
+};
+
+// Get all feed inputs with pagination
 exports.getAllFeedInputs = async (req, res) => {
   logger.info('Getting all feed inputs', { query: req.query });
   try {
     const { seasonId } = req.query;
+    
+    // Pagination parameters
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 25;
+    const skip = (page - 1) * limit;
+    
     let query = {};
     if (seasonId) {
       query.seasonId = seasonId;
     }
+    
+    // Get total count for pagination metadata
+    const total = await FeedInput.countDocuments(query);
+    
     const feedInputs = await FeedInput.find(query)
       .populate('pondId', 'name')
       .populate('seasonId', 'name')
-      .populate('inventoryItemId', 'itemName itemType unit'); // Populate inventory item details
-    res.json(feedInputs);
+      .populate('inventoryItemId', 'itemName itemType unit') // Populate inventory item details
+      .skip(skip)
+      .limit(limit)
+      .sort({ date: -1, time: -1 }); // Sort by date and time, newest first
+    
+    res.json({
+      data: feedInputs,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
   } catch (error) {
     res.status(500).json({ message: 'Error fetching feed inputs', error: error.message });
     logger.error('Error fetching feed inputs', { error: error.message, stack: error.stack });

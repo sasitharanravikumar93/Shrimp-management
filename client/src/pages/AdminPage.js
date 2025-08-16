@@ -67,6 +67,7 @@ import {
 } from '../services/api';
 import { format } from 'date-fns';
 import { useTranslation } from 'react-i18next';
+import ResponsiveTable from '../components/ResponsiveTable';
 
 const AdminPage = () => {
   const { t, i18n } = useTranslation();
@@ -512,67 +513,88 @@ const AdminPage = () => {
                       </Box>
                       
                       {/* Seasons Table */}
-                      <TableContainer>
-                        <Table size="small">
-                          <TableHead>
-                            <TableRow>
-                              <TableCell sx={{ fontWeight: 'bold' }}>{t('name')}</TableCell>
-                              <TableCell sx={{ fontWeight: 'bold' }}>{t('startDate')}</TableCell>
-                              <TableCell sx={{ fontWeight: 'bold' }}>{t('endDate')}</TableCell>
-                              <TableCell sx={{ fontWeight: 'bold' }}>{t('status')}</TableCell>
-                              <TableCell sx={{ fontWeight: 'bold' }}>{t('actions')}</TableCell>
-                            </TableRow>
-                          </TableHead>
-                          <TableBody>
-                            {getPagedData(seasons).map((season) => (
-                              <TableRow key={season._id || season.id}>
-                                <TableCell>
-                                  {typeof season.name === 'object' 
-                                    ? season.name[i18n.language] || season.name.en 
-                                    : season.name}
-                                </TableCell>
-                                <TableCell>
-                                  {season.startDate ? format(new Date(season.startDate), 'yyyy-MM-dd') : 'N/A'}
-                                </TableCell>
-                                <TableCell>
-                                  {season.endDate ? format(new Date(season.endDate), 'yyyy-MM-dd') : 'N/A'}
-                                </TableCell>
-                                <TableCell>
-                                  <Chip 
-                                    label={season.status || 'N/A'} 
+                      <ResponsiveTable
+                        columns={[
+                          {
+                            id: 'name',
+                            label: t('name'),
+                            render: (value) => typeof value === 'object' ? value[i18n.language] || value.en : value
+                          },
+                          {
+                            id: 'startDate',
+                            label: t('startDate'),
+                            render: (value) => value ? format(new Date(value), 'yyyy-MM-dd') : 'N/A'
+                          },
+                          {
+                            id: 'endDate',
+                            label: t('endDate'),
+                            render: (value) => value ? format(new Date(value), 'yyyy-MM-dd') : 'N/A'
+                          },
+                          {
+                            id: 'status',
+                            label: t('status'),
+                            render: (value) => (
+                              <Chip 
+                                label={value || 'N/A'} 
+                                size="small" 
+                                color={
+                                  (value || 'N/A') === 'Active' ? 'success' : 
+                                  (value || 'N/A') === 'Planning' ? 'warning' : 
+                                  'default'
+                                } 
+                              />
+                            )
+                          },
+                          {
+                            id: 'actions',
+                            label: t('actions'),
+                            render: (_, row) => (
+                              <>
+                                <Tooltip title={t('edit')}>
+                                  <IconButton 
                                     size="small" 
-                                    color={
-                                      (season.status || 'N/A') === 'Active' ? 'success' : 
-                                      (season.status || 'N/A') === 'Planning' ? 'warning' : 
-                                      'default'
-                                    } 
-                                  />
-                                </TableCell>
-                                <TableCell>
-                                  <Tooltip title={t('edit')}>
-                                    <IconButton 
-                                      size="small" 
-                                      onClick={() => handleOpenDialog('season', season)}
-                                    >
-                                      <EditIcon />
-                                    </IconButton>
-                                  </Tooltip>
-                                  <Tooltip title={t('delete')}>
-                                    <IconButton 
-                                      size="small" 
-                                      color="error"
-                                      onClick={() => handleDelete('season', season._id || season.id)}
-                                      disabled={deleteSeasonLoading}
-                                    >
-                                      <DeleteIcon />
-                                    </IconButton>
-                                  </Tooltip>
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </TableContainer>
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleOpenDialog('season', row);
+                                    }}
+                                    sx={{ 
+                                      minWidth: 48, 
+                                      minHeight: 48,
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center'
+                                    }}
+                                  >
+                                    <EditIcon />
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title={t('delete')}>
+                                  <IconButton 
+                                    size="small" 
+                                    color="error"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDelete('season', row._id || row.id);
+                                    }}
+                                    disabled={deleteSeasonLoading}
+                                    sx={{ 
+                                      minWidth: 48, 
+                                      minHeight: 48,
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center'
+                                    }}
+                                  >
+                                    <DeleteIcon />
+                                  </IconButton>
+                                </Tooltip>
+                              </>
+                            )
+                          }
+                        ]}
+                        data={getPagedData(seasons)}
+                        rowKey="_id"
+                      />
                       
                       {/* Pagination */}
                       <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
@@ -606,80 +628,112 @@ const AdminPage = () => {
                       }
                     />
                     <CardContent>
-                      <TableContainer>
-                        <Table size="small">
-                          <TableHead>
-                            <TableRow>
-                              <TableCell sx={{ fontWeight: 'bold' }}>{t('name')}</TableCell>
-                              <TableCell sx={{ fontWeight: 'bold' }}>{t('size_m2')}</TableCell>
-                              <TableCell sx={{ fontWeight: 'bold' }}>{t('capacity')}</TableCell>
-                              <TableCell sx={{ fontWeight: 'bold' }}>{t('season')}</TableCell>
-                              <TableCell sx={{ fontWeight: 'bold' }}>{t('status')}</TableCell>
-                              <TableCell sx={{ fontWeight: 'bold' }}>{t('actions')}</TableCell>
-                            </TableRow>
-                          </TableHead>
-                          <TableBody>
-                            {getPagedData(ponds).map((pond) => (
-                              <TableRow key={pond._id || pond.id}>
-                                <TableCell>
-                                  <Button 
-                                    variant="text" 
-                                    onClick={() => navigate(`/pond/${pond._id || pond.id}`)}
-                                    sx={{ justifyContent: 'flex-start', padding: 0, minWidth: 0, textAlign: 'left' }}
-                                  >
-                                    {typeof pond.name === 'object' 
-                                      ? pond.name[i18n.language] || pond.name.en 
-                                      : pond.name}
-                                  </Button>
-                                </TableCell>
-                                <TableCell>{pond.size}</TableCell>
-                                <TableCell>{pond.capacity}</TableCell>
-                                <TableCell>
-                                  {pond.seasonId ? 
-                                    (typeof pond.seasonId === 'object' ? 
-                                      (typeof pond.seasonId.name === 'object' 
-                                        ? pond.seasonId.name[i18n.language] || pond.seasonId.name.en 
-                                        : pond.seasonId.name) : 
-                                      pond.seasonId) : 
-                                    'N/A'
-                                  }
-                                </TableCell>
-                                <TableCell>
-                                  <Chip 
-                                    label={pond.status || 'N/A'} 
+                      <ResponsiveTable
+                        columns={[
+                          {
+                            id: 'name',
+                            label: t('name'),
+                            render: (value, row) => (
+                              <Button 
+                                variant="text" 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigate(`/pond/${row._id || row.id}`);
+                                }}
+                                sx={{ justifyContent: 'flex-start', padding: 0, minWidth: 0, textAlign: 'left' }}
+                              >
+                                {typeof value === 'object' ? value[i18n.language] || value.en : value}
+                              </Button>
+                            )
+                          },
+                          {
+                            id: 'size',
+                            label: t('size_m2')
+                          },
+                          {
+                            id: 'capacity',
+                            label: t('capacity')
+                          },
+                          {
+                            id: 'seasonId',
+                            label: t('season'),
+                            render: (value) => {
+                              if (!value) return 'N/A';
+                              if (typeof value === 'object') {
+                                if (typeof value.name === 'object') {
+                                  return value.name[i18n.language] || value.name.en;
+                                }
+                                return value.name;
+                              }
+                              return value;
+                            }
+                          },
+                          {
+                            id: 'status',
+                            label: t('status'),
+                            render: (value) => (
+                              <Chip 
+                                label={value || 'N/A'} 
+                                size="small" 
+                                color={
+                                  (value || 'N/A') === 'Active' ? 'success' : 
+                                  (value || 'N/A') === 'Planning' ? 'warning' : 
+                                  'default'
+                                } 
+                              />
+                            )
+                          },
+                          {
+                            id: 'actions',
+                            label: t('actions'),
+                            render: (_, row) => (
+                              <>
+                                <Tooltip title={t('edit')}>
+                                  <IconButton 
                                     size="small" 
-                                    color={
-                                      (pond.status || 'N/A') === 'Active' ? 'success' : 
-                                      (pond.status || 'N/A') === 'Planning' ? 'warning' : 
-                                      'default'
-                                    } 
-                                  />
-                                </TableCell>
-                                <TableCell>
-                                  <Tooltip title={t('edit')}>
-                                    <IconButton 
-                                      size="small" 
-                                      onClick={() => handleOpenDialog('pond', pond)}
-                                    >
-                                      <EditIcon />
-                                    </IconButton>
-                                  </Tooltip>
-                                  <Tooltip title={t('delete')}>
-                                    <IconButton 
-                                      size="small" 
-                                      color="error"
-                                      onClick={() => handleDelete('pond', pond._id || pond.id)}
-                                      disabled={deletePondLoading}
-                                    >
-                                      <DeleteIcon />
-                                    </IconButton>
-                                  </Tooltip>
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </TableContainer>
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleOpenDialog('pond', row);
+                                    }}
+                                    sx={{ 
+                                      minWidth: 48, 
+                                      minHeight: 48,
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center'
+                                    }}
+                                  >
+                                    <EditIcon />
+                                  </IconButton>
+                                </Tooltip>
+                                <Tooltip title={t('delete')}>
+                                  <IconButton 
+                                    size="small" 
+                                    color="error"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDelete('pond', row._id || row.id);
+                                    }}
+                                    disabled={deletePondLoading}
+                                    sx={{ 
+                                      minWidth: 48, 
+                                      minHeight: 48,
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center'
+                                    }}
+                                  >
+                                    <DeleteIcon />
+                                  </IconButton>
+                                </Tooltip>
+                              </>
+                            )
+                          }
+                        ]}
+                        data={getPagedData(ponds)}
+                        rowKey="_id"
+                        onRowClick={(row) => navigate(`/pond/${row._id || row.id}`)}
+                      />
                       
                       {/* Pagination */}
                       <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
@@ -894,6 +948,7 @@ const AdminPage = () => {
                   name="size"
                   label={`${t('size')} (m²)`}
                   type="number"
+                  inputProps={{ inputMode: 'decimal', min: 0 }}
                   fullWidth
                   variant="outlined"
                   sx={{ mt: 2 }}
@@ -906,6 +961,7 @@ const AdminPage = () => {
                   name="capacity"
                   label={t('capacity')}
                   type="number"
+                  inputProps={{ inputMode: 'numeric', min: 0 }}
                   fullWidth
                   variant="outlined"
                   sx={{ mt: 2 }}

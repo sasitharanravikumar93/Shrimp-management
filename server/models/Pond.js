@@ -28,4 +28,9 @@ const pondSchema = new mongoose.Schema({
   timestamps: true
 });
 
+// Add indexes for better query performance
+pondSchema.index({ seasonId: 1 });
+pondSchema.index({ status: 1 });
+pondSchema.index({ seasonId: 1, status: 1 });
+
 module.exports = mongoose.model('Pond', pondSchema);

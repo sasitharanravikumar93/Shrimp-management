@@ -89,14 +89,37 @@ exports.createPond = async (req, res) => {
   }
 };
 
-// Get all ponds
+// Get all ponds with pagination
 exports.getAllPonds = async (req, res) => {
   logger.info('Getting all ponds');
   try {
     const language = getLanguageForUser(req);
-    const ponds = await Pond.find().populate('seasonId', 'name');
+    
+    // Pagination parameters
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 25;
+    const skip = (page - 1) * limit;
+    
+    // Get total count for pagination metadata
+    const total = await Pond.countDocuments();
+    
+    const ponds = await Pond.find()
+      .populate('seasonId', 'name')
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 }); // Sort by creation date, newest first
+    
     const translatedPonds = translateDocuments(ponds, language);
-    res.json(translatedPonds);
+    
+    res.json({
+      data: translatedPonds,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
   } catch (error) {
     res.status(500).json({ message: 'Error fetching ponds', error: error.message });
     logger.error('Error fetching ponds', { error: error.message, stack: error.stack });

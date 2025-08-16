@@ -44,6 +44,11 @@ app.get('/', (req, res) => {
   res.json({ message: 'Shrimp Farm Management API' });
 });
 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+
 // Error handling middleware (should be last)
 app.use((err, req, res, next) => {
   console.error(err.stack);

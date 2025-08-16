@@ -85,19 +85,177 @@ exports.createWaterQualityInput = async (req, res) => {
   }
 };
 
-// Get all water quality inputs
+// Create multiple water quality inputs in batch
+exports.createWaterQualityInputsBatch = async (req, res) => {
+  logger.info('Creating water quality inputs in batch', { body: req.body });
+  try {
+    const { waterQualityInputs } = req.body;
+    
+    // Basic validation
+    if (!Array.isArray(waterQualityInputs) || waterQualityInputs.length === 0) {
+      return res.status(400).json({ message: 'Water quality inputs must be a non-empty array' });
+    }
+    
+    const results = {
+      success: [],
+      errors: []
+    };
+    
+    // Process each water quality input in the batch
+    for (const waterQualityInputData of waterQualityInputs) {
+      try {
+        const { date, time, pondId, pH, dissolvedOxygen, temperature, salinity, ammonia, nitrite, alkalinity, seasonId, inventoryItemId, quantityUsed, updatedAt } = waterQualityInputData;
+        
+        // Basic validation for each item
+        if (!date || !time || !pondId || pH === undefined || dissolvedOxygen === undefined || 
+            temperature === undefined || salinity === undefined || !seasonId) {
+          results.errors.push({
+            data: waterQualityInputData,
+            error: 'Date, time, pond ID, pH, dissolved oxygen, temperature, salinity, and season ID are required'
+          });
+          continue;
+        }
+
+        // Validate inventory item and quantity if provided
+        if (inventoryItemId && (quantityUsed === undefined || isNaN(quantityUsed) || quantityUsed <= 0)) {
+          results.errors.push({
+            data: waterQualityInputData,
+            error: 'Quantity used must be a positive number if an inventory item is provided'
+          });
+          continue;
+        }
+        
+        // Check if pond exists
+        const pond = await Pond.findById(pondId);
+        if (!pond) {
+          results.errors.push({
+            data: waterQualityInputData,
+            error: 'Pond not found'
+          });
+          continue;
+        }
+
+        // Check if season exists
+        const season = await Season.findById(seasonId);
+        if (!season) {
+          results.errors.push({
+            data: waterQualityInputData,
+            error: 'Season not found'
+          });
+          continue;
+        }
+        
+        // For conflict resolution, check if a record with the same identifiers already exists
+        // and if the incoming updatedAt is older than the existing one
+        if (updatedAt) {
+          const existingWaterQualityInput = await WaterQualityInput.findOne({ 
+            pondId, 
+            date: new Date(date),
+            time
+          });
+          
+          if (existingWaterQualityInput && existingWaterQualityInput.updatedAt > new Date(updatedAt)) {
+            // Server version is newer, skip this record
+            results.errors.push({
+              data: waterQualityInputData,
+              error: 'Server version is newer, skipping record'
+            });
+            continue;
+          }
+        }
+        
+        // Create the water quality input
+        const waterQualityInput = new WaterQualityInput({ 
+          date, 
+          time, 
+          pondId, 
+          pH, 
+          dissolvedOxygen, 
+          temperature, 
+          salinity,
+          ammonia,
+          nitrite,
+          alkalinity,
+          seasonId,
+          inventoryItemId,
+          quantityUsed
+        });
+        
+        await waterQualityInput.save();
+        
+        // Create inventory adjustment if an item was used
+        if (inventoryItemId && quantityUsed) {
+          try {
+            await createInventoryAdjustment({
+              body: {
+                inventoryItemId: inventoryItemId,
+                adjustmentType: 'Usage',
+                quantityChange: -Math.abs(quantityUsed), // Ensure it's a negative value for depletion
+                reason: `Water treatment for pond ${pond.name}`,
+                relatedDocument: waterQualityInput._id,
+                relatedDocumentModel: 'WaterQualityInput'
+              }
+            }, null); // Pass null for res and req objects as it's an internal call
+          } catch (adjError) {
+            console.error('Error creating inventory adjustment for water quality:', adjError);
+            // For now, we'll just log and proceed with water quality input creation
+          }
+        }
+        
+        results.success.push(waterQualityInput);
+      } catch (error) {
+        results.errors.push({
+          data: waterQualityInputData,
+          error: error.message
+        });
+      }
+    }
+    
+    res.status(201).json({
+      message: `Processed ${waterQualityInputs.length} water quality inputs: ${results.success.length} succeeded, ${results.errors.length} failed`,
+      results
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Error creating water quality inputs in batch', error: error.message });
+    logger.error('Error creating water quality inputs in batch', { error: error.message, stack: error.stack });
+  }
+};
+
+// Get all water quality inputs with pagination
 exports.getAllWaterQualityInputs = async (req, res) => {
   logger.info('Getting all water quality inputs', { query: req.query });
   try {
     const { seasonId } = req.query;
+    
+    // Pagination parameters
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 25;
+    const skip = (page - 1) * limit;
+    
     let query = {};
     if (seasonId) {
       query.seasonId = seasonId;
     }
+    
+    // Get total count for pagination metadata
+    const total = await WaterQualityInput.countDocuments(query);
+    
     const waterQualityInputs = await WaterQualityInput.find(query)
       .populate('pondId', 'name')
-      .populate('seasonId', 'name'); // Populate pond and season name
-    res.json(waterQualityInputs);
+      .populate('seasonId', 'name') // Populate pond and season name
+      .skip(skip)
+      .limit(limit)
+      .sort({ date: -1, time: -1 }); // Sort by date and time, newest first
+    
+    res.json({
+      data: waterQualityInputs,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
   } catch (error) {
     res.status(500).json({ message: 'Error fetching water quality inputs', error: error.message });
     logger.error('Error fetching water quality inputs', { error: error.message, stack: error.stack });

@@ -5,6 +5,9 @@ const waterQualityInputController = require('../controllers/waterQualityInputCon
 // POST /api/water-quality-inputs - Create a new water quality input
 router.post('/', waterQualityInputController.createWaterQualityInput);
 
+// POST /api/water-quality-inputs/batch - Create multiple water quality inputs in batch
+router.post('/batch', waterQualityInputController.createWaterQualityInputsBatch);
+
 // GET /api/water-quality-inputs - Get all water quality inputs
 router.get('/', waterQualityInputController.getAllWaterQualityInputs);
 

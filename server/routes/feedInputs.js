@@ -5,6 +5,9 @@ const feedInputController = require('../controllers/feedInputController');
 // POST /api/feed-inputs - Create a new feed input
 router.post('/', feedInputController.createFeedInput);
 
+// POST /api/feed-inputs/batch - Create multiple feed inputs in batch
+router.post('/batch', feedInputController.createFeedInputsBatch);
+
 // GET /api/feed-inputs - Get all feed inputs
 router.get('/', feedInputController.getAllFeedInputs);
 

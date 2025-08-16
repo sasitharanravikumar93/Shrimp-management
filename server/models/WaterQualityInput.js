@@ -57,4 +57,10 @@ const waterQualityInputSchema = new mongoose.Schema({
   timestamps: true
 });
 
+// Add indexes for better query performance
+waterQualityInputSchema.index({ pondId: 1 });
+waterQualityInputSchema.index({ seasonId: 1 });
+waterQualityInputSchema.index({ date: -1 });
+waterQualityInputSchema.index({ pondId: 1, date: -1 });
+
 module.exports = mongoose.model('WaterQualityInput', waterQualityInputSchema);
