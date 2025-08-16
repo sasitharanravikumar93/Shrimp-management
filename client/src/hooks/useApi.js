@@ -1,16 +1,70 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 // Simple in-memory cache
 const apiCache = new Map();
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+// Helper function for API calls with better error handling
+const apiCall = async (endpoint, method = 'GET', data = null) => {
+  const API_BASE_URL = 'http://localhost:5001/api';
+  const url = `${API_BASE_URL}${endpoint}`;
+  const options = {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  };
+
+  if (data && (method === 'POST' || method === 'PUT')) {
+    options.body = JSON.stringify(data);
+  }
+
+  try {
+    const response = await fetch(url, options);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      let errorMessage = `HTTP error! status: ${response.status}`;
+      
+      try {
+        const errorData = JSON.parse(errorText);
+        errorMessage = errorData.message || errorMessage;
+      } catch (e) {
+        // If parsing fails, use the raw text if it's not empty
+        if (errorText.trim()) {
+          errorMessage = errorText;
+        }
+      }
+      
+      throw new Error(errorMessage);
+    }
+    
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      return await response.json();
+    } else {
+      return await response.text();
+    }
+  } catch (error) {
+    console.error('API call failed:', error);
+    throw error;
+  }
+};
 
 // Custom hook for data fetching with loading and error states
 export const useApiData = (apiFunction, dependencies = [], cacheKey = null, retryCount = 3) => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const retryTimeoutRef = useRef(null);
 
   const fetchData = useCallback(async (useCache = true, retries = retryCount) => {
+    // Clear any existing retry timeout
+    if (retryTimeoutRef.current) {
+      clearTimeout(retryTimeoutRef.current);
+      retryTimeoutRef.current = null;
+    }
+    
     try {
       // Check cache first if cacheKey is provided
       if (cacheKey && useCache) {
@@ -40,7 +94,7 @@ export const useApiData = (apiFunction, dependencies = [], cacheKey = null, retr
       // Retry logic
       if (retries > 0) {
         console.warn(`API call failed, retrying... (${retryCount - retries + 1}/${retryCount})`);
-        setTimeout(() => {
+        retryTimeoutRef.current = setTimeout(() => {
           fetchData(useCache, retries - 1);
         }, 1000 * (retryCount - retries)); // Exponential backoff
         return;
@@ -54,6 +108,14 @@ export const useApiData = (apiFunction, dependencies = [], cacheKey = null, retr
 
   useEffect(() => {
     fetchData();
+    
+    // Cleanup function to clear any pending retries
+    return () => {
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+        retryTimeoutRef.current = null;
+      }
+    };
   }, dependencies); // eslint-disable-line react-hooks/exhaustive-deps
 
   const refetch = useCallback(async () => {
@@ -74,20 +136,27 @@ export const useApiData = (apiFunction, dependencies = [], cacheKey = null, retr
 export const useApiMutation = (apiFunction, retryCount = 3) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const retryTimeoutRef = useRef(null);
 
-  const mutate = async (data, retries = retryCount) => {
+  const mutate = async (...args) => {
+    // Clear any existing retry timeout
+    if (retryTimeoutRef.current) {
+      clearTimeout(retryTimeoutRef.current);
+      retryTimeoutRef.current = null;
+    }
+    
     try {
       setLoading(true);
       setError(null);
-      const result = await apiFunction(data);
+      const result = await apiFunction(...args);
       return { data: result, error: null };
     } catch (err) {
       // Retry logic
-      if (retries > 0) {
-        console.warn(`API mutation failed, retrying... (${retryCount - retries + 1}/${retryCount})`);
-        setTimeout(() => {
-          mutate(data, retries - 1);
-        }, 1000 * (retryCount - retries)); // Exponential backoff
+      if (retryCount > 0) {
+        console.warn(`API mutation failed, retrying... (1/${retryCount})`);
+        retryTimeoutRef.current = setTimeout(() => {
+          mutate(...args);
+        }, 1000); // Simple retry after 1 second
         return;
       }
       
@@ -98,8 +167,30 @@ export const useApiMutation = (apiFunction, retryCount = 3) => {
     }
   };
 
+  // Cleanup function to clear any pending retries
+  useEffect(() => {
+    return () => {
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+        retryTimeoutRef.current = null;
+      }
+    };
+  }, []);
+
   return { mutate, loading, error };
 };
+
+// Helper hook that provides API methods (backward compatibility)
+const useApi = () => {
+  return {
+    get: (endpoint) => apiCall(endpoint, 'GET'),
+    post: (endpoint, data) => apiCall(endpoint, 'POST', data),
+    put: (endpoint, data) => apiCall(endpoint, 'PUT', data),
+    delete: (endpoint) => apiCall(endpoint, 'DELETE'),
+  };
+};
+
+export default useApi;
 
 // Function to clear all cache
 export const clearAllCache = () => {

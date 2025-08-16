@@ -3,14 +3,14 @@ const Season = require('../models/Season');
 // Create a new season
 exports.createSeason = async (req, res) => {
   try {
-    const { name, startDate, endDate } = req.body;
+    const { name, startDate, endDate, status } = req.body;
     
     // Basic validation
     if (!name || !startDate || !endDate) {
       return res.status(400).json({ message: 'Name, start date, and end date are required' });
     }
     
-    const season = new Season({ name, startDate, endDate });
+    const season = new Season({ name, startDate, endDate, status });
     await season.save();
     
     res.status(201).json(season);
@@ -54,16 +54,18 @@ exports.getSeasonById = async (req, res) => {
 // Update a season by ID
 exports.updateSeason = async (req, res) => {
   try {
-    const { name, startDate, endDate } = req.body;
+    const { name, startDate, endDate, status } = req.body;
     
-    // Basic validation
-    if (!name || !startDate || !endDate) {
-      return res.status(400).json({ message: 'Name, start date, and end date are required' });
-    }
+    // Prepare update object with only provided fields
+    const updateData = {};
+    if (name !== undefined) updateData.name = name;
+    if (startDate !== undefined) updateData.startDate = startDate;
+    if (endDate !== undefined) updateData.endDate = endDate;
+    if (status !== undefined) updateData.status = status;
     
     const season = await Season.findByIdAndUpdate(
       req.params.id,
-      { name, startDate, endDate },
+      updateData,
       { new: true, runValidators: true } // Return updated document and run validators
     );
     

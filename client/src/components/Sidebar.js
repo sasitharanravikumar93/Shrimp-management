@@ -17,6 +17,7 @@ import WaterDropIcon from '@mui/icons-material/WaterDrop';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import SpaIcon from '@mui/icons-material/Spa';
 import HistoryIcon from '@mui/icons-material/History';
+import InventoryIcon from '@mui/icons-material/Inventory'; // New import
 import { Link } from 'react-router-dom';
 
 const drawerWidth = 240;
@@ -67,6 +68,12 @@ const Sidebar = () => {
             <SpaIcon />
           </ListItemIcon>
           <ListItemText primary="Nursery Management" />
+        </ListItem>
+        <ListItem button component={Link} to="/inventory-management"> {/* New Inventory Management Link */}
+          <ListItemIcon>
+            <InventoryIcon />
+          </ListItemIcon>
+          <ListItemText primary="Inventory Management" />
         </ListItem>
         <ListItem button component={Link} to="/admin">
           <ListItemIcon>

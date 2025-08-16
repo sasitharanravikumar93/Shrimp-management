@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Typography, 
   Grid, 
@@ -48,6 +48,22 @@ import { format } from 'date-fns';
 import { useSeason } from '../context/SeasonContext';
 import { useParams } from 'react-router-dom';
 import { useApiData, useApiMutation } from '../hooks/useApi';
+import useApi from '../hooks/useApi';
+import { 
+  ResponsiveContainer,
+  BarChart,
+  LineChart,
+  ScatterChart,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  ZAxis,
+  Tooltip as RechartsTooltip,
+  Legend,
+  Bar,
+  Line,
+  Scatter
+} from 'recharts';
 import { 
   getPondById, 
   getFeedInputsByPondId, 
@@ -68,6 +84,48 @@ import WaterQualityAlert from '../components/WaterQualityAlert';
 import EventSuggestions from '../components/EventSuggestions';
 
 const PondManagementPage = () => {
+  const api = useApi(); // Initialize useApi
+
+  const [feedInventoryItems, setFeedInventoryItems] = useState([]);
+  const [feedInventoryLoading, setFeedInventoryLoading] = useState(true);
+  const [feedInventoryError, setFeedInventoryError] = useState(null);
+
+  const [chemicalProbioticInventoryItems, setChemicalProbioticInventoryItems] = useState([]);
+  const [chemicalProbioticInventoryLoading, setChemicalProbioticInventoryLoading] = useState(true);
+  const [chemicalProbioticInventoryError, setChemicalProbioticInventoryError] = useState(null);
+
+  useEffect(() => {
+    const fetchFeedInventory = async () => {
+      try {
+        const response = await api.get('/inventory?itemType=Feed');
+        setFeedInventoryItems(response.data);
+      } catch (err) {
+        console.error('Error fetching feed inventory:', err);
+        setFeedInventoryError('Failed to load feed types.');
+      } finally {
+        setFeedInventoryLoading(false);
+      }
+    };
+
+    const fetchChemicalProbioticInventory = async () => {
+      try {
+        // Assuming the API can filter by multiple itemTypes or we make two calls
+        const chemicalResponse = await api.get('/inventory?itemType=Chemical');
+        const probioticResponse = await api.get('/inventory?itemType=Probiotic');
+        setChemicalProbioticInventoryItems([...chemicalResponse.data, ...probioticResponse.data]);
+      } catch (err) {
+        console.error('Error fetching chemical/probiotic inventory:', err);
+        setChemicalProbioticInventoryError('Failed to load chemical/probiotic types.');
+      } finally {
+        setChemicalProbioticInventoryLoading(false);
+      }
+    };
+
+    fetchFeedInventory();
+    fetchChemicalProbioticInventory();
+  }, [api]);
+
+
   const { pondId } = useParams();
   const [activeTab, setActiveTab] = useState(0);
   const [viewMode, setViewMode] = useState('tabs'); // 'tabs' or 'calendar'
@@ -136,6 +194,8 @@ const PondManagementPage = () => {
       dissolvedOxygen: '',
       temperature: '',
       salinity: '',
+      chemicalUsed: '',
+      chemicalQuantityUsed: '',
       totalWeight: '',
       totalCount: '',
       title: '',
@@ -215,7 +275,9 @@ const PondManagementPage = () => {
           pH: parseFloat(data.pH),
           dissolvedOxygen: parseFloat(data.dissolvedOxygen),
           temperature: parseFloat(data.temperature),
-          salinity: parseFloat(data.salinity)
+          salinity: parseFloat(data.salinity),
+          chemicalUsed: data.chemicalUsed,
+          chemicalQuantityUsed: parseFloat(data.chemicalQuantityUsed)
         });
         refetchWaterQualityEntries();
       } else if (activeTab === 2 || data.eventType === 'Growth Sampling') {
@@ -523,11 +585,15 @@ const PondManagementPage = () => {
                                     label="Feed Type"
                                     fullWidth
                                     select
+                                    disabled={feedInventoryLoading}
+                                    error={!!feedInventoryError}
+                                    helperText={feedInventoryError || (feedInventoryLoading ? 'Loading feed types...' : '')}
                                   >
-                                    <MenuItem value="Standard Pellet">Standard Pellet</MenuItem>
-                                    <MenuItem value="High Protein Pellet">High Protein Pellet</MenuItem>
-                                    <MenuItem value="Vitamin Enhanced">Vitamin Enhanced</MenuItem>
-                                    <MenuItem value="Special Formula">Special Formula</MenuItem>
+                                    {feedInventoryItems.map((item) => (
+                                      <MenuItem key={item._id} value={item._id}>
+                                        {item.itemName}
+                                      </MenuItem>
+                                    ))}
                                   </TextField>
                                 )}
                               />
@@ -743,6 +809,45 @@ const PondManagementPage = () => {
                                   <TextField
                                     {...field}
                                     label="Salinity (ppt)"
+                                    type="number"
+                                    fullWidth
+                                  />
+                                )}
+                              />
+                            </Grid>
+
+                            <Grid item xs={12} md={6}>
+                              <Controller
+                                name="chemicalUsed"
+                                control={control}
+                                render={({ field }) => (
+                                  <TextField
+                                    {...field}
+                                    label="Chemical/Probiotic Used"
+                                    fullWidth
+                                    select
+                                    disabled={chemicalProbioticInventoryLoading}
+                                    error={!!chemicalProbioticInventoryError}
+                                    helperText={chemicalProbioticInventoryError || (chemicalProbioticInventoryLoading ? 'Loading chemicals/probiotics...' : '')}
+                                  >
+                                    {chemicalProbioticInventoryItems.map((item) => (
+                                      <MenuItem key={item._id} value={item._id}>
+                                        {item.itemName}
+                                      </MenuItem>
+                                    ))}
+                                  </TextField>
+                                )}
+                              />
+                            </Grid>
+
+                            <Grid item xs={12} md={6}>
+                              <Controller
+                                name="chemicalQuantityUsed"
+                                control={control}
+                                render={({ field }) => (
+                                  <TextField
+                                    {...field}
+                                    label="Quantity Used (unit)"
                                     type="number"
                                     fullWidth
                                   />

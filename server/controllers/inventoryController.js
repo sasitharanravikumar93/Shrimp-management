@@ -4,23 +4,38 @@ const mongoose = require('mongoose');
 
 // Helper function to calculate current quantity
 const calculateCurrentQuantity = async (inventoryItemId) => {
+  const item = await InventoryItem.findById(inventoryItemId);
+  if (!item) {
+    return 0; // Or throw an error, depending on desired behavior
+  }
   const adjustments = await InventoryAdjustment.find({ inventoryItemId });
-  const currentQuantity = adjustments.reduce((sum, adj) => sum + adj.quantityChange, 0);
-  return currentQuantity;
+  const totalAdjustment = adjustments.reduce((sum, adj) => sum + adj.quantityChange, 0);
+  return item.initialQuantity + totalAdjustment;
 };
 
 // Create a new inventory item
 exports.createInventoryItem = async (req, res) => {
   try {
-    const { itemName, itemType, supplier, unit, costPerUnit } = req.body;
+    const { itemName, itemType, supplier, purchaseDate, initialQuantity, unit, costPerUnit, lowStockThreshold } = req.body;
 
     // Basic validation
-    if (!itemName || !itemType || !unit || costPerUnit === undefined) {
-      return res.status(400).json({ message: 'Item name, type, unit, and cost per unit are required' });
+    if (!itemName || !itemType || !purchaseDate || initialQuantity === undefined || !unit || costPerUnit === undefined) {
+      return res.status(400).json({ message: 'Item name, type, purchase date, initial quantity, unit, and cost per unit are required' });
     }
 
-    const inventoryItem = new InventoryItem({ itemName, itemType, supplier, unit, costPerUnit });
+    const inventoryItem = new InventoryItem({
+      itemName, itemType, supplier, purchaseDate, initialQuantity, unit, costPerUnit, lowStockThreshold
+    });
     await inventoryItem.save();
+
+    // Create an initial adjustment for the initial quantity
+    const initialAdjustment = new InventoryAdjustment({
+      inventoryItemId: inventoryItem._id,
+      adjustmentType: 'Initial Stock',
+      quantityChange: initialQuantity,
+      reason: 'Initial stock entry',
+    });
+    await initialAdjustment.save();
 
     res.status(201).json(inventoryItem);
   } catch (error) {
@@ -84,11 +99,11 @@ exports.getInventoryItemById = async (req, res) => {
 // Update an inventory item
 exports.updateInventoryItem = async (req, res) => {
   try {
-    const { itemName, itemType, supplier, unit, costPerUnit } = req.body;
+    const { itemName, itemType, supplier, purchaseDate, initialQuantity, unit, costPerUnit, lowStockThreshold } = req.body;
 
     const inventoryItem = await InventoryItem.findByIdAndUpdate(
       req.params.id,
-      { itemName, itemType, supplier, unit, costPerUnit },
+      { itemName, itemType, supplier, purchaseDate, initialQuantity, unit, costPerUnit, lowStockThreshold },
       { new: true, runValidators: true }
     );
 

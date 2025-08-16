@@ -38,7 +38,7 @@ export const SeasonProvider = ({ children }) => {
     };
 
     fetchSeasons();
-  }, [selectedSeason]);
+  }, []); // Removed selectedSeason from dependencies to prevent infinite loop
 
   const selectSeason = (season) => {
     setSelectedSeason(season);

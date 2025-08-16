@@ -18,6 +18,11 @@ const pondSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Season',
     required: true
+  },
+  status: {
+    type: String,
+    enum: ['Planning', 'Active', 'Inactive', 'Completed'],
+    default: 'Planning'
   }
 }, {
   timestamps: true

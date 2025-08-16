@@ -10,6 +10,7 @@ import PondManagementPage from './pages/PondManagementPage';
 import FeedViewPage from './pages/FeedViewPage';
 import WaterQualityViewPage from './pages/WaterQualityViewPage';
 import NurseryManagementPage from './pages/NurseryManagementPage';
+import InventoryManagementPage from './pages/InventoryManagementPage';
 import HistoricalInsightsPage from './pages/HistoricalInsightsPage';
 import Layout from './components/Layout';
 import { SeasonProvider } from './context/SeasonContext';
@@ -53,6 +54,7 @@ function App() {
                   <Route path="/feed-view" element={<FeedViewPage />} />
                   <Route path="/water-quality-view" element={<WaterQualityViewPage />} />
                   <Route path="/nursery" element={<NurseryManagementPage />} />
+                  <Route path="/inventory-management" element={<InventoryManagementPage />} />
                   <Route path="/historical-insights" element={<HistoricalInsightsPage />} />
                 </Routes>
               </AnimatePresence>

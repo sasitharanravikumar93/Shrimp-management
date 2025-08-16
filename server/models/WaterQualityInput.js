@@ -43,6 +43,15 @@ const waterQualityInputSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Season',
     required: true
+  },
+  chemicalUsed: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'InventoryItem',
+    required: false // Optional
+  },
+  chemicalQuantityUsed: {
+    type: Number,
+    required: false // Optional
   }
 }, {
   timestamps: true

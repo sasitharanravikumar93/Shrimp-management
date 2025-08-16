@@ -368,6 +368,202 @@ describe('Season API', () => {
     });
   });
 
+  describe('Season Validation', () => {
+    // Active Season Validation
+    describe('Active Season Validation', () => {
+      it('should return 400 if creating a new active season when one already exists', async () => {
+        Season.findOne.mockResolvedValueOnce({ _id: 'activeSeason1', name: 'Active Season 1', isActive: true });
+        Season.find.mockResolvedValueOnce([]); // No overlapping dates
+
+        const newSeasonData = {
+          name: 'New Active Season',
+          startDate: '2025-01-01',
+          endDate: '2025-12-31',
+          isActive: true,
+        };
+
+        const res = await request(app)
+          .post('/api/seasons')
+          .send(newSeasonData);
+
+        expect(res.statusCode).toEqual(400);
+        expect(res.body).toHaveProperty('message', 'Another season (Active Season 1) is already active. Only one season can be active at a time.');
+        expect(Season.findOne).toHaveBeenCalledWith({ isActive: true });
+      });
+
+      it('should return 400 if updating a season to be active when another active season exists', async () => {
+        const existingActiveSeason = { _id: 'activeSeason1', name: 'Active Season 1', isActive: true };
+        const seasonToUpdateId = 'seasonToUpdate123';
+
+        Season.findOne.mockResolvedValueOnce(existingActiveSeason); // Mock finding an existing active season
+        Season.find.mockResolvedValueOnce([]); // No overlapping dates
+
+        const updatedSeasonData = {
+          name: 'Updated Season',
+          startDate: '2024-01-01',
+          endDate: '2024-12-31',
+          isActive: true,
+        };
+
+        const res = await request(app)
+          .put(`/api/seasons/${seasonToUpdateId}`)
+          .send(updatedSeasonData);
+
+        expect(res.statusCode).toEqual(400);
+        expect(res.body).toHaveProperty('message', 'Another season (Active Season 1) is already active. Only one season can be active at a time.');
+        expect(Season.findOne).toHaveBeenCalledWith({ isActive: true, _id: { $ne: seasonToUpdateId } });
+      });
+
+      it('should allow creating an active season if no other active season exists', async () => {
+        Season.findOne.mockResolvedValueOnce(null); // No active season found
+        Season.find.mockResolvedValueOnce([]); // No overlapping dates
+
+        const newSeasonData = {
+          name: 'New Active Season',
+          startDate: '2025-01-01',
+          endDate: '2025-12-31',
+          isActive: true,
+        };
+        const createdSeason = { _id: 'newActiveId', ...newSeasonData };
+
+        Season.mockImplementationOnce(() => ({
+          save: jest.fn().mockResolvedValue(createdSeason),
+        }));
+
+        const res = await request(app)
+          .post('/api/seasons')
+          .send(newSeasonData);
+
+        expect(res.statusCode).toEqual(201);
+        expect(res.body).toEqual(createdSeason);
+      });
+
+      it('should allow updating a season to be active if no other active season exists', async () => {
+        const seasonToUpdateId = 'seasonToUpdate123';
+        const updatedSeasonData = {
+          name: 'Updated Season',
+          startDate: '2024-01-01',
+          endDate: '2024-12-31',
+          isActive: true,
+        };
+        const updatedSeason = { _id: seasonToUpdateId, ...updatedSeasonData };
+
+        Season.findOne.mockResolvedValueOnce(null); // No active season found
+        Season.find.mockResolvedValueOnce([]); // No overlapping dates
+        Season.findByIdAndUpdate.mockResolvedValueOnce(updatedSeason);
+
+        const res = await request(app)
+          .put(`/api/seasons/${seasonToUpdateId}`)
+          .send(updatedSeasonData);
+
+        expect(res.statusCode).toEqual(200);
+        expect(res.body).toEqual(updatedSeason);
+      });
+    });
+
+    // Date Overlap Validation
+    describe('Date Overlap Validation', () => {
+      it('should return 400 if creating a new season with overlapping dates', async () => {
+        const existingSeason = {
+          _id: 'existingSeason1',
+          name: 'Existing Season',
+          startDate: '2023-06-01',
+          endDate: '2023-08-31',
+        };
+        Season.find.mockResolvedValueOnce([existingSeason]);
+        Season.findOne.mockResolvedValueOnce(null); // Assume no active season conflict for this test
+
+        const newSeasonData = {
+          name: 'Overlapping Season',
+          startDate: '2023-07-01',
+          endDate: '2023-09-30',
+          isActive: false,
+        };
+
+        const res = await request(app)
+          .post('/api/seasons')
+          .send(newSeasonData);
+
+        expect(res.statusCode).toEqual(400);
+        expect(res.body).toHaveProperty('message', `Season dates overlap with existing season: ${existingSeason.name}`);
+        expect(Season.find).toHaveBeenCalledWith({});
+      });
+
+      it('should return 400 if updating a season to have overlapping dates with another season', async () => {
+        const seasonToUpdateId = 'seasonToUpdate123';
+        const existingSeason = {
+          _id: 'existingSeason1',
+          name: 'Existing Season',
+          startDate: '2023-06-01',
+          endDate: '2023-08-31',
+        };
+        Season.find.mockResolvedValueOnce([existingSeason]);
+        Season.findOne.mockResolvedValueOnce(null); // Assume no active season conflict for this test
+
+        const updatedSeasonData = {
+          name: 'Updated Overlapping Season',
+          startDate: '2023-07-01',
+          endDate: '2023-09-30',
+          isActive: false,
+        };
+
+        const res = await request(app)
+          .put(`/api/seasons/${seasonToUpdateId}`)
+          .send(updatedSeasonData);
+
+        expect(res.statusCode).toEqual(400);
+        expect(res.body).toHaveProperty('message', `Season dates overlap with existing season: ${existingSeason.name}`);
+        expect(Season.find).toHaveBeenCalledWith({ _id: { $ne: seasonToUpdateId } });
+      });
+
+      it('should allow creating a new season with non-overlapping dates', async () => {
+        Season.find.mockResolvedValueOnce([]); // No overlapping seasons
+        Season.findOne.mockResolvedValueOnce(null); // No active season conflict
+
+        const newSeasonData = {
+          name: 'Non-Overlapping Season',
+          startDate: '2024-01-01',
+          endDate: '2024-03-31',
+          isActive: false,
+        };
+        const createdSeason = { _id: 'nonOverlapId', ...newSeasonData };
+
+        Season.mockImplementationOnce(() => ({
+          save: jest.fn().mockResolvedValue(createdSeason),
+        }));
+
+        const res = await request(app)
+          .post('/api/seasons')
+          .send(newSeasonData);
+
+        expect(res.statusCode).toEqual(201);
+        expect(res.body).toEqual(createdSeason);
+      });
+
+      it('should allow updating a season with non-overlapping dates', async () => {
+        const seasonToUpdateId = 'seasonToUpdate123';
+        const updatedSeasonData = {
+          name: 'Updated Non-Overlapping Season',
+          startDate: '2024-04-01',
+          endDate: '2024-06-30',
+          isActive: false,
+        };
+        const updatedSeason = { _id: seasonToUpdateId, ...updatedSeasonData };
+
+        Season.find.mockResolvedValueOnce([]); // No overlapping seasons
+        Season.findOne.mockResolvedValueOnce(null); // No active season conflict
+        Season.findByIdAndUpdate.mockResolvedValueOnce(updatedSeason);
+
+        const res = await request(app)
+          .put(`/api/seasons/${seasonToUpdateId}`)
+          .send(updatedSeasonData);
+
+        expect(res.statusCode).toEqual(200);
+        expect(res.body).toEqual(updatedSeason);
+      });
+    });
+  });
+
   // Test for POST /api/seasons/copy-ponds
   describe('POST /api/seasons/copy-ponds', () => {
     const pondCopyController = require('../controllers/pondCopyController');

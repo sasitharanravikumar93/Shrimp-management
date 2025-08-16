@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Typography, 
   Tabs, 
@@ -78,6 +78,15 @@ const AdminPage = () => {
   const itemsPerPage = 5;
   const navigate = useNavigate();
   
+  // Log component mount/unmount for debugging
+  useEffect(() => {
+    console.log('AdminPage mounted');
+    
+    return () => {
+      console.log('AdminPage unmounted');
+    };
+  }, []);
+  
   // Form data
   const [formData, setFormData] = useState({
     name: '',
@@ -95,7 +104,7 @@ const AdminPage = () => {
     loading: seasonsLoading, 
     error: seasonsError,
     refetch: refetchSeasons
-  } = useApiData(getSeasons, []);
+  } = useApiData(getSeasons, [], 'seasons', 1);
 
   // Fetch ponds
   const { 
@@ -103,7 +112,7 @@ const AdminPage = () => {
     loading: pondsLoading, 
     error: pondsError,
     refetch: refetchPonds
-  } = useApiData(getPonds, []);
+  } = useApiData(getPonds, [], 'ponds', 1);
 
   // Mutations
   const { mutate: createSeasonMutation, loading: createSeasonLoading } = useApiMutation(createSeason);
@@ -171,7 +180,7 @@ const AdminPage = () => {
   };
   
   // Filter and paginate data based on current tab
-  const getFilteredData = (data) => {
+  const getFilteredData = useMemo(() => (data) => {
     // Apply search filter
     let filtered = data || [];
     if (searchTerm) {
@@ -191,33 +200,36 @@ const AdminPage = () => {
     }
     
     return filtered;
-  };
+  }, [searchTerm, filter]);
 
-  const getPagedData = (data) => {
+  const getPagedData = useMemo(() => (data) => {
     const filtered = getFilteredData(data);
     const startIndex = (page - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     return filtered.slice(startIndex, endIndex);
-  };
+  }, [getFilteredData, page, itemsPerPage]);
 
-  const getTotalPages = (data) => {
+  const getTotalPages = useMemo(() => (data) => {
     const filtered = getFilteredData(data);
     return Math.ceil(filtered.length / itemsPerPage);
-  };
+  }, [getFilteredData, itemsPerPage]);
 
   // Handle search
   const handleSearch = (event) => {
     setSearchTerm(event.target.value);
-    setPage(1); // Reset to first page when searching
   };
 
   // Handle filter change
   const handleFilterChange = (event, newFilter) => {
     if (newFilter !== null) {
       setFilter(newFilter);
-      setPage(1); // Reset to first page when filtering
     }
   };
+
+  // Reset to first page when search or filter changes
+  useEffect(() => {
+    setPage(1);
+  }, [searchTerm, filter]);
 
   // Handle page change
   const handlePageChange = (event, value) => {
@@ -332,12 +344,12 @@ const AdminPage = () => {
   };
 
   // Yield data for chart
-  const yieldData = (seasonsData || [])
+  const yieldData = useMemo(() => (seasonsData || [])
     .filter(season => season.status === 'Completed')
     .map(season => ({
       name: season.name,
       yield: season.yield ? parseFloat(season.yield.toString().replace(' tons', '')) || 0 : 0
-    }));
+    })), [seasonsData]);
 
   // Loading and error states
   const isLoading = seasonsLoading || pondsLoading;

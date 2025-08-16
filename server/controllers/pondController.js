@@ -4,7 +4,7 @@ const Season = require('../models/Season');
 // Create a new pond
 exports.createPond = async (req, res) => {
   try {
-    const { name, size, capacity, seasonId } = req.body;
+    const { name, size, capacity, seasonId, status } = req.body;
     
     // Basic validation
     if (!name || !size || !capacity || !seasonId) {
@@ -17,7 +17,7 @@ exports.createPond = async (req, res) => {
       return res.status(404).json({ message: 'Season not found' });
     }
     
-    const pond = new Pond({ name, size, capacity, seasonId });
+    const pond = new Pond({ name, size, capacity, seasonId, status });
     await pond.save();
     
     res.status(201).json(pond);
@@ -58,22 +58,27 @@ exports.getPondById = async (req, res) => {
 // Update a pond by ID
 exports.updatePond = async (req, res) => {
   try {
-    const { name, size, capacity, seasonId } = req.body;
+    const { name, size, capacity, seasonId, status } = req.body;
     
-    // Basic validation
-    if (!name || !size || !capacity || !seasonId) {
-      return res.status(400).json({ message: 'Name, size, capacity, and season ID are required' });
-    }
+    // Prepare update object with only provided fields
+    const updateData = {};
+    if (name !== undefined) updateData.name = name;
+    if (size !== undefined) updateData.size = size;
+    if (capacity !== undefined) updateData.capacity = capacity;
+    if (status !== undefined) updateData.status = status;
     
-    // Check if season exists
-    const season = await Season.findById(seasonId);
-    if (!season) {
-      return res.status(404).json({ message: 'Season not found' });
+    // If seasonId is provided, check if season exists
+    if (seasonId !== undefined) {
+      const season = await Season.findById(seasonId);
+      if (!season) {
+        return res.status(404).json({ message: 'Season not found' });
+      }
+      updateData.seasonId = seasonId;
     }
     
     const pond = await Pond.findByIdAndUpdate(
       req.params.id,
-      { name, size, capacity, seasonId },
+      updateData,
       { new: true, runValidators: true }
     );
     

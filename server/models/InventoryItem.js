@@ -16,6 +16,15 @@ const inventoryItemSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  purchaseDate: {
+    type: Date,
+    required: true
+  },
+  initialQuantity: {
+    type: Number,
+    required: true,
+    min: 0
+  },
   unit: {
     type: String,
     required: true,
@@ -24,6 +33,10 @@ const inventoryItemSchema = new mongoose.Schema({
   costPerUnit: {
     type: Number,
     required: true,
+    min: 0
+  },
+  lowStockThreshold: {
+    type: Number,
     min: 0
   },
   isActive: {

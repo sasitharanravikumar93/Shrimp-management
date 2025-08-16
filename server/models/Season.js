@@ -14,6 +14,11 @@ const seasonSchema = new mongoose.Schema({
   endDate: {
     type: Date,
     required: true
+  },
+  status: {
+    type: String,
+    enum: ['Planning', 'Active', 'Completed'],
+    default: 'Planning'
   }
 }, {
   timestamps: true // Automatically adds createdAt and updatedAt fields

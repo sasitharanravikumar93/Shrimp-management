@@ -1,12 +1,13 @@
 const WaterQualityInput = require('../models/WaterQualityInput');
 const Pond = require('../models/Pond');
 const Season = require('../models/Season');
+const { createInventoryAdjustment } = require('../controllers/inventoryController'); // Import inventory adjustment function
 
 
 // Create a new water quality input
 exports.createWaterQualityInput = async (req, res) => {
   try {
-    const { date, time, pondId, pH, dissolvedOxygen, temperature, salinity, ammonia, nitrite, alkalinity, seasonId } = req.body;
+    const { date, time, pondId, pH, dissolvedOxygen, temperature, salinity, ammonia, nitrite, alkalinity, seasonId, chemicalUsed, chemicalQuantityUsed } = req.body;
     
     // Basic validation
     if (!date || !time || !pondId || pH === undefined || dissolvedOxygen === undefined || 
@@ -14,6 +15,11 @@ exports.createWaterQualityInput = async (req, res) => {
       return res.status(400).json({ 
         message: 'Date, time, pond ID, pH, dissolved oxygen, temperature, salinity, and season ID are required' 
       });
+    }
+
+    // Validate chemicalUsed and chemicalQuantityUsed if provided
+    if (chemicalUsed && (chemicalQuantityUsed === undefined || isNaN(chemicalQuantityUsed) || chemicalQuantityUsed <= 0)) {
+      return res.status(400).json({ message: 'Chemical quantity used must be a positive number if chemical is provided' });
     }
     
     // Check if pond exists
@@ -39,11 +45,33 @@ exports.createWaterQualityInput = async (req, res) => {
       ammonia,
       nitrite,
       alkalinity,
-      seasonId
+      seasonId,
+      chemicalUsed,
+      chemicalQuantityUsed
     });
     
     await waterQualityInput.save();
     
+    // Create inventory adjustment if chemical was used
+    if (chemicalUsed && chemicalQuantityUsed) {
+      try {
+        await createInventoryAdjustment({
+          body: {
+            inventoryItemId: chemicalUsed,
+            adjustmentType: 'Depletion',
+            quantityChange: -Math.abs(chemicalQuantityUsed), // Ensure it's a negative value for depletion
+            reason: 'Water Quality Treatment',
+            relatedDocument: waterQualityInput._id,
+            relatedDocumentModel: 'WaterQualityInput'
+          }
+        }, null); // Pass null for res and req objects as it's an internal call
+      } catch (adjError) {
+        console.error('Error creating inventory adjustment for water quality:', adjError);
+        // Decide how to handle this error: rollback waterQualityInput or just log
+        // For now, we'll just log and proceed with water quality input creation
+      }
+    }
+
     // Populate pond and season name in the response
     const populatedWaterQualityInput = await WaterQualityInput.findById(waterQualityInput._id)
       .populate('pondId', 'name')
