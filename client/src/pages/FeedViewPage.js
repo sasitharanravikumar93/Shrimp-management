@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Typography, 
-  Paper, 
   Grid, 
   TextField, 
   Button, 
@@ -22,7 +21,9 @@ import {
   CardHeader,
   Divider,
   IconButton,
-  Tooltip
+  Tooltip,
+  CircularProgress,
+  Alert
 } from '@mui/material';
 import { 
   Search as SearchIcon,
@@ -32,31 +33,73 @@ import {
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { format } from 'date-fns';
+import { useApiData } from '../hooks/useApi';
+import { getFeedInputs, getFeedInputsByDateRange, getFeedInputsByPondId, getPonds } from '../services/api';
 
 const FeedViewPage = () => {
-  const [startDate, setStartDate] = useState(new Date());
+  const [startDate, setStartDate] = useState(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)); // 30 days ago
   const [endDate, setEndDate] = useState(new Date());
   const [pond, setPond] = useState('');
   const [search, setSearch] = useState('');
+  const [filteredFeedEntries, setFilteredFeedEntries] = useState([]);
 
-  // Placeholder data for feed entries
-  const feedEntries = [
-    { id: 1, date: '2023-06-15', time: '08:00', pond: 'Pond A', feedType: 'Standard Pellet', quantity: 50 },
-    { id: 2, date: '2023-06-15', time: '16:00', pond: 'Pond A', feedType: 'Standard Pellet', quantity: 45 },
-    { id: 3, date: '2023-06-15', time: '08:30', pond: 'Pond B', feedType: 'High Protein Pellet', quantity: 60 },
-    { id: 4, date: '2023-06-16', time: '08:00', pond: 'Pond A', feedType: 'Standard Pellet', quantity: 52 },
-  ];
+  // Fetch all feed entries
+  const { 
+    data: feedEntriesData, 
+    loading: feedEntriesLoading, 
+    error: feedEntriesError,
+    refetch: refetchFeedEntries
+  } = useApiData(getFeedInputs, []);
 
-  // Placeholder data for ponds
-  const ponds = [
-    { id: 1, name: 'Pond A' },
-    { id: 2, name: 'Pond B' },
-    { id: 3, name: 'Pond C' }
-  ];
+  // Fetch ponds
+  const { 
+    data: pondsData, 
+    loading: pondsLoading, 
+    error: pondsError
+  } = useApiData(getPonds, []);
 
-  const handleFilter = () => {
-    // Implementation for filtering feed entries would go here
-    console.log({ startDate, endDate, pond, search });
+  // Loading and error states
+  const isLoading = feedEntriesLoading || pondsLoading;
+  const hasError = feedEntriesError || pondsError;
+
+  // Filter feed entries based on search term
+  useEffect(() => {
+    if (feedEntriesData) {
+      let filtered = feedEntriesData;
+      
+      // Apply search filter
+      if (search) {
+        filtered = filtered.filter(entry => 
+          (entry.feedType && entry.feedType.toLowerCase().includes(search.toLowerCase())) ||
+          (entry.quantity && entry.quantity.toString().includes(search))
+        );
+      }
+      
+      // Apply pond filter
+      if (pond) {
+        filtered = filtered.filter(entry => entry.pondId === pond);
+      }
+      
+      setFilteredFeedEntries(filtered);
+    }
+  }, [feedEntriesData, search, pond]);
+
+  const handleFilter = async () => {
+    try {
+      // If pond is selected, fetch feed entries for that pond
+      if (pond) {
+        // Note: This would require a new API endpoint to filter by date range AND pond
+        // For now, we'll filter client-side
+        refetchFeedEntries();
+      } else {
+        // Fetch feed entries by date range
+        // Note: This would require implementing the date range filter in the API
+        refetchFeedEntries();
+      }
+    } catch (error) {
+      console.error('Error filtering feed entries:', error);
+    }
   };
 
   const handleExport = () => {
@@ -64,13 +107,49 @@ const FeedViewPage = () => {
     console.log('Exporting data');
   };
 
+  const formatTime = (time) => {
+    try {
+      return format(new Date(time), 'HH:mm');
+    } catch (e) {
+      return 'Invalid Time';
+    }
+  };
+
+  const getPondName = (pondId) => {
+    if (!pondsData) return 'Unknown Pond';
+    const pond = pondsData.find(p => p._id === pondId || p.id === pondId);
+    return pond ? pond.name : 'Unknown Pond';
+  };
+
+  if (isLoading) {
+    return (
+      <Container maxWidth="lg" sx={{ mt: 4, mb: 4, display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Container>
+    );
+  }
+
+  if (hasError) {
+    return (
+      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+        <Alert severity="error">
+          Error loading data: {feedEntriesError || pondsError}
+        </Alert>
+      </Container>
+    );
+  }
+
+  // Use real data or fallback to mock data
+  const feedEntries = filteredFeedEntries.length > 0 ? filteredFeedEntries : (feedEntriesData || []);
+  const ponds = pondsData || [];
+
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4" component="h1" gutterBottom>
           Feed History
         </Typography>
-        <Button variant="contained" startIcon={<DownloadIcon />}>
+        <Button variant="contained" startIcon={<DownloadIcon />} onClick={handleExport}>
           Export Data
         </Button>
       </Box>
@@ -117,7 +196,7 @@ const FeedViewPage = () => {
                   >
                     <MenuItem value=""><em>All Ponds</em></MenuItem>
                     {ponds.map((p) => (
-                      <MenuItem key={p.id} value={p.id}>{p.name}</MenuItem>
+                      <MenuItem key={p._id || p.id} value={p._id || p.id}>{p.name}</MenuItem>
                     ))}
                   </Select>
                 </FormControl>
@@ -175,12 +254,18 @@ const FeedViewPage = () => {
               </TableHead>
               <TableBody>
                 {feedEntries.map((entry) => (
-                  <TableRow key={entry.id}>
-                    <TableCell>{entry.date}</TableCell>
-                    <TableCell>{entry.time}</TableCell>
-                    <TableCell>{entry.pond}</TableCell>
-                    <TableCell>{entry.feedType}</TableCell>
-                    <TableCell>{entry.quantity}</TableCell>
+                  <TableRow key={entry._id || entry.id}>
+                    <TableCell>
+                      {entry.date ? format(new Date(entry.date), 'yyyy-MM-dd') : 'N/A'}
+                    </TableCell>
+                    <TableCell>
+                      {entry.time ? formatTime(entry.time) : 'N/A'}
+                    </TableCell>
+                    <TableCell>
+                      {getPondName(entry.pondId)}
+                    </TableCell>
+                    <TableCell>{entry.feedType || 'N/A'}</TableCell>
+                    <TableCell>{entry.quantity || 0}</TableCell>
                     <TableCell>
                       <Tooltip title="View Details">
                         <IconButton size="small">

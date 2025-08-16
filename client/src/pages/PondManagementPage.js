@@ -14,21 +14,17 @@ import {
   CardHeader,
   Divider,
   Chip,
-  Avatar,
   Tooltip,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  FormControl,
-  InputLabel,
-  Select,
   MenuItem,
-  OutlinedInput,
   ToggleButton,
   ToggleButtonGroup,
-  Badge,
-  InputAdornment // Added InputAdornment
+  InputAdornment,
+  CircularProgress,
+  Alert
 } from '@mui/material';
 import { 
   Add as AddIcon, 
@@ -41,9 +37,8 @@ import {
   Warning as WarningIcon,
   CheckCircle as CheckIcon,
   Close as CloseIcon,
-  Info as InfoIcon,
   TrendingUp as TrendingUpIcon,
-  Search as SearchIcon // Added SearchIcon
+  Search as SearchIcon
 } from '@mui/icons-material';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -51,24 +46,20 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import { format } from 'date-fns';
 import { useSeason } from '../context/SeasonContext';
-import moment from 'moment';
-import { momentLocalizer } from 'react-big-calendar';
-import CustomCalendar from '../components/CustomCalendar';
+import { useParams } from 'react-router-dom';
+import { useApiData, useApiMutation } from '../hooks/useApi';
 import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip as RechartsTooltip, 
-  Legend, 
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  ScatterChart,
-  Scatter,
-  ZAxis
-} from 'recharts';
+  getPondById, 
+  getFeedInputsByPondId, 
+  getWaterQualityInputsByPondId, 
+  getGrowthSamplingsByPondId,
+  getEventsByPondId,
+  createFeedInput,
+  createWaterQualityInput,
+  createGrowthSampling,
+  createEvent
+} from '../services/api';
+import CustomCalendar from '../components/CustomCalendar';
 import { useForm, Controller } from 'react-hook-form';
 import AquacultureTooltip from '../components/AquacultureTooltip';
 import HarvestProjection from '../components/HarvestProjection';
@@ -77,6 +68,7 @@ import WaterQualityAlert from '../components/WaterQualityAlert';
 import EventSuggestions from '../components/EventSuggestions';
 
 const PondManagementPage = () => {
+  const { pondId } = useParams();
   const [activeTab, setActiveTab] = useState(0);
   const [viewMode, setViewMode] = useState('tabs'); // 'tabs' or 'calendar'
   const [calendarDate, setCalendarDate] = useState(new Date());
@@ -88,117 +80,53 @@ const PondManagementPage = () => {
   const [openAddModal, setOpenAddModal] = useState(false);
   const { selectedSeason } = useSeason();
   
-  // Mock data for demonstration
-  const pond = { 
-    id: 1, 
-    name: 'Pond A', 
-    season: selectedSeason, 
-    status: 'Active', 
-    health: 'Good',
-    projectedHarvest: '28 days'
-  };
+  // Fetch pond data with retry mechanism
+  const { 
+    data: pondData, 
+    loading: pondLoading, 
+    error: pondError
+  } = useApiData(() => getPondById(pondId), [pondId], `pond-${pondId}`, 3);
   
-  // Sample data for tables
-  const feedEntries = [
-    { id: 1, date: '2023-06-15', time: '08:00', feedType: 'Standard Pellet', quantity: 50 },
-    { id: 2, date: '2023-06-15', time: '16:00', feedType: 'Standard Pellet', quantity: 45 },
-    { id: 3, date: '2023-06-16', time: '08:00', feedType: 'High Protein Pellet', quantity: 52 },
-    { id: 4, date: '2023-06-16', time: '16:00', feedType: 'Standard Pellet', quantity: 48 },
-    { id: 5, date: '2023-06-17', time: '08:00', feedType: 'High Protein Pellet', quantity: 55 },
-  ];
+  // Fetch feed entries with retry mechanism
+  const { 
+    data: feedEntriesData, 
+    loading: feedEntriesLoading, 
+    error: feedEntriesError,
+    refetch: refetchFeedEntries
+  } = useApiData(() => getFeedInputsByPondId(pondId), [pondId], `feed-${pondId}`, 3);
   
-  const waterQualityEntries = [
-    { 
-      id: 1, 
-      date: '2023-06-15', 
-      time: '08:00', 
-      pH: 7.2, 
-      dissolvedOxygen: 5.5, 
-      temperature: 28.5, 
-      salinity: 25.0
-    },
-    { 
-      id: 2, 
-      date: '2023-06-15', 
-      time: '16:00', 
-      pH: 7.1, 
-      dissolvedOxygen: 5.2, 
-      temperature: 29.0, 
-      salinity: 25.2
-    },
-    { 
-      id: 3, 
-      date: '2023-06-16', 
-      time: '08:00', 
-      pH: 7.3, 
-      dissolvedOxygen: 5.8, 
-      temperature: 28.2, 
-      salinity: 25.1
-    },
-    { 
-      id: 4, 
-      date: '2023-06-16', 
-      time: '16:00', 
-      pH: 7.2, 
-      dissolvedOxygen: 5.6, 
-      temperature: 28.7, 
-      salinity: 25.0
-    },
-  ];
+  // Fetch water quality entries with retry mechanism
+  const { 
+    data: waterQualityEntriesData, 
+    loading: waterQualityEntriesLoading, 
+    error: waterQualityEntriesError,
+    refetch: refetchWaterQualityEntries
+  } = useApiData(() => getWaterQualityInputsByPondId(pondId), [pondId], `water-${pondId}`, 3);
   
-  const growthSamplingEntries = [
-    { id: 1, date: '2023-06-15', time: '10:00', totalWeight: 5.5, totalCount: 100 },
-    { id: 2, date: '2023-06-22', time: '10:00', totalWeight: 8.2, totalCount: 100 },
-    { id: 3, date: '2023-06-29', time: '10:00', totalWeight: 11.5, totalCount: 100 },
-    { id: 4, date: '2023-07-06', time: '10:00', totalWeight: 15.2, totalCount: 100 },
-  ];
+  // Fetch growth sampling entries with retry mechanism
+  const { 
+    data: growthSamplingEntriesData, 
+    loading: growthSamplingEntriesLoading, 
+    error: growthSamplingEntriesError,
+    refetch: refetchGrowthSamplingEntries
+  } = useApiData(() => getGrowthSamplingsByPondId(pondId), [pondId], `growth-${pondId}`, 3);
   
-  // Calendar events data
-  const events = [
-    {
-      id: 1,
-      title: 'Morning Feeding',
-      start: new Date(2023, 5, 15, 8, 0, 0),
-      end: new Date(2023, 5, 15, 8, 30, 0),
-      type: 'Feeding',
-      resource: { description: 'Standard Pellet - 50kg' }
-    },
-    {
-      id: 2,
-      title: 'Water Quality Check',
-      start: new Date(2023, 5, 15, 9, 0, 0),
-      end: new Date(2023, 5, 15, 9, 30, 0),
-      type: 'Water Quality',
-      resource: { description: 'pH: 7.2, DO: 5.5mg/L' }
-    },
-    {
-      id: 3,
-      title: 'Afternoon Feeding',
-      start: new Date(2023, 5, 15, 16, 0, 0),
-      end: new Date(2023, 5, 15, 16, 30, 0),
-      type: 'Feeding',
-      resource: { description: 'Standard Pellet - 45kg' }
-    },
-    {
-      id: 4,
-      title: 'Growth Sampling',
-      start: new Date(2023, 5, 15, 10, 0, 0),
-      end: new Date(2023, 5, 15, 10, 45, 0),
-      type: 'Growth Sampling',
-      resource: { description: 'Avg. weight: 55g' }
-    },
-    {
-      id: 5,
-      title: 'Aeration Check',
-      start: new Date(2023, 5, 16, 7, 0, 0),
-      end: new Date(2023, 5, 16, 7, 30, 0),
-      type: 'Maintenance',
-      resource: { description: 'All systems operational' }
-    },
-  ];
+  // Fetch events with retry mechanism
+  const { 
+    data: eventsData, 
+    loading: eventsLoading, 
+    error: eventsError,
+    refetch: refetchEvents
+  } = useApiData(() => getEventsByPondId(pondId), [pondId], `events-${pondId}`, 3);
+  
+  // Mutations for creating new entries with retry mechanism
+  const { mutate: createFeedInputMutation, loading: createFeedInputLoading } = useApiMutation(createFeedInput, 3);
+  const { mutate: createWaterQualityInputMutation, loading: createWaterQualityInputLoading } = useApiMutation(createWaterQualityInput, 3);
+  const { mutate: createGrowthSamplingMutation, loading: createGrowthSamplingLoading } = useApiMutation(createGrowthSampling, 3);
+  const { mutate: createEventMutation, loading: createEventLoading } = useApiMutation(createEvent, 3);
 
   // Form setup with react-hook-form
-  const { control, handleSubmit, reset, setValue } = useForm({
+  const { control, handleSubmit, reset, setValue, watch } = useForm({
     defaultValues: {
       date: new Date(),
       time: new Date(),
@@ -265,10 +193,58 @@ const PondManagementPage = () => {
     setOpenAddModal(true);
   };
 
-  const handleEventSubmit = (data) => {
-    // Implementation for submitting event
-    console.log('Event submitted:', data);
-    setOpenAddModal(false);
+  const handleEventSubmit = async (data) => {
+    try {
+      // Determine which type of event to create based on the active tab or form data
+      if (activeTab === 0 || data.eventType === 'Feed') {
+        // Create feed input
+        await createFeedInputMutation({
+          pondId,
+          date: data.date,
+          time: data.time,
+          feedType: data.feedType,
+          quantity: parseFloat(data.quantity)
+        });
+        refetchFeedEntries();
+      } else if (activeTab === 1 || data.eventType === 'Water Quality') {
+        // Create water quality input
+        await createWaterQualityInputMutation({
+          pondId,
+          date: data.date,
+          time: data.time,
+          pH: parseFloat(data.pH),
+          dissolvedOxygen: parseFloat(data.dissolvedOxygen),
+          temperature: parseFloat(data.temperature),
+          salinity: parseFloat(data.salinity)
+        });
+        refetchWaterQualityEntries();
+      } else if (activeTab === 2 || data.eventType === 'Growth Sampling') {
+        // Create growth sampling
+        await createGrowthSamplingMutation({
+          pondId,
+          date: data.date,
+          time: data.time,
+          totalWeight: parseFloat(data.totalWeight),
+          totalCount: parseInt(data.totalCount)
+        });
+        refetchGrowthSamplingEntries();
+      } else {
+        // Create generic event
+        await createEventMutation({
+          pondId,
+          title: data.title,
+          date: data.date,
+          time: data.time,
+          type: data.eventType,
+          description: data.description
+        });
+        refetchEvents();
+      }
+      
+      setOpenAddModal(false);
+    } catch (error) {
+      console.error('Error submitting event:', error);
+    }
   };
 
   const handleCloseModal = () => {
@@ -278,16 +254,6 @@ const PondManagementPage = () => {
 
   const handleCloseAddModal = () => {
     setOpenAddModal(false);
-  };
-
-  // Get icon for active tab
-  const getTabIcon = (tabIndex) => {
-    switch(tabIndex) {
-      case 0: return <FeedIcon />;
-      case 1: return <WaterIcon />;
-      case 2: return <GrowthIcon />;
-      default: return null;
-    }
   };
 
   // Format date for display
@@ -309,13 +275,13 @@ const PondManagementPage = () => {
   };
 
   // Feed chart data
-  const feedChartData = feedEntries.map(entry => ({
+  const feedChartData = (feedEntriesData || []).map(entry => ({
     date: formatDate(entry.date),
     quantity: entry.quantity
   }));
 
   // Water quality chart data
-  const waterQualityChartData = waterQualityEntries.map(entry => ({
+  const waterQualityChartData = (waterQualityEntriesData || []).map(entry => ({
     date: formatDate(entry.date),
     pH: entry.pH,
     do: entry.dissolvedOxygen,
@@ -323,27 +289,28 @@ const PondManagementPage = () => {
   }));
 
   // Growth chart data
-  const growthChartData = growthSamplingEntries.map(entry => ({
+  const growthChartData = (growthSamplingEntriesData || []).map(entry => ({
     date: formatDate(entry.date),
-    avgWeight: (entry.totalWeight * 1000 / entry.totalCount).toFixed(2)
+    avgWeight: entry.totalCount > 0 ? (entry.totalWeight * 1000 / entry.totalCount).toFixed(2) : 0
   }));
 
   // Growth scatter data
-  const growthScatterData = growthSamplingEntries.map((entry, index) => ({
+  const growthScatterData = (growthSamplingEntriesData || []).map((entry, index) => ({
     x: index + 1,
-    y: (entry.totalWeight * 1000 / entry.totalCount).toFixed(2),
+    y: entry.totalCount > 0 ? (entry.totalWeight * 1000 / entry.totalCount).toFixed(2) : 0,
     date: formatDate(entry.date)
   }));
 
   const getFilteredCalendarEvents = (allEvents) => {
-    let filtered = allEvents;
+    let filtered = allEvents || [];
 
     // Apply search term filter
     if (calendarSearchTerm) {
       filtered = filtered.filter(event =>
         event.title.toLowerCase().includes(calendarSearchTerm.toLowerCase()) ||
         event.type.toLowerCase().includes(calendarSearchTerm.toLowerCase()) ||
-        event.resource.description.toLowerCase().includes(calendarSearchTerm.toLowerCase())
+        (event.resource && event.resource.description && 
+         event.resource.description.toLowerCase().includes(calendarSearchTerm.toLowerCase()))
       );
     }
 
@@ -357,6 +324,62 @@ const PondManagementPage = () => {
     return filtered;
   };
 
+  // Loading and error states
+  const isLoading = pondLoading || feedEntriesLoading || waterQualityEntriesLoading || 
+                   growthSamplingEntriesLoading || eventsLoading;
+  
+  const hasError = pondError || feedEntriesError || waterQualityEntriesError || 
+                   growthSamplingEntriesError || eventsError;
+
+  if (isLoading) {
+    return (
+      <Container maxWidth="lg" sx={{ mt: 2, mb: 4, display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Container>
+    );
+  }
+
+  if (hasError) {
+    return (
+      <Container maxWidth="lg" sx={{ mt: 2, mb: 4 }}>
+        <Alert severity="error">
+          Error loading pond data: {pondError || feedEntriesError || waterQualityEntriesError || 
+                                   growthSamplingEntriesError || eventsError}
+          <Box sx={{ mt: 2 }}>
+            <Button 
+              variant="outlined" 
+              onClick={() => {
+                // refetchPond(); // Removed as it's not used
+                refetchFeedEntries();
+                refetchWaterQualityEntries();
+                refetchGrowthSamplingEntries();
+                refetchEvents();
+              }}
+            >
+              Retry
+            </Button>
+          </Box>
+        </Alert>
+      </Container>
+    );
+  }
+
+  // Use real pond data or fallback to mock data
+  const pond = pondData || { 
+    id: pondId, 
+    name: 'Pond', 
+    season: selectedSeason?.name || 'Season', 
+    status: 'Active', 
+    health: 'Good',
+    projectedHarvest: '28 days'
+  };
+
+  // Use real data or fallback to mock data
+  const feedEntries = feedEntriesData || [];
+  const waterQualityEntries = waterQualityEntriesData || [];
+  const growthSamplingEntries = growthSamplingEntriesData || [];
+  const events = eventsData || [];
+
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
       <Container maxWidth="lg" sx={{ mt: 2, mb: 4 }}>
@@ -367,21 +390,24 @@ const PondManagementPage = () => {
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
               <Chip 
-                label={pond.season} 
+                label={pond.seasonId?.name || pond.season || 'Season'} 
                 color="primary" 
                 variant="outlined" 
               />
               <Chip 
-                label={pond.status} 
-                color={pond.status === 'Active' ? 'success' : 'default'} 
+                label={pond.status || 'Active'} 
+                color={(pond.status || 'Active') === 'Active' ? 'success' : 'default'} 
               />
               <Chip 
-                label={pond.health} 
-                color={pond.health === 'Good' ? 'success' : pond.health === 'Fair' ? 'warning' : 'error'} 
-                icon={pond.health === 'Good' ? <CheckIcon /> : <WarningIcon />}
+                label={pond.health || 'Good'} 
+                color={
+                  (pond.health || 'Good') === 'Good' ? 'success' : 
+                  (pond.health || 'Good') === 'Fair' ? 'warning' : 'error'
+                } 
+                icon={(pond.health || 'Good') === 'Good' ? <CheckIcon /> : <WarningIcon />}
               />
               <Chip 
-                label={`Harvest: ${pond.projectedHarvest}`} 
+                label={`Harvest: ${pond.projectedHarvest || '30 days'}`} 
                 color="info" 
                 icon={<TrendingUpIcon />}
               />
@@ -444,96 +470,96 @@ const PondManagementPage = () => {
               {activeTab === 0 && (
                 <Grid container spacing={3}>
                   <Grid item xs={12} lg={6}>
-                                      <Card variant="outlined">
-                    <CardHeader title="Record Feed Input" />
-                    <CardContent>
-                      <FeedCalculator 
-                        initialBiomass={500} // Example biomass in kg
-                        initialShrimpCount={25000} // Example shrimp count
-                        onCalculate={(feedQty) => {
-                          // Update form with calculated feed quantity
-                          setValue('quantity', feedQty.toFixed(2));
-                        }}
-                      />
-                      <form onSubmit={handleSubmit(handleEventSubmit)}>
-                        <Grid container spacing={2}>
-                          <Grid item xs={12} md={6}>
-                            <Controller
-                              name="date"
-                              control={control}
-                              render={({ field }) => (
-                                <DatePicker
-                                  label="Date"
-                                  value={field.value}
-                                  onChange={field.onChange}
-                                  renderInput={(params) => <TextField {...params} fullWidth />}
-                                />
-                              )}
-                            />
+                    <Card variant="outlined">
+                      <CardHeader title="Record Feed Input" />
+                      <CardContent>
+                        <FeedCalculator 
+                          initialBiomass={500} // Example biomass in kg
+                          initialShrimpCount={25000} // Example shrimp count
+                          onCalculate={(feedQty) => {
+                            // Update form with calculated feed quantity
+                            setValue('quantity', feedQty.toFixed(2));
+                          }}
+                        />
+                        <form onSubmit={handleSubmit(handleEventSubmit)}>
+                          <Grid container spacing={2}>
+                            <Grid item xs={12} md={6}>
+                              <Controller
+                                name="date"
+                                control={control}
+                                render={({ field }) => (
+                                  <DatePicker
+                                    label="Date"
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    renderInput={(params) => <TextField {...params} fullWidth />}
+                                  />
+                                )}
+                              />
+                            </Grid>
+                            
+                            <Grid item xs={12} md={6}>
+                              <Controller
+                                name="time"
+                                control={control}
+                                render={({ field }) => (
+                                  <TimePicker
+                                    label="Time"
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    renderInput={(params) => <TextField {...params} fullWidth />}
+                                  />
+                                )}
+                              />
+                            </Grid>
+                            
+                            <Grid item xs={12}>
+                              <Controller
+                                name="feedType"
+                                control={control}
+                                render={({ field }) => (
+                                  <TextField
+                                    {...field}
+                                    label="Feed Type"
+                                    fullWidth
+                                    select
+                                  >
+                                    <MenuItem value="Standard Pellet">Standard Pellet</MenuItem>
+                                    <MenuItem value="High Protein Pellet">High Protein Pellet</MenuItem>
+                                    <MenuItem value="Vitamin Enhanced">Vitamin Enhanced</MenuItem>
+                                    <MenuItem value="Special Formula">Special Formula</MenuItem>
+                                  </TextField>
+                                )}
+                              />
+                            </Grid>
+                            
+                            <Grid item xs={12}>
+                              <Controller
+                                name="quantity"
+                                control={control}
+                                render={({ field }) => (
+                                  <TextField
+                                    {...field}
+                                    label="Quantity (kg)"
+                                    type="number"
+                                    fullWidth
+                                  />
+                                )}
+                              />
+                            </Grid>
+                            
+                            <Grid item xs={12}>
+                              <Button 
+                                type="submit" 
+                                variant="contained" 
+                                startIcon={<AddIcon />}
+                                disabled={createFeedInputLoading}
+                              >
+                                {createFeedInputLoading ? 'Adding...' : 'Add Feed Entry'}
+                              </Button>
+                            </Grid>
                           </Grid>
-                          
-                          <Grid item xs={12} md={6}>
-                            <Controller
-                              name="time"
-                              control={control}
-                              render={({ field }) => (
-                                <TimePicker
-                                  label="Time"
-                                  value={field.value}
-                                  onChange={field.onChange}
-                                  renderInput={(params) => <TextField {...params} fullWidth />}
-                                />
-                              )}
-                            />
-                          </Grid>
-                          
-                          <Grid item xs={12}>
-                            <Controller
-                              name="feedType"
-                              control={control}
-                              render={({ field }) => (
-                                <TextField
-                                  {...field}
-                                  label="Feed Type"
-                                  fullWidth
-                                  select
-                                >
-                                  <MenuItem value="Standard Pellet">Standard Pellet</MenuItem>
-                                  <MenuItem value="High Protein Pellet">High Protein Pellet</MenuItem>
-                                  <MenuItem value="Vitamin Enhanced">Vitamin Enhanced</MenuItem>
-                                  <MenuItem value="Special Formula">Special Formula</MenuItem>
-                                </TextField>
-                              )}
-                            />
-                          </Grid>
-                          
-                          <Grid item xs={12}>
-                            <Controller
-                              name="quantity"
-                              control={control}
-                              render={({ field }) => (
-                                <TextField
-                                  {...field}
-                                  label="Quantity (kg)"
-                                  type="number"
-                                  fullWidth
-                                />
-                              )}
-                            />
-                          </Grid>
-                          
-                          <Grid item xs={12}>
-                            <Button 
-                              type="submit" 
-                              variant="contained" 
-                              startIcon={<AddIcon />}
-                              onClick={() => setValue('eventType', 'Feed')}
-                            >
-                              Add Feed Entry
-                            </Button>
-                          </Grid>
-                        </Grid>
-                      </form>
+                        </form>
                         
                         <Box sx={{ mt: 3, p: 2, bgcolor: 'rgba(0, 123, 255, 0.1)', borderRadius: 1 }}>
                           <Typography variant="body2" sx={{ fontStyle: 'italic' }}>
@@ -580,7 +606,7 @@ const PondManagementPage = () => {
                         <Box sx={{ maxHeight: 300, overflow: 'auto' }}>
                           <Grid container spacing={1}>
                             {feedEntries.map((entry) => (
-                              <Grid item xs={12} key={entry.id}>
+                              <Grid item xs={12} key={entry._id || entry.id}>
                                 <Card variant="outlined" sx={{ p: 1 }}>
                                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <Box>
@@ -620,122 +646,122 @@ const PondManagementPage = () => {
               {activeTab === 1 && (
                 <Grid container spacing={3}>
                   <Grid item xs={12} lg={6}>
-                                      <Card variant="outlined">
-                    <CardHeader title="Record Water Quality" />
-                    <CardContent>
-                      <WaterQualityAlert 
-                        pondName={pond.name}
-                        pH={7.2}
-                        dissolvedOxygen={5.5}
-                        temperature={28.5}
-                        salinity={25.0}
-                        ammonia={0.01}
-                        nitrite={0.1}
-                      />
-                      <form onSubmit={handleSubmit(handleEventSubmit)}>
-                        <Grid container spacing={2}>
-                          <Grid item xs={12} md={6}>
-                            <Controller
-                              name="date"
-                              control={control}
-                              render={({ field }) => (
-                                <DatePicker
-                                  label="Date"
-                                  value={field.value}
-                                  onChange={field.onChange}
-                                  renderInput={(params) => <TextField {...params} fullWidth />}
-                                />
-                              )}
-                            />
+                    <Card variant="outlined">
+                      <CardHeader title="Record Water Quality" />
+                      <CardContent>
+                        <WaterQualityAlert 
+                          pondName={pond.name}
+                          pH={7.2}
+                          dissolvedOxygen={5.5}
+                          temperature={28.5}
+                          salinity={25.0}
+                          ammonia={0.01}
+                          nitrite={0.1}
+                        />
+                        <form onSubmit={handleSubmit(handleEventSubmit)}>
+                          <Grid container spacing={2}>
+                            <Grid item xs={12} md={6}>
+                              <Controller
+                                name="date"
+                                control={control}
+                                render={({ field }) => (
+                                  <DatePicker
+                                    label="Date"
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    renderInput={(params) => <TextField {...params} fullWidth />}
+                                  />
+                                )}
+                              />
+                            </Grid>
+                            
+                            <Grid item xs={12} md={6}>
+                              <Controller
+                                name="time"
+                                control={control}
+                                render={({ field }) => (
+                                  <TimePicker
+                                    label="Time"
+                                    value={field.value}
+                                    onChange={field.onChange}
+                                    renderInput={(params) => <TextField {...params} fullWidth />}
+                                  />
+                                )}
+                              />
+                            </Grid>
+                            
+                            <Grid item xs={12} md={6}>
+                              <Controller
+                                name="pH"
+                                control={control}
+                                render={({ field }) => (
+                                  <TextField
+                                    {...field}
+                                    label="pH"
+                                    type="number"
+                                    fullWidth
+                                  />
+                                )}
+                              />
+                            </Grid>
+                            
+                            <Grid item xs={12} md={6}>
+                              <Controller
+                                name="dissolvedOxygen"
+                                control={control}
+                                render={({ field }) => (
+                                  <TextField
+                                    {...field}
+                                    label="Dissolved Oxygen (mg/L)"
+                                    type="number"
+                                    fullWidth
+                                  />
+                                )}
+                              />
+                            </Grid>
+                            
+                            <Grid item xs={12} md={6}>
+                              <Controller
+                                name="temperature"
+                                control={control}
+                                render={({ field }) => (
+                                  <TextField
+                                    {...field}
+                                    label="Temperature (°C)"
+                                    type="number"
+                                    fullWidth
+                                  />
+                                )}
+                              />
+                            </Grid>
+                            
+                            <Grid item xs={12} md={6}>
+                              <Controller
+                                name="salinity"
+                                control={control}
+                                render={({ field }) => (
+                                  <TextField
+                                    {...field}
+                                    label="Salinity (ppt)"
+                                    type="number"
+                                    fullWidth
+                                  />
+                                )}
+                              />
+                            </Grid>
+                            
+                            <Grid item xs={12}>
+                              <Button 
+                                type="submit" 
+                                variant="contained" 
+                                startIcon={<AddIcon />}
+                                disabled={createWaterQualityInputLoading}
+                              >
+                                {createWaterQualityInputLoading ? 'Adding...' : 'Add Water Quality Entry'}
+                              </Button>
+                            </Grid>
                           </Grid>
-                          
-                          <Grid item xs={12} md={6}>
-                            <Controller
-                              name="time"
-                              control={control}
-                              render={({ field }) => (
-                                <TimePicker
-                                  label="Time"
-                                  value={field.value}
-                                  onChange={field.onChange}
-                                  renderInput={(params) => <TextField {...params} fullWidth />}
-                                />
-                              )}
-                            />
-                          </Grid>
-                          
-                          <Grid item xs={12} md={6}>
-                            <Controller
-                              name="pH"
-                              control={control}
-                              render={({ field }) => (
-                                <TextField
-                                  {...field}
-                                  label="pH"
-                                  type="number"
-                                  fullWidth
-                                />
-                              )}
-                            />
-                          </Grid>
-                          
-                          <Grid item xs={12} md={6}>
-                            <Controller
-                              name="dissolvedOxygen"
-                              control={control}
-                              render={({ field }) => (
-                                <TextField
-                                  {...field}
-                                  label="Dissolved Oxygen (mg/L)"
-                                  type="number"
-                                  fullWidth
-                                />
-                              )}
-                            />
-                          </Grid>
-                          
-                          <Grid item xs={12} md={6}>
-                            <Controller
-                              name="temperature"
-                              control={control}
-                              render={({ field }) => (
-                                <TextField
-                                  {...field}
-                                  label="Temperature (°C)"
-                                  type="number"
-                                  fullWidth
-                                />
-                              )}
-                            />
-                          </Grid>
-                          
-                          <Grid item xs={12} md={6}>
-                            <Controller
-                              name="salinity"
-                              control={control}
-                              render={({ field }) => (
-                                <TextField
-                                  {...field}
-                                  label="Salinity (ppt)"
-                                  type="number"
-                                  fullWidth
-                                />
-                              )}
-                            />
-                          </Grid>
-                          
-                          <Grid item xs={12}>
-                            <Button 
-                              type="submit" 
-                              variant="contained" 
-                              startIcon={<AddIcon />}
-                              onClick={() => setValue('eventType', 'Water Quality')}
-                            >
-                              Add Water Quality Entry
-                            </Button>
-                          </Grid>
-                        </Grid>
-                      </form>
+                        </form>
                         
                         <Box sx={{ mt: 3, p: 2, bgcolor: 'rgba(40, 167, 69, 0.1)', borderRadius: 1 }}>
                           <Typography variant="body2" sx={{ fontStyle: 'italic' }}>
@@ -794,7 +820,7 @@ const PondManagementPage = () => {
                         <Box sx={{ maxHeight: 300, overflow: 'auto' }}>
                           <Grid container spacing={1}>
                             {waterQualityEntries.map((entry) => (
-                              <Grid item xs={12} key={entry.id}>
+                              <Grid item xs={12} key={entry._id || entry.id}>
                                 <Card variant="outlined" sx={{ p: 1 }}>
                                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <Box>
@@ -904,9 +930,9 @@ const PondManagementPage = () => {
                                 type="submit" 
                                 variant="contained" 
                                 startIcon={<AddIcon />}
-                                onClick={() => setValue('eventType', 'Growth Sampling')}
+                                disabled={createGrowthSamplingLoading}
                               >
-                                Add Growth Sampling Entry
+                                {createGrowthSamplingLoading ? 'Adding...' : 'Add Growth Sampling Entry'}
                               </Button>
                             </Grid>
                           </Grid>
@@ -957,7 +983,7 @@ const PondManagementPage = () => {
                         <Box sx={{ maxHeight: 300, overflow: 'auto' }}>
                           <Grid container spacing={1}>
                             {growthSamplingEntries.map((entry) => (
-                              <Grid item xs={12} key={entry.id}>
+                              <Grid item xs={12} key={entry._id || entry.id}>
                                 <Card variant="outlined" sx={{ p: 1 }}>
                                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <Box>
@@ -970,7 +996,7 @@ const PondManagementPage = () => {
                                     </Box>
                                     <Box sx={{ textAlign: 'right' }}>
                                       <Typography variant="body2">
-                                        Avg. Weight: {(entry.totalWeight * 1000 / entry.totalCount).toFixed(2)}g
+                                        Avg. Weight: {entry.totalCount > 0 ? (entry.totalWeight * 1000 / entry.totalCount).toFixed(2) : 0}g
                                       </Typography>
                                       <Typography variant="body2">
                                         Total: {entry.totalWeight}kg / {entry.totalCount} pcs
@@ -1013,7 +1039,7 @@ const PondManagementPage = () => {
                 </Button>
               }
             />
-            <CardContent sx={{ pt: 0, pb: 2 }}> {/* Added CardContent for filter bar */}
+            <CardContent sx={{ pt: 0, pb: 2 }}>
               <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap', alignItems: 'center' }}>
                 <TextField
                   placeholder="Search events..."
@@ -1067,8 +1093,8 @@ const PondManagementPage = () => {
                     <CardHeader title="Upcoming Events" />
                     <CardContent>
                       <Grid container spacing={2}>
-                        {events.slice(0, 3).map((event) => (
-                          <Grid item xs={12} md={6} lg={4} key={event.id}>
+                        {(events || []).slice(0, 3).map((event) => (
+                          <Grid item xs={12} md={6} lg={4} key={event._id || event.id}>
                             <Card 
                               variant="outlined" 
                               sx={{ 
@@ -1112,7 +1138,7 @@ const PondManagementPage = () => {
                                   />
                                 </Box>
                                 <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic' }}>
-                                  {event.resource.description}
+                                  {event.resource && event.resource.description ? event.resource.description : 'No description'}
                                 </Typography>
                               </CardContent>
                             </Card>
@@ -1170,7 +1196,7 @@ const PondManagementPage = () => {
                 <strong>Type:</strong> {selectedEvent.type}
               </Typography>
               <Typography variant="body1" sx={{ mb: 2 }}>
-                <strong>Description:</strong> {selectedEvent.resource.description}
+                <strong>Description:</strong> {selectedEvent.resource && selectedEvent.resource.description ? selectedEvent.resource.description : 'No description'}
               </Typography>
             </Box>
           )}
@@ -1290,8 +1316,12 @@ const PondManagementPage = () => {
           <Button onClick={handleCloseAddModal} color="primary">
             Cancel
           </Button>
-          <Button variant="contained" onClick={handleSubmit(handleEventSubmit)}>
-            Add Event
+          <Button 
+            variant="contained" 
+            onClick={handleSubmit(handleEventSubmit)}
+            disabled={createEventLoading}
+          >
+            {createEventLoading ? 'Adding...' : 'Add Event'}
           </Button>
         </DialogActions>
       </Dialog>

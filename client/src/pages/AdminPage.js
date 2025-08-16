@@ -1,10 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Typography, 
   Tabs, 
   Tab, 
   Box, 
-  Paper, 
   Button,
   TextField,
   Dialog,
@@ -30,7 +29,12 @@ import {
   InputAdornment,
   Pagination,
   ToggleButton,
-  ToggleButtonGroup
+  ToggleButtonGroup,
+  CircularProgress,
+  Alert,
+  FormControl,
+  InputLabel,
+  Select
 } from '@mui/material';
 import { 
   Add as AddIcon,
@@ -47,17 +51,69 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts';
 import Papa from 'papaparse';
+import { useApiData, useApiMutation } from '../hooks/useApi';
+import { 
+  getSeasons, 
+  createSeason, 
+  updateSeason, 
+  deleteSeason,
+  getPonds,
+  createPond,
+  updatePond,
+  deletePond,
+  copyPondDetails
+} from '../services/api';
+import { format } from 'date-fns';
 
 const AdminPage = () => {
   const [activeTab, setActiveTab] = useState(0);
   const [openDialog, setOpenDialog] = useState(false);
-  const [dialogType, setDialogType] = useState(''); // 'season', 'pond', 'event'
+  const [dialogType, setDialogType] = useState(''); // 'season', 'pond'
+  const [editingItem, setEditingItem] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState('all');
   const [page, setPage] = useState(1);
+  const [sourceSeason, setSourceSeason] = useState('');
+  const [targetSeason, setTargetSeason] = useState('');
   const itemsPerPage = 5;
   const navigate = useNavigate();
   
+  // Form data
+  const [formData, setFormData] = useState({
+    name: '',
+    startDate: '',
+    endDate: '',
+    status: '',
+    size: '',
+    capacity: '',
+    seasonId: ''
+  });
+
+  // Fetch seasons
+  const { 
+    data: seasonsData, 
+    loading: seasonsLoading, 
+    error: seasonsError,
+    refetch: refetchSeasons
+  } = useApiData(getSeasons, []);
+
+  // Fetch ponds
+  const { 
+    data: pondsData, 
+    loading: pondsLoading, 
+    error: pondsError,
+    refetch: refetchPonds
+  } = useApiData(getPonds, []);
+
+  // Mutations
+  const { mutate: createSeasonMutation, loading: createSeasonLoading } = useApiMutation(createSeason);
+  const { mutate: updateSeasonMutation, loading: updateSeasonLoading } = useApiMutation(updateSeason);
+  const { mutate: deleteSeasonMutation, loading: deleteSeasonLoading } = useApiMutation(deleteSeason);
+  const { mutate: createPondMutation, loading: createPondLoading } = useApiMutation(createPond);
+  const { mutate: updatePondMutation, loading: updatePondLoading } = useApiMutation(updatePond);
+  const { mutate: deletePondMutation, loading: deletePondLoading } = useApiMutation(deletePond);
+  const { mutate: copyPondDetailsMutation, loading: copyPondDetailsLoading } = useApiMutation(copyPondDetails);
+
   const handleTabChange = (event, newValue) => {
     // If the removed tab (index 3) was selected, default to the first tab (index 0)
     if (newValue === 3) {
@@ -71,48 +127,57 @@ const AdminPage = () => {
     setPage(1);
   };
   
-  const handleOpenDialog = (type) => {
+  const handleOpenDialog = (type, item = null) => {
     setDialogType(type);
+    setEditingItem(item);
+    
+    if (item) {
+      // Populate form with existing data
+      if (type === 'season') {
+        setFormData({
+          name: item.name || '',
+          startDate: item.startDate ? format(new Date(item.startDate), 'yyyy-MM-dd') : '',
+          endDate: item.endDate ? format(new Date(item.endDate), 'yyyy-MM-dd') : '',
+          status: item.status || ''
+        });
+      } else if (type === 'pond') {
+        setFormData({
+          name: item.name || '',
+          size: item.size || '',
+          capacity: item.capacity || '',
+          seasonId: item.seasonId || item.season || '',
+          status: item.status || ''
+        });
+      }
+    } else {
+      // Reset form for new item
+      setFormData({
+        name: '',
+        startDate: '',
+        endDate: '',
+        status: '',
+        size: '',
+        capacity: '',
+        seasonId: ''
+      });
+    }
+    
     setOpenDialog(true);
   };
   
   const handleCloseDialog = () => {
     setOpenDialog(false);
+    setEditingItem(null);
   };
   
-  // Placeholder data
-  const seasons = [
-    { id: 1, name: 'Season 2023', startDate: '2023-01-01', endDate: '2023-12-31', status: 'Active', yield: '45 tons' },
-    { id: 2, name: 'Season 2024', startDate: '2024-01-01', endDate: '2024-12-31', status: 'Planning', yield: 'N/A' },
-    { id: 3, name: 'Season 2022', startDate: '2022-01-01', endDate: '2022-12-31', status: 'Completed', yield: '38 tons' },
-    { id: 4, name: 'Season 2021', startDate: '2021-01-01', endDate: '2021-12-31', status: 'Completed', yield: '42 tons' },
-    { id: 5, name: 'Season 2020', startDate: '2020-01-01', endDate: '2020-12-31', status: 'Completed', yield: '39 tons' }
-  ];
-  
-  const ponds = [
-    { id: 1, name: 'Pond A', size: '1000 m²', capacity: '5000 shrimp', season: 'Season 2023', status: 'Active' },
-    { id: 2, name: 'Pond B', size: '1200 m²', capacity: '6000 shrimp', season: 'Season 2023', status: 'Active' },
-    { id: 3, name: 'Pond C', size: '800 m²', capacity: '4000 shrimp', season: 'Season 2023', status: 'Inactive' },
-    { id: 4, name: 'Pond D', size: '1500 m²', capacity: '7500 shrimp', season: 'Season 2024', status: 'Planning' },
-    { id: 5, name: 'Pond E', size: '1100 m²', capacity: '5500 shrimp', season: 'Season 2022', status: 'Completed' }
-  ];
-  
-  const events = [
-    { id: 1, title: 'Feeding', date: '2023-06-15', type: 'Routine', pond: 'Pond A' },
-    { id: 2, title: 'Water Change', date: '2023-06-20', type: 'Maintenance', pond: 'Pond B' },
-    { id: 3, title: 'Growth Sampling', date: '2023-06-25', type: 'Monitoring', pond: 'Pond A' },
-    { id: 4, title: 'Harvest', date: '2023-07-10', type: 'Harvest', pond: 'Pond C' },
-    { id: 5, title: 'Aeration Check', date: '2023-06-18', type: 'Maintenance', pond: 'Pond D' }
-  ];
-
   // Filter and paginate data based on current tab
   const getFilteredData = (data) => {
     // Apply search filter
-    let filtered = data;
+    let filtered = data || [];
     if (searchTerm) {
-      filtered = data.filter(item => 
+      filtered = filtered.filter(item => 
         Object.values(item).some(val => 
-          val.toString().toLowerCase().includes(searchTerm.toLowerCase())
+          val && val.toString().toLowerCase().includes(searchTerm.toLowerCase())
         )
       );
     }
@@ -120,8 +185,8 @@ const AdminPage = () => {
     // Apply status filter
     if (filter !== 'all') {
       filtered = filtered.filter(item => 
-        item.status?.toLowerCase() === filter || 
-        item.type?.toLowerCase() === filter
+        (item.status && item.status.toLowerCase() === filter) ||
+        (item.type && item.type.toLowerCase() === filter)
       );
     }
     
@@ -159,6 +224,99 @@ const AdminPage = () => {
     setPage(value);
   };
 
+  // Handle form input changes
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    try {
+      if (dialogType === 'season') {
+        const seasonData = {
+          name: formData.name,
+          startDate: formData.startDate,
+          endDate: formData.endDate,
+          status: formData.status
+        };
+        
+        if (editingItem) {
+          // Update existing season
+          await updateSeasonMutation(editingItem._id || editingItem.id, seasonData);
+        } else {
+          // Create new season
+          await createSeasonMutation(seasonData);
+        }
+      } else if (dialogType === 'pond') {
+        const pondData = {
+          name: formData.name,
+          size: parseFloat(formData.size),
+          capacity: parseInt(formData.capacity),
+          seasonId: formData.seasonId,
+          status: formData.status
+        };
+        
+        if (editingItem) {
+          // Update existing pond
+          await updatePondMutation(editingItem._id || editingItem.id, pondData);
+        } else {
+          // Create new pond
+          await createPondMutation(pondData);
+        }
+      }
+      
+      // Refresh data
+      if (dialogType === 'season') {
+        refetchSeasons();
+      } else if (dialogType === 'pond') {
+        refetchPonds();
+      }
+      
+      handleCloseDialog();
+    } catch (error) {
+      console.error('Error saving item:', error);
+    }
+  };
+
+  // Handle delete
+  const handleDelete = async (type, id) => {
+    if (window.confirm(`Are you sure you want to delete this ${type}?`)) {
+      try {
+        if (type === 'season') {
+          await deleteSeasonMutation(id);
+          refetchSeasons();
+        } else if (type === 'pond') {
+          await deletePondMutation(id);
+          refetchPonds();
+        }
+      } catch (error) {
+        console.error('Error deleting item:', error);
+      }
+    }
+  };
+
+  // Handle copy pond details
+  const handleCopyPondDetails = async () => {
+    if (!sourceSeason || !targetSeason) {
+      alert('Please select both source and target seasons');
+      return;
+    }
+    
+    try {
+      await copyPondDetailsMutation(sourceSeason, targetSeason);
+      alert('Pond details copied successfully');
+    } catch (error) {
+      console.error('Error copying pond details:', error);
+      alert('Failed to copy pond details');
+    }
+  };
+
   // Export data to CSV
   const exportToCSV = (data, filename) => {
     const csv = Papa.unparse(data);
@@ -174,12 +332,38 @@ const AdminPage = () => {
   };
 
   // Yield data for chart
-  const yieldData = seasons
+  const yieldData = (seasonsData || [])
     .filter(season => season.status === 'Completed')
     .map(season => ({
       name: season.name,
-      yield: parseFloat(season.yield.replace(' tons', '')) || 0
+      yield: season.yield ? parseFloat(season.yield.toString().replace(' tons', '')) || 0 : 0
     }));
+
+  // Loading and error states
+  const isLoading = seasonsLoading || pondsLoading;
+  const hasError = seasonsError || pondsError;
+
+  if (isLoading) {
+    return (
+      <Container maxWidth="lg" sx={{ mt: 2, mb: 4, display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Container>
+    );
+  }
+
+  if (hasError) {
+    return (
+      <Container maxWidth="lg" sx={{ mt: 2, mb: 4 }}>
+        <Alert severity="error">
+          Error loading data: {seasonsError || pondsError}
+        </Alert>
+      </Container>
+    );
+  }
+
+  // Use real data or fallback to mock data
+  const seasons = seasonsData || [];
+  const ponds = pondsData || [];
 
   return (
     <Container maxWidth="lg" sx={{ mt: 2, mb: 4 }}>
@@ -190,7 +374,7 @@ const AdminPage = () => {
         <Button 
           variant="contained" 
           startIcon={<ExportIcon />} 
-          onClick={() => exportToCSV(activeTab === 0 ? seasons : activeTab === 1 ? ponds : events, 'admin-data')}
+          onClick={() => exportToCSV(activeTab === 0 ? seasons : activeTab === 1 ? ponds : [], 'admin-data')}
         >
           Export Data
         </Button>
@@ -261,13 +445,6 @@ const AdminPage = () => {
                     <ToggleButton value="inactive">Inactive</ToggleButton>
                   </>
                 )}
-                {activeTab === 3 && (
-                  <>
-                    <ToggleButton value="routine">Routine</ToggleButton>
-                    <ToggleButton value="maintenance">Maintenance</ToggleButton>
-                    <ToggleButton value="monitoring">Monitoring</ToggleButton>
-                  </>
-                )}
               </ToggleButtonGroup>
             </Box>
           )}
@@ -316,36 +493,46 @@ const AdminPage = () => {
                               <TableCell sx={{ fontWeight: 'bold' }}>Start Date</TableCell>
                               <TableCell sx={{ fontWeight: 'bold' }}>End Date</TableCell>
                               <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
-                              <TableCell sx={{ fontWeight: 'bold' }}>Yield</TableCell>
                               <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>
                             </TableRow>
                           </TableHead>
                           <TableBody>
                             {getPagedData(seasons).map((season) => (
-                              <TableRow key={season.id}>
+                              <TableRow key={season._id || season.id}>
                                 <TableCell>{season.name}</TableCell>
-                                <TableCell>{season.startDate}</TableCell>
-                                <TableCell>{season.endDate}</TableCell>
+                                <TableCell>
+                                  {season.startDate ? format(new Date(season.startDate), 'yyyy-MM-dd') : 'N/A'}
+                                </TableCell>
+                                <TableCell>
+                                  {season.endDate ? format(new Date(season.endDate), 'yyyy-MM-dd') : 'N/A'}
+                                </TableCell>
                                 <TableCell>
                                   <Chip 
-                                    label={season.status} 
+                                    label={season.status || 'N/A'} 
                                     size="small" 
                                     color={
-                                      season.status === 'Active' ? 'success' : 
-                                      season.status === 'Planning' ? 'warning' : 
+                                      (season.status || 'N/A') === 'Active' ? 'success' : 
+                                      (season.status || 'N/A') === 'Planning' ? 'warning' : 
                                       'default'
                                     } 
                                   />
                                 </TableCell>
-                                <TableCell>{season.yield}</TableCell>
                                 <TableCell>
                                   <Tooltip title="Edit">
-                                    <IconButton size="small" onClick={() => handleOpenDialog('season')}>
+                                    <IconButton 
+                                      size="small" 
+                                      onClick={() => handleOpenDialog('season', season)}
+                                    >
                                       <EditIcon />
                                     </IconButton>
                                   </Tooltip>
                                   <Tooltip title="Delete">
-                                    <IconButton size="small" color="error">
+                                    <IconButton 
+                                      size="small" 
+                                      color="error"
+                                      onClick={() => handleDelete('season', season._id || season.id)}
+                                      disabled={deleteSeasonLoading}
+                                    >
                                       <DeleteIcon />
                                     </IconButton>
                                   </Tooltip>
@@ -393,7 +580,7 @@ const AdminPage = () => {
                           <TableHead>
                             <TableRow>
                               <TableCell sx={{ fontWeight: 'bold' }}>Name</TableCell>
-                              <TableCell sx={{ fontWeight: 'bold' }}>Size</TableCell>
+                              <TableCell sx={{ fontWeight: 'bold' }}>Size (m²)</TableCell>
                               <TableCell sx={{ fontWeight: 'bold' }}>Capacity</TableCell>
                               <TableCell sx={{ fontWeight: 'bold' }}>Season</TableCell>
                               <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
@@ -402,11 +589,11 @@ const AdminPage = () => {
                           </TableHead>
                           <TableBody>
                             {getPagedData(ponds).map((pond) => (
-                              <TableRow key={pond.id}>
+                              <TableRow key={pond._id || pond.id}>
                                 <TableCell>
                                   <Button 
                                     variant="text" 
-                                    onClick={() => navigate(`/pond/${pond.id}`)}
+                                    onClick={() => navigate(`/pond/${pond._id || pond.id}`)}
                                     sx={{ justifyContent: 'flex-start', padding: 0, minWidth: 0, textAlign: 'left' }}
                                   >
                                     {pond.name}
@@ -414,26 +601,39 @@ const AdminPage = () => {
                                 </TableCell>
                                 <TableCell>{pond.size}</TableCell>
                                 <TableCell>{pond.capacity}</TableCell>
-                                <TableCell>{pond.season}</TableCell>
+                                <TableCell>
+                                  {pond.seasonId ? 
+                                    (typeof pond.seasonId === 'object' ? pond.seasonId.name : pond.seasonId) : 
+                                    'N/A'
+                                  }
+                                </TableCell>
                                 <TableCell>
                                   <Chip 
-                                    label={pond.status} 
+                                    label={pond.status || 'N/A'} 
                                     size="small" 
                                     color={
-                                      pond.status === 'Active' ? 'success' : 
-                                      pond.status === 'Planning' ? 'warning' : 
+                                      (pond.status || 'N/A') === 'Active' ? 'success' : 
+                                      (pond.status || 'N/A') === 'Planning' ? 'warning' : 
                                       'default'
                                     } 
                                   />
                                 </TableCell>
                                 <TableCell>
                                   <Tooltip title="Edit">
-                                    <IconButton size="small" onClick={() => handleOpenDialog('pond')}>
+                                    <IconButton 
+                                      size="small" 
+                                      onClick={() => handleOpenDialog('pond', pond)}
+                                    >
                                       <EditIcon />
                                     </IconButton>
                                   </Tooltip>
                                   <Tooltip title="Delete">
-                                    <IconButton size="small" color="error">
+                                    <IconButton 
+                                      size="small" 
+                                      color="error"
+                                      onClick={() => handleDelete('pond', pond._id || pond.id)}
+                                      disabled={deletePondLoading}
+                                    >
                                       <DeleteIcon />
                                     </IconButton>
                                   </Tooltip>
@@ -470,44 +670,53 @@ const AdminPage = () => {
                       </Typography>
                       <Grid container spacing={2} sx={{ mb: 3 }}>
                         <Grid item xs={12} md={6}>
-                          <TextField
-                            select
-                            label="Source Season"
-                            fullWidth
-                            variant="outlined"
-                          >
-                            {seasons.map((season) => (
-                              <MenuItem key={season.id} value={season.id}>
-                                {season.name}
-                              </MenuItem>
-                            ))}
-                          </TextField>
+                          <FormControl fullWidth variant="outlined">
+                            <InputLabel id="source-season-label">Source Season</InputLabel>
+                            <Select
+                              labelId="source-season-label"
+                              value={sourceSeason}
+                              onChange={(e) => setSourceSeason(e.target.value)}
+                              label="Source Season"
+                            >
+                              {seasons.map((season) => (
+                                <MenuItem key={season._id || season.id} value={season._id || season.id}>
+                                  {season.name}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
                         </Grid>
                         <Grid item xs={12} md={6}>
-                          <TextField
-                            select
-                            label="Target Season"
-                            fullWidth
-                            variant="outlined"
-                          >
-                            {seasons.map((season) => (
-                              <MenuItem key={season.id} value={season.id}>
-                                {season.name}
-                              </MenuItem>
-                            ))}
-                          </TextField>
+                          <FormControl fullWidth variant="outlined">
+                            <InputLabel id="target-season-label">Target Season</InputLabel>
+                            <Select
+                              labelId="target-season-label"
+                              value={targetSeason}
+                              onChange={(e) => setTargetSeason(e.target.value)}
+                              label="Target Season"
+                            >
+                              {seasons.map((season) => (
+                                <MenuItem key={season._id || season.id} value={season._id || season.id}>
+                                  {season.name}
+                                </MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
                         </Grid>
                       </Grid>
-                      <Button variant="contained" startIcon={<CopyIcon />}>
-                        Copy Pond Details
+                      <Button 
+                        variant="contained" 
+                        startIcon={<CopyIcon />} 
+                        onClick={handleCopyPondDetails}
+                        disabled={copyPondDetailsLoading}
+                      >
+                        {copyPondDetailsLoading ? 'Copying...' : 'Copy Pond Details'}
                       </Button>
                     </CardContent>
                   </Card>
                 </Grid>
               </Grid>
             )}
-            
-            
           </Box>
         </CardContent>
       </Card>
@@ -515,181 +724,161 @@ const AdminPage = () => {
       {/* Dialog for adding/editing items */}
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
         <DialogTitle>
-          {dialogType === 'season' && 'Add/Edit Season'}
-          {dialogType === 'pond' && 'Add/Edit Pond'}
-          {dialogType === 'event' && 'Add/Edit Event'}
+          {editingItem ? 'Edit ' : 'Add New '}
+          {dialogType === 'season' ? 'Season' : 'Pond'}
         </DialogTitle>
         <DialogContent>
-          {dialogType === 'season' && (
-            <>
-              <TextField
-                autoFocus
-                margin="dense"
-                label="Season Name"
-                type="text"
-                fullWidth
-                variant="outlined"
-              />
-              <TextField
-                margin="dense"
-                label="Start Date"
-                type="date"
-                fullWidth
-                variant="outlined"
-                InputLabelProps={{
-                  shrink: true,
-                }}
-                sx={{ mt: 2 }}
-              />
-              <TextField
-                margin="dense"
-                label="End Date"
-                type="date"
-                fullWidth
-                variant="outlined"
-                InputLabelProps={{
-                  shrink: true,
-                }}
-                sx={{ mt: 2 }}
-              />
-              <TextField
-                margin="dense"
-                select
-                label="Status"
-                fullWidth
-                variant="outlined"
-                sx={{ mt: 2 }}
-              >
-                <MenuItem value="Planning">Planning</MenuItem>
-                <MenuItem value="Active">Active</MenuItem>
-                <MenuItem value="Completed">Completed</MenuItem>
-              </TextField>
-            </>
-          )}
-          
-          {dialogType === 'pond' && (
-            <>
-              <TextField
-                autoFocus
-                margin="dense"
-                label="Pond Name"
-                type="text"
-                fullWidth
-                variant="outlined"
-              />
-              <TextField
-                margin="dense"
-                label="Size (m²)"
-                type="number"
-                fullWidth
-                variant="outlined"
-                sx={{ mt: 2 }}
-              />
-              <TextField
-                margin="dense"
-                label="Capacity"
-                type="number"
-                fullWidth
-                variant="outlined"
-                sx={{ mt: 2 }}
-              />
-              <TextField
-                margin="dense"
-                select
-                label="Season"
-                fullWidth
-                variant="outlined"
-                sx={{ mt: 2 }}
-              >
-                {seasons.map((season) => (
-                  <MenuItem key={season.id} value={season.id}>
-                    {season.name}
-                  </MenuItem>
-                ))}
-              </TextField>
-              <TextField
-                margin="dense"
-                select
-                label="Status"
-                fullWidth
-                variant="outlined"
-                sx={{ mt: 2 }}
-              >
-                <MenuItem value="Planning">Planning</MenuItem>
-                <MenuItem value="Active">Active</MenuItem>
-                <MenuItem value="Inactive">Inactive</MenuItem>
-                <MenuItem value="Completed">Completed</MenuItem>
-              </TextField>
-            </>
-          )}
-          
-          {dialogType === 'event' && (
-            <>
-              <TextField
-                autoFocus
-                margin="dense"
-                label="Event Title"
-                type="text"
-                fullWidth
-                variant="outlined"
-              />
-              <TextField
-                margin="dense"
-                label="Date"
-                type="date"
-                fullWidth
-                variant="outlined"
-                InputLabelProps={{
-                  shrink: true,
-                }}
-                sx={{ mt: 2 }}
-              />
-              <TextField
-                margin="dense"
-                select
-                label="Type"
-                fullWidth
-                variant="outlined"
-                sx={{ mt: 2 }}
-              >
-                <MenuItem value="Routine">Routine</MenuItem>
-                <MenuItem value="Maintenance">Maintenance</MenuItem>
-                <MenuItem value="Monitoring">Monitoring</MenuItem>
-                <MenuItem value="Harvest">Harvest</MenuItem>
-              </TextField>
-              <TextField
-                margin="dense"
-                select
-                label="Pond"
-                fullWidth
-                variant="outlined"
-                sx={{ mt: 2 }}
-              >
-                {ponds.map((pond) => (
-                  <MenuItem key={pond.id} value={pond.id}>
-                    {pond.name}
-                  </MenuItem>
-                ))}
-              </TextField>
-              <TextField
-                margin="dense"
-                label="Description"
-                type="text"
-                fullWidth
-                variant="outlined"
-                multiline
-                rows={3}
-                sx={{ mt: 2 }}
-              />
-            </>
-          )}
+          <form onSubmit={handleSubmit}>
+            {dialogType === 'season' && (
+              <>
+                <TextField
+                  autoFocus
+                  margin="dense"
+                  name="name"
+                  label="Season Name"
+                  type="text"
+                  fullWidth
+                  variant="outlined"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  required
+                />
+                <TextField
+                  margin="dense"
+                  name="startDate"
+                  label="Start Date"
+                  type="date"
+                  fullWidth
+                  variant="outlined"
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  sx={{ mt: 2 }}
+                  value={formData.startDate}
+                  onChange={handleInputChange}
+                  required
+                />
+                <TextField
+                  margin="dense"
+                  name="endDate"
+                  label="End Date"
+                  type="date"
+                  fullWidth
+                  variant="outlined"
+                  InputLabelProps={{
+                    shrink: true,
+                  }}
+                  sx={{ mt: 2 }}
+                  value={formData.endDate}
+                  onChange={handleInputChange}
+                  required
+                />
+                <TextField
+                  margin="dense"
+                  name="status"
+                  select
+                  label="Status"
+                  fullWidth
+                  variant="outlined"
+                  sx={{ mt: 2 }}
+                  value={formData.status}
+                  onChange={handleInputChange}
+                  required
+                >
+                  <MenuItem value="Planning">Planning</MenuItem>
+                  <MenuItem value="Active">Active</MenuItem>
+                  <MenuItem value="Completed">Completed</MenuItem>
+                </TextField>
+              </>
+            )}
+            
+            {dialogType === 'pond' && (
+              <>
+                <TextField
+                  autoFocus
+                  margin="dense"
+                  name="name"
+                  label="Pond Name"
+                  type="text"
+                  fullWidth
+                  variant="outlined"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  required
+                />
+                <TextField
+                  margin="dense"
+                  name="size"
+                  label="Size (m²)"
+                  type="number"
+                  fullWidth
+                  variant="outlined"
+                  sx={{ mt: 2 }}
+                  value={formData.size}
+                  onChange={handleInputChange}
+                  required
+                />
+                <TextField
+                  margin="dense"
+                  name="capacity"
+                  label="Capacity"
+                  type="number"
+                  fullWidth
+                  variant="outlined"
+                  sx={{ mt: 2 }}
+                  value={formData.capacity}
+                  onChange={handleInputChange}
+                  required
+                />
+                <TextField
+                  margin="dense"
+                  name="seasonId"
+                  select
+                  label="Season"
+                  fullWidth
+                  variant="outlined"
+                  sx={{ mt: 2 }}
+                  value={formData.seasonId}
+                  onChange={handleInputChange}
+                  required
+                >
+                  {seasons.map((season) => (
+                    <MenuItem key={season._id || season.id} value={season._id || season.id}>
+                      {season.name}
+                    </MenuItem>
+                  ))}
+                </TextField>
+                <TextField
+                  margin="dense"
+                  name="status"
+                  select
+                  label="Status"
+                  fullWidth
+                  variant="outlined"
+                  sx={{ mt: 2 }}
+                  value={formData.status}
+                  onChange={handleInputChange}
+                  required
+                >
+                  <MenuItem value="Planning">Planning</MenuItem>
+                  <MenuItem value="Active">Active</MenuItem>
+                  <MenuItem value="Inactive">Inactive</MenuItem>
+                  <MenuItem value="Completed">Completed</MenuItem>
+                </TextField>
+              </>
+            )}
+          </form>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button onClick={handleCloseDialog} variant="contained">
-            {dialogType === 'season' && 'Save Season'}
-            {dialogType === 'pond' && 'Save Pond'}
-            {dialogType === 'event' && 'Save Event'}
+          <Button 
+            onClick={handleSubmit} 
+            variant="contained"
+            disabled={createSeasonLoading || updateSeasonLoading || createPondLoading || updatePondLoading}
+          >
+            {createSeasonLoading || updateSeasonLoading || createPondLoading || updatePondLoading ? 
+             'Saving...' : 
+             editingItem ? 'Update' : 'Save'}
           </Button>
         </DialogActions>
       </Dialog>

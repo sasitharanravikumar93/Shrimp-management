@@ -64,7 +64,6 @@ const Layout = ({ children, toggleDarkMode, darkMode }) => {
   const [openPondMenu, setOpenPondMenu] = useState(false);
   const { selectedSeason, setSelectedSeason } = useSeason();
   const location = useLocation();
-  const navigate = useNavigate();
 
   // Auto-collapse sidebar on mobile
   useEffect(() => {
@@ -409,7 +408,11 @@ const Layout = ({ children, toggleDarkMode, darkMode }) => {
           },
           mt: 8,
           minHeight: '100vh',
-          bgcolor: 'background.default'
+          bgcolor: 'background.default',
+          transition: theme.transitions.create(['margin', 'width'], {
+            easing: theme.transitions.easing.sharp,
+            duration: theme.transitions.duration.enteringScreen,
+          }),
         }}
       >
         {children}

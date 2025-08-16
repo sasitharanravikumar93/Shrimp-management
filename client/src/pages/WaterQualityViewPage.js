@@ -1,7 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Typography, 
-  Paper, 
   Grid, 
   TextField, 
   Button, 
@@ -20,9 +19,10 @@ import {
   Card,
   CardContent,
   CardHeader,
-  Divider,
   IconButton,
-  Tooltip
+  Tooltip,
+  CircularProgress,
+  Alert
 } from '@mui/material';
 import { 
   Search as SearchIcon,
@@ -32,63 +32,39 @@ import {
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { format } from 'date-fns';
+import { useApiData } from '../hooks/useApi';
+import { 
+  getWaterQualityInputs, 
+  getPonds 
+} from '../services/api';
 
 const WaterQualityViewPage = () => {
-  const [startDate, setStartDate] = useState(new Date());
+  const [startDate, setStartDate] = useState(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)); // 30 days ago
   const [endDate, setEndDate] = useState(new Date());
   const [pond, setPond] = useState('');
   const [parameter, setParameter] = useState('');
   const [search, setSearch] = useState('');
+  const [filteredWaterQualityEntries, setFilteredWaterQualityEntries] = useState([]);
 
-  // Placeholder data for water quality entries
-  const waterQualityEntries = [
-    { 
-      id: 1, 
-      date: '2023-06-15', 
-      time: '08:00', 
-      pond: 'Pond A', 
-      pH: 7.2, 
-      dissolvedOxygen: 5.5, 
-      temperature: 28.5, 
-      salinity: 25.0,
-      ammonia: 0.1,
-      nitrite: 0.05,
-      alkalinity: 120
-    },
-    { 
-      id: 2, 
-      date: '2023-06-15', 
-      time: '16:00', 
-      pond: 'Pond A', 
-      pH: 7.1, 
-      dissolvedOxygen: 5.2, 
-      temperature: 29.0, 
-      salinity: 25.2,
-      ammonia: 0.12,
-      nitrite: 0.06,
-      alkalinity: 118
-    },
-    { 
-      id: 3, 
-      date: '2023-06-15', 
-      time: '08:30', 
-      pond: 'Pond B', 
-      pH: 7.3, 
-      dissolvedOxygen: 5.8, 
-      temperature: 28.0, 
-      salinity: 24.8,
-      ammonia: 0.08,
-      nitrite: 0.04,
-      alkalinity: 125
-    },
-  ];
+  // Fetch all water quality entries
+  const { 
+    data: waterQualityEntriesData, 
+    loading: waterQualityEntriesLoading, 
+    error: waterQualityEntriesError,
+    refetch: refetchWaterQualityEntries
+  } = useApiData(getWaterQualityInputs, []);
 
-  // Placeholder data for ponds
-  const ponds = [
-    { id: 1, name: 'Pond A' },
-    { id: 2, name: 'Pond B' },
-    { id: 3, name: 'Pond C' }
-  ];
+  // Fetch ponds
+  const { 
+    data: pondsData, 
+    loading: pondsLoading, 
+    error: pondsError
+  } = useApiData(getPonds, []);
+
+  // Loading and error states
+  const isLoading = waterQualityEntriesLoading || pondsLoading;
+  const hasError = waterQualityEntriesError || pondsError;
 
   // Water quality parameters
   const parameters = [
@@ -101,9 +77,45 @@ const WaterQualityViewPage = () => {
     'Alkalinity'
   ];
 
-  const handleFilter = () => {
-    // Implementation for filtering water quality entries would go here
-    console.log({ startDate, endDate, pond, parameter, search });
+  // Filter water quality entries based on search term
+  useEffect(() => {
+    if (waterQualityEntriesData) {
+      let filtered = waterQualityEntriesData;
+      
+      // Apply search filter
+      if (search) {
+        filtered = filtered.filter(entry => 
+          (entry.pH && entry.pH.toString().includes(search)) ||
+          (entry.dissolvedOxygen && entry.dissolvedOxygen.toString().includes(search)) ||
+          (entry.temperature && entry.temperature.toString().includes(search)) ||
+          (entry.salinity && entry.salinity.toString().includes(search))
+        );
+      }
+      
+      // Apply pond filter
+      if (pond) {
+        filtered = filtered.filter(entry => entry.pondId === pond);
+      }
+      
+      setFilteredWaterQualityEntries(filtered);
+    }
+  }, [waterQualityEntriesData, search, pond]);
+
+  const handleFilter = async () => {
+    try {
+      // If pond is selected, fetch water quality entries for that pond
+      if (pond) {
+        // Note: This would require a new API endpoint to filter by date range AND pond
+        // For now, we'll filter client-side
+        refetchWaterQualityEntries();
+      } else {
+        // Fetch water quality entries by date range
+        // Note: This would require implementing the date range filter in the API
+        refetchWaterQualityEntries();
+      }
+    } catch (error) {
+      console.error('Error filtering water quality entries:', error);
+    }
   };
 
   const handleExport = () => {
@@ -111,13 +123,49 @@ const WaterQualityViewPage = () => {
     console.log('Exporting data');
   };
 
+  const formatTime = (time) => {
+    try {
+      return format(new Date(time), 'HH:mm');
+    } catch (e) {
+      return 'Invalid Time';
+    }
+  };
+
+  const getPondName = (pondId) => {
+    if (!pondsData) return 'Unknown Pond';
+    const pond = pondsData.find(p => p._id === pondId || p.id === pondId);
+    return pond ? pond.name : 'Unknown Pond';
+  };
+
+  if (isLoading) {
+    return (
+      <Container maxWidth="lg" sx={{ mt: 4, mb: 4, display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <CircularProgress />
+      </Container>
+    );
+  }
+
+  if (hasError) {
+    return (
+      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+        <Alert severity="error">
+          Error loading data: {waterQualityEntriesError || pondsError}
+        </Alert>
+      </Container>
+    );
+  }
+
+  // Use real data or fallback to mock data
+  const waterQualityEntries = filteredWaterQualityEntries.length > 0 ? filteredWaterQualityEntries : (waterQualityEntriesData || []);
+  const ponds = pondsData || [];
+
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4" component="h1" gutterBottom>
           Water Quality History
         </Typography>
-        <Button variant="contained" startIcon={<DownloadIcon />}>
+        <Button variant="contained" startIcon={<DownloadIcon />} onClick={handleExport}>
           Export Data
         </Button>
       </Box>
@@ -164,7 +212,7 @@ const WaterQualityViewPage = () => {
                   >
                     <MenuItem value=""><em>All Ponds</em></MenuItem>
                     {ponds.map((p) => (
-                      <MenuItem key={p.id} value={p.id}>{p.name}</MenuItem>
+                      <MenuItem key={p._id || p.id} value={p._id || p.id}>{p.name}</MenuItem>
                     ))}
                   </Select>
                 </FormControl>
@@ -244,17 +292,23 @@ const WaterQualityViewPage = () => {
               </TableHead>
               <TableBody>
                 {waterQualityEntries.map((entry) => (
-                  <TableRow key={entry.id}>
-                    <TableCell>{entry.date}</TableCell>
-                    <TableCell>{entry.time}</TableCell>
-                    <TableCell>{entry.pond}</TableCell>
-                    <TableCell>{entry.pH}</TableCell>
-                    <TableCell>{entry.dissolvedOxygen}</TableCell>
-                    <TableCell>{entry.temperature}</TableCell>
-                    <TableCell>{entry.salinity}</TableCell>
-                    <TableCell>{entry.ammonia}</TableCell>
-                    <TableCell>{entry.nitrite}</TableCell>
-                    <TableCell>{entry.alkalinity}</TableCell>
+                  <TableRow key={entry._id || entry.id}>
+                    <TableCell>
+                      {entry.date ? format(new Date(entry.date), 'yyyy-MM-dd') : 'N/A'}
+                    </TableCell>
+                    <TableCell>
+                      {entry.time ? formatTime(entry.time) : 'N/A'}
+                    </TableCell>
+                    <TableCell>
+                      {getPondName(entry.pondId)}
+                    </TableCell>
+                    <TableCell>{entry.pH !== undefined ? entry.pH : 'N/A'}</TableCell>
+                    <TableCell>{entry.dissolvedOxygen !== undefined ? entry.dissolvedOxygen.toFixed(2) : 'N/A'}</TableCell>
+                    <TableCell>{entry.temperature !== undefined ? entry.temperature.toFixed(1) : 'N/A'}</TableCell>
+                    <TableCell>{entry.salinity !== undefined ? entry.salinity.toFixed(1) : 'N/A'}</TableCell>
+                    <TableCell>{entry.ammonia !== undefined ? entry.ammonia.toFixed(3) : 'N/A'}</TableCell>
+                    <TableCell>{entry.nitrite !== undefined ? entry.nitrite.toFixed(3) : 'N/A'}</TableCell>
+                    <TableCell>{entry.alkalinity !== undefined ? entry.alkalinity.toFixed(1) : 'N/A'}</TableCell>
                     <TableCell>
                       <Tooltip title="View Details">
                         <IconButton size="small">
