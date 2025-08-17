@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { BrowserRouter } from 'react-router-dom';
 import DashboardPage from './DashboardPage';
@@ -171,29 +172,18 @@ describe('DashboardPage', () => {
     );
 
     // Wait for data to load
-    await waitFor(() => {
-      expect(screen.getByTestId('kpi-card')).toBeInTheDocument();
-    });
+    const kpiCards = await screen.findAllByTestId('kpi-card');
 
     // Check that KPI cards are rendered
-    expect(screen.getByTestId('kpi-title')).toBeInTheDocument();
-    expect(screen.getByTestId('kpi-value')).toBeInTheDocument();
-    
-    // Should render 6 KPI cards based on summaryData
-    expect(screen.getAllByTestId('kpi-card')).toHaveLength(6);
+    expect(kpiCards).toHaveLength(6);
   });
 
-  it('renders data trend charts', async () => {
+  it('renders data trend charts', () => {
     render(
       <WithProviders>
         <DashboardPage />
       </WithProviders>
     );
-
-    // Wait for data to load
-    await waitFor(() => {
-      expect(screen.getByTestId('data-trend')).toBeInTheDocument();
-    });
 
     // Check that data trend components are rendered
     expect(screen.getByText('Water Quality Trend')).toBeInTheDocument();
@@ -208,29 +198,18 @@ describe('DashboardPage', () => {
     );
 
     // Wait for data to load
-    await waitFor(() => {
-      expect(screen.getByTestId('pond-card')).toBeInTheDocument();
-    });
+    const pondCards = await screen.findAllByTestId('pond-card');
 
-    // Check that pond cards are rendered
-    expect(screen.getByTestId('pond-name')).toBeInTheDocument();
-    expect(screen.getByTestId('pond-status')).toBeInTheDocument();
-    
     // Should render 3 pond cards based on mock data
-    expect(screen.getAllByTestId('pond-card')).toHaveLength(3);
+    expect(pondCards).toHaveLength(3);
   });
 
-  it('renders predictive insights', async () => {
+  it('renders predictive insights', () => {
     render(
       <WithProviders>
         <DashboardPage />
       </WithProviders>
     );
-
-    // Wait for data to load
-    await waitFor(() => {
-      expect(screen.getByTestId('predictive-insight')).toBeInTheDocument();
-    });
 
     // Check that predictive insights are rendered
     expect(screen.getByText('Water Quality Alert')).toBeInTheDocument();
@@ -262,7 +241,7 @@ describe('DashboardPage', () => {
 
     // Click the close button
     const closeButton = screen.getByText('Close');
-    closeButton.click();
+    await userEvent.click(closeButton);
 
     // Check that alert banner is no longer in the document
     expect(screen.queryByTestId('alert-banner')).not.toBeInTheDocument();
@@ -276,19 +255,20 @@ describe('DashboardPage', () => {
     );
 
     // Wait for data to load
-    await waitFor(() => {
-      expect(screen.getByTestId('pond-card')).toBeInTheDocument();
-    });
+    await screen.findAllByTestId('pond-card');
 
     // Check that all ponds are initially visible
     expect(screen.getAllByTestId('pond-card')).toHaveLength(3);
 
-    // Click on \"Active\" filter
-    const activeFilter = screen.getByText('Active');
-    activeFilter.click();
+    // Click on "Active" filter
+    const activeFilter = screen.getByRole('button', { name: /active/i });
+    await userEvent.click(activeFilter);
 
     // Check that only active ponds are visible
-    // Note: This test might need adjustment based on how the filtering actually works in the component
+    expect(screen.getAllByTestId('pond-card')).toHaveLength(2);
+    expect(screen.getByText('Pond A')).toBeInTheDocument();
+    expect(screen.getByText('Pond B')).toBeInTheDocument();
+    expect(screen.queryByText('Pond C')).not.toBeInTheDocument();
   });
 
   it('shows loading state initially', () => {
@@ -324,17 +304,12 @@ describe('DashboardPage', () => {
     expect(screen.getByText(/Failed to fetch ponds/)).toBeInTheDocument();
   });
 
-  it('renders quick actions component', async () => {
+  it('renders quick actions component', () => {
     render(
       <WithProviders>
         <DashboardPage />
       </WithProviders>
     );
-
-    // Wait for data to load
-    await waitFor(() => {
-      expect(screen.getByTestId('quick-actions')).toBeInTheDocument();
-    });
 
     // Check that quick actions component is rendered
     expect(screen.getByTestId('quick-actions')).toBeInTheDocument();

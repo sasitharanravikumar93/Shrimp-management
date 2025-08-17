@@ -12,19 +12,19 @@ jest.mock('@mui/x-date-pickers/LocalizationProvider', () => {
   return ({ children }) => <div data-testid="localization-provider">{children}</div>;
 });
 
-jest.mock('@mui/x-date-pickers/DatePicker', () => {
-  return ({ renderInput, value, onChange }) => {
+jest.mock('@mui/x-date-pickers/DatePicker', () => ({
+  DatePicker: ({ renderInput, value, onChange }) => {
     const inputProps = renderInput({ inputProps: {} });
     return (
-      <div data-testid="date-picker">
-        {React.cloneElement(inputProps, {
-          onChange: (e) => onChange(e.target.value),
-          value: value ? value.toString() : ''
-        })}
-      </div>
+      <TextField
+        label={inputProps.label}
+        value={value ? value.toISOString().split('T')[0] : ''}
+        onChange={(e) => onChange(new Date(e.target.value))}
+        data-testid="date-picker"
+      />
     );
-  };
-});
+  },
+}));
 
 // Create a theme for testing
 const theme = createTheme();
@@ -130,7 +130,7 @@ describe('InventoryForm', () => {
 
     // Click submit without filling any fields
     const submitButton = screen.getByText('Add Item');
-    fireEvent.click(submitButton);
+    await userEvent.click(submitButton);
 
     // Check that validation errors are shown
     await waitFor(() => {
@@ -153,17 +153,17 @@ describe('InventoryForm', () => {
     );
 
     // Fill in required fields
-    fireEvent.change(screen.getByLabelText('Item Name'), { target: { value: 'Standard Feed' } });
-    fireEvent.change(screen.getByLabelText('Item Type'), { target: { value: 'Feed' } });
-    fireEvent.change(screen.getByLabelText('Unit'), { target: { value: 'kg' } });
+    await userEvent.type(screen.getByLabelText('Item Name'), 'Standard Feed');
+    await userEvent.type(screen.getByLabelText('Item Type'), 'Feed');
+    await userEvent.type(screen.getByLabelText('Unit'), 'kg');
     
     // Enter invalid values for numeric fields
-    fireEvent.change(screen.getByLabelText('Cost Per Unit'), { target: { value: 'invalid' } });
-    fireEvent.change(screen.getByLabelText('Low Stock Threshold'), { target: { value: '-50' } });
+    await userEvent.type(screen.getByLabelText('Cost Per Unit'), 'invalid');
+    await userEvent.type(screen.getByLabelText('Low Stock Threshold'), '-50');
 
     // Click submit
     const submitButton = screen.getByText('Add Item');
-    fireEvent.click(submitButton);
+    await userEvent.click(submitButton);
 
     // Check that validation errors are shown
     await waitFor(() => {
@@ -197,21 +197,21 @@ describe('InventoryForm', () => {
     );
 
     // Fill in all required fields
-    fireEvent.change(screen.getByLabelText('Item Name'), { target: { value: 'Standard Feed' } });
-    fireEvent.change(screen.getByLabelText('Item Type'), { target: { value: 'Feed' } });
-    fireEvent.change(screen.getByLabelText('Supplier'), { target: { value: 'Aquatic Supplies Co.' } });
-    fireEvent.change(screen.getByLabelText('Purchase Date'), { target: { value: '2023-01-15' } });
-    fireEvent.change(screen.getByLabelText('Unit'), { target: { value: 'kg' } });
-    fireEvent.change(screen.getByLabelText('Cost Per Unit'), { target: { value: '5.5' } });
-    fireEvent.change(screen.getByLabelText('Low Stock Threshold'), { target: { value: '200' } });
+    await userEvent.type(screen.getByLabelText('Item Name'), 'Standard Feed');
+    await userEvent.type(screen.getByLabelText('Item Type'), 'Feed');
+    await userEvent.type(screen.getByLabelText('Supplier'), 'Aquatic Supplies Co.');
+    await userEvent.type(screen.getByLabelText('Purchase Date'), '2023-01-15');
+    await userEvent.type(screen.getByLabelText('Unit'), 'kg');
+    await userEvent.type(screen.getByLabelText('Cost Per Unit'), '5.5');
+    await userEvent.type(screen.getByLabelText('Low Stock Threshold'), '200');
 
     // Click submit
     const submitButton = screen.getByText('Add Item');
-    fireEvent.click(submitButton);
+    await userEvent.click(submitButton);
 
     // Check that API post was called
     await waitFor(() => {
-      expect(mockApi.post).toHaveBeenCalledWith('/inventory', {
+      expect(mockApi.post).toHaveBeenCalledWith('/inventory-items', {
         itemName: 'Standard Feed',
         itemType: 'Feed',
         supplier: 'Aquatic Supplies Co.',
@@ -260,15 +260,15 @@ describe('InventoryForm', () => {
     );
 
     // Change supplier
-    fireEvent.change(screen.getByLabelText('Supplier'), { target: { value: 'New Supplier Co.' } });
+    await userEvent.type(screen.getByLabelText('Supplier'), 'New Supplier Co.');
 
     // Click submit
     const submitButton = screen.getByText('Save Changes');
-    fireEvent.click(submitButton);
+    await userEvent.click(submitButton);
 
     // Check that API put was called
     await waitFor(() => {
-      expect(mockApi.put).toHaveBeenCalledWith('/inventory/1', {
+      expect(mockApi.put).toHaveBeenCalledWith('/inventory-items/1', {
         itemName: 'Standard Feed',
         itemType: 'Feed',
         supplier: 'New Supplier Co.',
@@ -302,15 +302,15 @@ describe('InventoryForm', () => {
     );
 
     // Fill in all required fields
-    fireEvent.change(screen.getByLabelText('Item Name'), { target: { value: 'Standard Feed' } });
-    fireEvent.change(screen.getByLabelText('Item Type'), { target: { value: 'Feed' } });
-    fireEvent.change(screen.getByLabelText('Purchase Date'), { target: { value: '2023-01-15' } });
-    fireEvent.change(screen.getByLabelText('Unit'), { target: { value: 'kg' } });
-    fireEvent.change(screen.getByLabelText('Cost Per Unit'), { target: { value: '5.5' } });
+    await userEvent.type(screen.getByLabelText('Item Name'), 'Standard Feed');
+    await userEvent.type(screen.getByLabelText('Item Type'), 'Feed');
+    await userEvent.type(screen.getByLabelText('Purchase Date'), '2023-01-15');
+    await userEvent.type(screen.getByLabelText('Unit'), 'kg');
+    await userEvent.type(screen.getByLabelText('Cost Per Unit'), '5.5');
 
     // Click submit
     const submitButton = screen.getByText('Add Item');
-    fireEvent.click(submitButton);
+    await userEvent.click(submitButton);
 
     // Wait for error to be handled
     await waitFor(() => {
@@ -334,7 +334,7 @@ describe('InventoryForm', () => {
 
     // Click submit without filling any fields
     const submitButton = screen.getByText('Add Item');
-    fireEvent.click(submitButton);
+    await userEvent.click(submitButton);
 
     // Check that validation errors are shown
     await waitFor(() => {
@@ -342,13 +342,13 @@ describe('InventoryForm', () => {
     });
 
     // Start typing in the item name field
-    fireEvent.change(screen.getByLabelText('Item Name'), { target: { value: 'Standard Feed' } });
+    await userEvent.type(screen.getByLabelText('Item Name'), 'Standard Feed');
 
     // Check that the validation error for item name is cleared
     expect(screen.queryByText('Item Name is required')).not.toBeInTheDocument();
   });
 
-  it('closes form when cancel button is clicked', () => {
+  it('closes form when cancel button is clicked', async () => {
     render(
       <WithProviders>
         <InventoryForm 
@@ -361,7 +361,7 @@ describe('InventoryForm', () => {
 
     // Click cancel button
     const cancelButton = screen.getByText('Cancel');
-    fireEvent.click(cancelButton);
+    await userEvent.click(cancelButton);
 
     // Check that onClose was called
     expect(mockOnClose).toHaveBeenCalled();

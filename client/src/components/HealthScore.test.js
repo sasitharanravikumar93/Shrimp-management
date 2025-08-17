@@ -22,7 +22,7 @@ describe('HealthScore', () => {
     );
 
     // Check that the score is displayed
-    expect(screen.getByText('85')).toBeInTheDocument();
+    expect(screen.getAllByRole('progressbar')[1]).toHaveAttribute('aria-valuenow', '85');
     
     // Check that the status text is displayed
     expect(screen.getByText('Good')).toBeInTheDocument();
@@ -81,7 +81,7 @@ describe('HealthScore', () => {
     expect(screen.queryByText('Good')).not.toBeInTheDocument();
     
     // But the score should still be visible (in the CircularProgress)
-    expect(screen.getByText('85')).toBeInTheDocument();
+    expect(screen.getAllByRole('progressbar')[1]).toHaveAttribute('aria-valuenow', '85');
   });
 
   it('renders with custom size', () => {
@@ -137,3 +137,11 @@ describe('HealthScore', () => {
     expect(screen.getByText('Good')).toBeInTheDocument();
   });
 });
+
+// Mocking the icons to add data-testid
+jest.mock('@mui/icons-material', () => ({
+  ...jest.requireActual('@mui/icons-material'),
+  CheckCircle: (props) => <div {...props} data-testid="checkcircleicon" />,
+  Warning: (props) => <div {...props} data-testid="warningicon" />,
+  Error: (props) => <div {...props} data-testid="erroricon" />,
+}));

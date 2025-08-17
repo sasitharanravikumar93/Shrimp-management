@@ -41,12 +41,12 @@ describe('useApiData', () => {
     expect(result.current.loading).toBe(true);
     expect(result.current.error).toBe(null);
 
-    // Wait for the error to be handled
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await waitForNextUpdate();
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); }); // Added this line
 
     expect(result.current.loading).toBe(false);
     expect(result.current.data).toBe(null);
-    expect(result.current.error).toBe(errorMessage);
+    expect(result.current.error.message).toBe(errorMessage);
     expect(mockApiFunction).toHaveBeenCalledTimes(1);
   });
 
@@ -103,16 +103,21 @@ describe('useApiMutation', () => {
     const mockData = { id: 1, name: 'Created Item' };
     mockApiMutationFunction.mockResolvedValue(mockData);
 
-    const { result } = renderHook(() =>
+    const { result, waitForNextUpdate } = renderHook(() =>
       useApiMutation(mockApiMutationFunction)
     );
 
     expect(result.current.loading).toBe(false);
     expect(result.current.error).toBe(null);
 
-    await act(async () => {
-      await result.current.mutate({ name: 'Test Item' });
+    act(() => {
+      result.current.mutate({ name: 'Test Item' });
     });
+
+    expect(result.current.loading).toBe(true);
+
+    await waitForNextUpdate();
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); }); // Added this line
 
     expect(result.current.loading).toBe(false);
     expect(result.current.error).toBe(null);
@@ -123,15 +128,20 @@ describe('useApiMutation', () => {
     const errorMessage = 'Mutation Error';
     mockApiMutationFunction.mockRejectedValue(new Error(errorMessage));
 
-    const { result } = renderHook(() =>
+    const { result, waitForNextUpdate } = renderHook(() =>
       useApiMutation(mockApiMutationFunction)
     );
 
-    await act(async () => {
-      await result.current.mutate({ name: 'Test Item' });
+    act(() => {
+      result.current.mutate({ name: 'Test Item' });
     });
 
+    expect(result.current.loading).toBe(true);
+
+    await waitForNextUpdate();
+    await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); }); // Added this line
+
     expect(result.current.loading).toBe(false);
-    expect(result.current.error).toBe(errorMessage);
+    expect(result.current.error.message).toBe(errorMessage);
   });
 });

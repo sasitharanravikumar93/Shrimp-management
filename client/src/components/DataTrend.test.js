@@ -165,3 +165,11 @@ describe('DataTrend', () => {
     expect(screen.getByText(/Average:.*17.50 °C/)).toBeInTheDocument();
   });
 });
+
+// Mocking the icons to add data-testid
+jest.mock('@mui/icons-material', () => ({
+  ...jest.requireActual('@mui/icons-material'),
+  TrendingUp: (props) => <div {...props} data-testid="trendingupicon" />,
+  TrendingDown: (props) => <div {...props} data-testid="trendingdownicon" />,
+  TrendingFlat: (props) => <div {...props} data-testid="trendingflaticon" />,
+}));

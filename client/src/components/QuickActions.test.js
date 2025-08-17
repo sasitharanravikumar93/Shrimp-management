@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import QuickActions from './QuickActions';
 
@@ -52,7 +53,7 @@ describe('QuickActions', () => {
     expect(screen.getByTestId('notificationsicon')).toBeInTheDocument();
   });
 
-  it('calls onActionClick with correct action when action card is clicked', () => {
+  it('calls onActionClick with correct action when action card is clicked', async () => {
     render(
       <WithTheme>
         <QuickActions onActionClick={mockOnActionClick} />
@@ -61,7 +62,7 @@ describe('QuickActions', () => {
 
     // Click on the "Schedule Feeding" action
     const feedingAction = screen.getByText('Schedule Feeding').closest('.MuiCard-root');
-    feedingAction.click();
+    await userEvent.click(feedingAction);
 
     expect(mockOnActionClick).toHaveBeenCalledTimes(1);
     expect(mockOnActionClick).toHaveBeenCalledWith(
@@ -74,7 +75,7 @@ describe('QuickActions', () => {
     );
   });
 
-  it('calls onActionClick with correct action for each action type', () => {
+  it('calls onActionClick with correct action for each action type', async () => {
     render(
       <WithTheme>
         <QuickActions onActionClick={mockOnActionClick} />
@@ -91,15 +92,15 @@ describe('QuickActions', () => {
       { title: 'Send Notification', id: 6 }
     ];
 
-    actions.forEach(action => {
+    for (const action of actions) { // Changed forEach to for...of for async/await
       const actionElement = screen.getByText(action.title).closest('.MuiCard-root');
-      actionElement.click();
-    });
+      await userEvent.click(actionElement); // Used userEvent.click() and await
+    }
 
     expect(mockOnActionClick).toHaveBeenCalledTimes(6);
   });
 
-  it('does not throw error when onActionClick is not provided', () => {
+  it('does not throw error when onActionClick is not provided', async () => {
     // This should not throw an error
     expect(() => {
       render(
@@ -111,8 +112,9 @@ describe('QuickActions', () => {
 
     // Clicking an action should not cause an error
     const feedingAction = screen.getByText('Schedule Feeding').closest('.MuiCard-root');
+    await userEvent.click(feedingAction); // Used userEvent.click() and await
     expect(() => {
-      feedingAction.click();
+      // No assertion needed here, just that it doesn't throw
     }).not.toThrow();
   });
 

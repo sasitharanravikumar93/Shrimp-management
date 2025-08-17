@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { BrowserRouter } from 'react-router-dom';
 import FeedViewPage from './FeedViewPage';
@@ -23,20 +24,16 @@ jest.mock('@mui/x-date-pickers/LocalizationProvider', () => {
   return ({ children }) => <div data-testid="localization-provider">{children}</div>;
 });
 
-jest.mock('@mui/x-date-pickers/DatePicker', () => {
-  return ({ renderInput, value, onChange, label }) => {
-    const inputProps = renderInput({ inputProps: {} });
-    return (
-      <div data-testid={`date-picker-${label}`}>
-        <label>{label}</label>
-        {React.cloneElement(inputProps, {
-          onChange: (e) => onChange(new Date(e.target.value)),
-          value: value ? value.toISOString().split('T')[0] : ''
-        })}
-      </div>
-    );
-  };
-});
+jest.mock('@mui/x-date-pickers/DatePicker', () => ({
+  DatePicker: ({ label, value, onChange }) => (
+    <TextField
+      label={label}
+      value={value ? value.toISOString().split('T')[0] : ''}
+      onChange={(e) => onChange(new Date(e.target.value))}
+      data-testid={`date-picker-${label}`}
+    />
+  ),
+}));
 
 // Create a theme for testing
 const theme = createTheme();
@@ -111,9 +108,9 @@ describe('FeedViewPage', () => {
 
     // Check that filter section is rendered
     expect(screen.getByText('Filter Feed Data')).toBeInTheDocument();
-    expect(screen.getByText('Start Date')).toBeInTheDocument();
-    expect(screen.getByText('End Date')).toBeInTheDocument();
-    expect(screen.getByText('Pond')).toBeInTheDocument();
+    expect(screen.getByLabelText('Start Date')).toBeInTheDocument();
+    expect(screen.getByLabelText('End Date')).toBeInTheDocument();
+    expect(screen.getByLabelText('Pond')).toBeInTheDocument();
     expect(screen.getByLabelText('Search')).toBeInTheDocument();
     
     // Check that pond options are rendered
@@ -202,7 +199,7 @@ describe('FeedViewPage', () => {
 
     // Search for "Standard"
     const searchInput = screen.getByLabelText('Search');
-    fireEvent.change(searchInput, { target: { value: 'Standard' } });
+    await userEvent.type(searchInput, 'Standard');
 
     // Check that only matching entries are visible
     expect(screen.getByText('Standard Feed')).toBeInTheDocument();
@@ -226,7 +223,15 @@ describe('FeedViewPage', () => {
     expect(screen.getByText('Pond B')).toBeInTheDocument();
 
     // Select Pond A
-    // Note: This implementation might need adjustment based on how the select actually works
+    const pondSelect = screen.getByLabelText('Pond');
+    await userEvent.click(pondSelect); // Open the dropdown
+
+    const pondAOption = screen.getByText('Pond A');
+    await userEvent.click(pondAOption); // Select Pond A
+
+    // Check that only Pond A entries are visible
+    expect(screen.getByText('Pond A')).toBeInTheDocument();
+    expect(screen.queryByText('Pond B')).not.toBeInTheDocument();
   });
 
   it('calls export function when export button is clicked', async () => {
@@ -245,7 +250,7 @@ describe('FeedViewPage', () => {
 
     // Click the export button
     const exportButton = screen.getByText('Export Data');
-    fireEvent.click(exportButton);
+    await userEvent.click(exportButton);
 
     // Check that export function was called
     expect(consoleLog).toHaveBeenCalledWith('Exporting data');
@@ -255,6 +260,15 @@ describe('FeedViewPage', () => {
   });
 
   it('calls filter function when apply filters button is clicked', async () => {
+    // Mock useApiData to control refetch
+    const mockRefetch = jest.fn();
+    jest.spyOn(require('../hooks/useApi'), 'useApiData').mockReturnValue({
+      data: { data: mockFeedEntries },
+      loading: false,
+      error: null,
+      refetch: mockRefetch,
+    });
+
     render(
       <WithProviders>
         <FeedViewPage />
@@ -268,9 +282,9 @@ describe('FeedViewPage', () => {
 
     // Click the apply filters button
     const applyFiltersButton = screen.getByText('Apply Filters');
-    fireEvent.click(applyFiltersButton);
+    await userEvent.click(applyFiltersButton);
 
     // Check that refetch function was called
-    // Note: This would require mocking the useApiData hook more thoroughly
+    expect(mockRefetch).toHaveBeenCalledTimes(1);
   });
 });

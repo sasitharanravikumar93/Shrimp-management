@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { BrowserRouter } from 'react-router-dom';
 import PondManagementPage from './PondManagementPage';
@@ -8,7 +9,12 @@ import * as useApiHook from '../hooks/useApi';
 
 // Mock the API calls
 jest.mock('../services/api');
-jest.mock('../hooks/useApi');
+jest.mock('../hooks/useApi', () => ({
+  __esModule: true,
+  default: jest.fn(),
+  useApiData: jest.fn(),
+  useApiMutation: jest.fn(),
+}));
 
 // Mock the context
 jest.mock('../context/SeasonContext', () => ({
@@ -117,11 +123,69 @@ const WithProviders = ({ children }) => (
 describe('PondManagementPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    
-    // Mock useApi hook
-    useApiHook.default = jest.fn(() => ({
-      get: jest.fn()
-    }));
+
+    useApiHook.useApiData
+      .mockImplementationOnce(() => ({  // pondData
+        data: {
+          id: 'pond1',
+          name: 'Test Pond',
+          seasonId: { name: 'Test Season' },
+          status: 'Active',
+          health: 'Good',
+          projectedHarvest: '30 days'
+        },
+        loading: false,
+        error: null
+      }))
+      .mockImplementationOnce(() => ({ // feedEntriesData
+        data: [
+          { _id: 'feed1', feedType: 'Standard Feed', date: '2023-06-15', time: '14:30', quantity: 50 }
+        ],
+        loading: false,
+        error: null
+      }))
+      .mockImplementationOnce(() => ({ // waterQualityEntriesData
+        data: [
+          { _id: 'water1', pH: 7.2, dissolvedOxygen: 5.5, temperature: 28.5, salinity: 25, date: '2023-06-15', time: '14:30' }
+        ],
+        loading: false,
+        error: null
+      }))
+      .mockImplementationOnce(() => ({ // growthSamplingEntriesData
+        data: [
+          { _id: 'growth1', totalWeight: 500, totalCount: 25000, date: '2023-06-15', time: '14:30' }
+        ],
+        loading: false,
+        error: null
+      }))
+      .mockImplementationOnce(() => ({ // eventsData
+        data: [
+          { 
+            _id: 'event1', 
+            title: 'Feeding Event', 
+            start: new Date('2023-06-15T14:30:00'), 
+            end: new Date('2023-06-15T15:00:00'), 
+            type: 'Feeding',
+            resource: { description: 'Standard feeding' }
+          }
+        ],
+        loading: false,
+        error: null
+      }));
+
+    // Mock the return value of useApiMutation
+    useApiHook.useApiMutation.mockReturnValue({
+      mutate: jest.fn(),
+      loading: false,
+      error: null
+    });
+
+    useApiHook.default.mockReturnValue({
+      get: jest.fn().mockResolvedValue({ data: [] }),
+      post: jest.fn().mockResolvedValue({}),
+      put: jest.fn().mockResolvedValue({}),
+      delete: jest.fn().mockResolvedValue({}),
+    });
     
     // Mock API functions
     api.getPondById = jest.fn().mockResolvedValue({
@@ -170,9 +234,7 @@ describe('PondManagementPage', () => {
     );
 
     // Wait for data to load
-    await waitFor(() => {
-      expect(screen.getByText('Test Pond Management')).toBeInTheDocument();
-    });
+    await screen.findByText('Test Pond Management');
 
     // Check that pond information is displayed
     expect(screen.getByText('Test Pond Management')).toBeInTheDocument();
@@ -195,9 +257,7 @@ describe('PondManagementPage', () => {
     );
 
     // Wait for data to load
-    await waitFor(() => {
-      expect(screen.getByText('Test Pond Management')).toBeInTheDocument();
-    });
+    await screen.findByText('Test Pond Management');
 
     // Check feed tab is rendered
     expect(screen.getByText('Feed')).toBeInTheDocument();
@@ -219,13 +279,11 @@ describe('PondManagementPage', () => {
     );
 
     // Wait for data to load
-    await waitFor(() => {
-      expect(screen.getByText('Test Pond Management')).toBeInTheDocument();
-    });
+    await screen.findByText('Test Pond Management');
 
     // Click on Water Quality tab
     const waterTab = screen.getByText('Water Quality');
-    waterTab.click();
+    await userEvent.click(waterTab);
 
     // Check water quality tab is rendered
     expect(screen.getByText('Water Quality')).toBeInTheDocument();
@@ -250,13 +308,11 @@ describe('PondManagementPage', () => {
     );
 
     // Wait for data to load
-    await waitFor(() => {
-      expect(screen.getByText('Test Pond Management')).toBeInTheDocument();
-    });
+    await screen.findByText('Test Pond Management');
 
     // Click on Growth Sampling tab
     const growthTab = screen.getByText('Growth Sampling');
-    growthTab.click();
+    await userEvent.click(growthTab);
 
     // Check growth sampling tab is rendered
     expect(screen.getByText('Growth Sampling')).toBeInTheDocument();
@@ -278,13 +334,11 @@ describe('PondManagementPage', () => {
     );
 
     // Wait for data to load
-    await waitFor(() => {
-      expect(screen.getByText('Test Pond Management')).toBeInTheDocument();
-    });
+    await screen.findByText('Test Pond Management');
 
     // Click on Calendar View button
     const calendarViewButton = screen.getByText('Calendar View');
-    calendarViewButton.click();
+    await userEvent.click(calendarViewButton);
 
     // Check that calendar view is displayed
     expect(screen.getByText('Events Calendar')).toBeInTheDocument();

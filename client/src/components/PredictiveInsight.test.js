@@ -63,7 +63,7 @@ describe('PredictiveInsight', () => {
     );
 
     // Medium confidence should have warning color
-    expect(screen.getByText('70%')).toHaveStyle('color: rgb(239, 108, 0)'); // warning.main
+    expect(screen.getByText('70%')).toHaveStyle('color: rgb(237, 108, 2)'); // warning.main
     expect(screen.getByRole('progressbar')).toHaveClass('MuiLinearProgress-colorWarning');
   });
 
@@ -116,7 +116,7 @@ describe('PredictiveInsight', () => {
   it('renders with custom icon', () => {
     render(
       <WithTheme>
-        <PredictiveInsight {...defaultProps} icon={<TrendingUpIcon />} />
+        <PredictiveInsight {...defaultProps} icon={<TrendingUpIcon data-testid="trendingupicon" />} />
       </WithTheme>
     );
 
@@ -135,3 +135,11 @@ describe('PredictiveInsight', () => {
     expect(avatar).toHaveStyle('background-color: rgb(156, 39, 176)'); // secondary.main
   });
 });
+
+// Mocking the icons to add data-testid
+jest.mock('@mui/icons-material', () => ({
+  ...jest.requireActual('@mui/icons-material'),
+  CalendarToday: (props) => <div {...props} data-testid="calendartodayicon" />,
+  TrendingUp: (props) => <div {...props} data-testid="trendingupicon" />,
+  Info: (props) => <div {...props} data-testid="infoicon" />,
+}));

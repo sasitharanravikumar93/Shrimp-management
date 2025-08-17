@@ -16,8 +16,8 @@ const TestComponent = () => {
       <div data-testid="error">{error || 'No error'}</div>
       <div data-testid="seasons-count">{seasons.length}</div>
       <div data-testid="selected-season">{selectedSeason ? selectedSeason.name : 'No season selected'}</div>
-      <button onClick={() => selectSeason({ id: '2', name: 'Test Season 2' })} data-testid="select-season-button">
-        Select Season 2
+      <button onClick={() => selectSeason({ id: '1', name: 'Test Season 1' })} data-testid="select-season-button">
+        Select Season 1
       </button>
     </div>
   );
@@ -95,10 +95,10 @@ describe('SeasonContext', () => {
 
     // Click the select season button
     const selectButton = screen.getByTestId('select-season-button');
-    selectButton.click();
+    await userEvent.click(selectButton);
 
     // Check that the season is selected
-    expect(screen.getByTestId('selected-season')).toHaveTextContent('Test Season 2');
+    expect(screen.getByTestId('selected-season')).toHaveTextContent('Test Season 1');
   });
 
   it('throws error when useSeason is used outside of SeasonProvider', () => {

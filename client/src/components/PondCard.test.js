@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import PondCard from './PondCard';
 
@@ -59,7 +60,7 @@ describe('PondCard', () => {
     );
 
     // Health score is rendered as a component, so we check for its presence
-    expect(screen.getByText('85')).toBeInTheDocument();
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '85');
   });
 
   it('shows different chip colors based on status', () => {
@@ -123,7 +124,7 @@ describe('PondCard', () => {
     expect(screen.getByText('Poor')).toHaveClass('MuiChip-colorError');
   });
 
-  it('calls onClick when card is clicked', () => {
+  it('calls onClick when card is clicked', async () => {
     render(
       <WithTheme>
         <PondCard {...defaultProps} />
@@ -131,12 +132,12 @@ describe('PondCard', () => {
     );
 
     const card = screen.getByText('Test Pond').closest('.MuiCard-root');
-    card.click();
+    await userEvent.click(card);
 
     expect(mockOnClick).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onManageClick when manage button is clicked', () => {
+  it('calls onManageClick when manage button is clicked', async () => {
     render(
       <WithTheme>
         <PondCard {...defaultProps} />
@@ -144,14 +145,14 @@ describe('PondCard', () => {
     );
 
     const manageButton = screen.getByText('Manage');
-    manageButton.click();
+    await userEvent.click(manageButton);
 
     expect(mockOnManageClick).toHaveBeenCalledTimes(1);
     // Should not call the main onClick
     expect(mockOnClick).toHaveBeenCalledTimes(0);
   });
 
-  it('calls onTimelineClick when timeline button is clicked', () => {
+  it('calls onTimelineClick when timeline button is clicked', async () => {
     render(
       <WithTheme>
         <PondCard {...defaultProps} />
@@ -159,7 +160,7 @@ describe('PondCard', () => {
     );
 
     const timelineButton = screen.getByText('Timeline');
-    timelineButton.click();
+    await userEvent.click(timelineButton);
 
     expect(mockOnTimelineClick).toHaveBeenCalledTimes(1);
     // Should not call the main onClick
@@ -205,4 +206,14 @@ describe('PondCard', () => {
     const lowProgressBar = screen.getByText('25%').nextElementSibling.querySelector('div');
     expect(lowProgressBar).toHaveStyle('background-color: rgb(211, 47, 47)'); // error.main
   });
+});
+
+// Mock HealthScore component
+jest.mock('./HealthScore', () => {
+  const HealthScore = ({ score }) => (
+    <div role="progressbar" aria-valuenow={score}>
+      Health Score: {score}
+    </div>
+  );
+  return HealthScore;
 });

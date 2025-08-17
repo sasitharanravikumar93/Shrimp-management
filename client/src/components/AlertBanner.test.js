@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import AlertBanner from './AlertBanner';
 
@@ -103,7 +104,7 @@ describe('AlertBanner', () => {
     expect(screen.getByTestId('closeicon')).toBeInTheDocument();
   });
 
-  it('calls onClose when close button is clicked', () => {
+  it('calls onClose when close button is clicked', async () => {
     const mockOnClose = jest.fn();
     render(
       <WithTheme>
@@ -112,7 +113,7 @@ describe('AlertBanner', () => {
     );
 
     const closeButton = screen.getByTestId('closeicon');
-    closeButton.click();
+    await userEvent.click(closeButton);
 
     expect(mockOnClose).toHaveBeenCalledTimes(1);
   });

@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { BrowserRouter } from 'react-router-dom';
 import InventoryManagementPage from './InventoryManagementPage';
@@ -107,9 +108,7 @@ describe('InventoryManagementPage', () => {
     );
 
     // Wait for data to load
-    await waitFor(() => {
-      expect(screen.getByText('Standard Feed')).toBeInTheDocument();
-    });
+    await screen.findByText('Standard Feed');
 
     // Check that all inventory items are displayed
     expect(screen.getByText('Standard Feed')).toBeInTheDocument();
@@ -183,9 +182,7 @@ describe('InventoryManagementPage', () => {
     );
 
     // Wait for data to load
-    await waitFor(() => {
-      expect(screen.getByText('Standard Feed')).toBeInTheDocument();
-    });
+    await screen.findByText('Standard Feed');
 
     // Check that all items are initially visible
     expect(screen.getByText('Standard Feed')).toBeInTheDocument();
@@ -194,8 +191,7 @@ describe('InventoryManagementPage', () => {
 
     // Search for "Feed"
     const searchInput = screen.getByLabelText('Search Inventory');
-    searchInput.value = 'Feed';
-    searchInput.dispatchEvent(new Event('change'));
+    await userEvent.type(searchInput, 'Feed');
 
     // Check that only "Standard Feed" is visible
     expect(screen.getByText('Standard Feed')).toBeInTheDocument();
@@ -211,13 +207,11 @@ describe('InventoryManagementPage', () => {
     );
 
     // Wait for data to load
-    await waitFor(() => {
-      expect(screen.getByText('Standard Feed')).toBeInTheDocument();
-    });
+    await screen.findByText('Standard Feed');
 
     // Click the "Add New Item" button
     const addButton = screen.getByText('Add New Item');
-    addButton.click();
+    await userEvent.click(addButton);
 
     // Check that the inventory form is opened
     expect(screen.getByTestId('inventory-form')).toBeInTheDocument();
@@ -232,13 +226,11 @@ describe('InventoryManagementPage', () => {
     );
 
     // Wait for data to load
-    await waitFor(() => {
-      expect(screen.getByText('Standard Feed')).toBeInTheDocument();
-    });
+    await screen.findByText('Standard Feed');
 
     // Click the edit button for the first item
     const editButtons = screen.getAllByTestId('EditIcon');
-    editButtons[0].closest('button').click();
+    await userEvent.click(editButtons[0].closest('button'));
 
     // Check that the inventory form is opened in edit mode
     expect(screen.getByTestId('inventory-form')).toBeInTheDocument();
@@ -253,13 +245,11 @@ describe('InventoryManagementPage', () => {
     );
 
     // Wait for data to load
-    await waitFor(() => {
-      expect(screen.getByText('Standard Feed')).toBeInTheDocument();
-    });
+    await screen.findByText('Standard Feed');
 
     // Click the adjustment button for the first item
     const adjustmentButtons = screen.getAllByTestId('AddIcon');
-    adjustmentButtons[0].closest('button').click();
+    await userEvent.click(adjustmentButtons[0].closest('button'));
 
     // Check that the adjustment modal is opened
     expect(screen.getByTestId('adjustment-modal')).toBeInTheDocument();
@@ -274,13 +264,11 @@ describe('InventoryManagementPage', () => {
     );
 
     // Wait for data to load
-    await waitFor(() => {
-      expect(screen.getByText('Standard Feed')).toBeInTheDocument();
-    });
+    await screen.findByText('Standard Feed');
 
     // Click the history button for the first item
     const historyButtons = screen.getAllByTestId('HistoryIcon');
-    historyButtons[0].closest('button').click();
+    await userEvent.click(historyButtons[0].closest('button'));
 
     // Check that the history modal is opened
     expect(screen.getByTestId('history-modal')).toBeInTheDocument();
@@ -298,18 +286,15 @@ describe('InventoryManagementPage', () => {
     );
 
     // Wait for data to load
-    await waitFor(() => {
-      expect(screen.getByText('Standard Feed')).toBeInTheDocument();
-    });
+    await screen.findByText('Standard Feed');
 
     // Click the delete button for the first item
     const deleteButtons = screen.getAllByTestId('DeleteIcon');
-    deleteButtons[0].closest('button').click();
+    await userEvent.click(deleteButtons[0].closest('button'));
 
     // Check that confirm dialog was called
     expect(mockConfirm).toHaveBeenCalledWith('Are you sure you want to delete this inventory item? This action is not reversible.');
     
     // Clean up
     mockConfirm.mockRestore();
-  });
 });

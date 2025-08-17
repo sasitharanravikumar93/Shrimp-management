@@ -73,7 +73,7 @@ describe('KPICard', () => {
 
     expect(screen.getByText('Decreased')).toBeInTheDocument();
     // The icon will be TrendingDownIcon, but we're just checking for any trend icon
-    expect(screen.getByText('-3%')).toBeInTheDocument();
+    expect(screen.getByTestId('trendingdownicon')).toBeInTheDocument();
   });
 
   it('shows neutral trend indicator', () => {
@@ -152,7 +152,7 @@ describe('CircularKPICard', () => {
 
     expect(screen.getByText('Decreased')).toBeInTheDocument();
     // The icon will be TrendingDownIcon, but we're just checking for any trend icon
-    expect(screen.getByText('-5%')).toBeInTheDocument();
+    expect(screen.getByTestId('trendingdownicon')).toBeInTheDocument();
   });
 
   it('handles values over 100 correctly', () => {
