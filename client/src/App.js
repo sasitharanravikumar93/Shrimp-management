@@ -62,6 +62,7 @@ function App() {
                     <Routes>
                       <Route path="/" element={<DashboardPage />} />
                       <Route path="/admin" element={<AdminPage />} />
+                      <Route path="/pond" element={<PondManagementPage />} />
                       <Route path="/pond/:pondId" element={<PondManagementPage />} />
                       <Route path="/feed-view" element={<FeedViewPage />} />
                       <Route path="/water-quality-view" element={<WaterQualityViewPage />} />

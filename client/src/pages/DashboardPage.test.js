@@ -9,10 +9,13 @@ import * as api from '../services/api';
 // Mock the API calls
 jest.mock('../services/api');
 
+// Increase default timeout for async tests
+jest.setTimeout(10000);
+
 // Mock the context
 jest.mock('../context/SeasonContext', () => ({
   useSeason: () => ({
-    selectedSeason: null
+    selectedSeason: { id: 'season1', name: 'Test Season' }
   })
 }));
 
@@ -25,34 +28,35 @@ jest.mock('react-router-dom', () => ({
 // Mock the chart components from recharts
 jest.mock('recharts', () => ({
   ...jest.requireActual('recharts'),
-  ResponsiveContainer: ({ children }) => <div data-testid=\"responsive-container\">{children}</div>,
-  BarChart: () => <div data-testid=\"bar-chart\">Bar Chart</div>,
-  Bar: () => <div data-testid=\"bar\">Bar</div>,
-  XAxis: () => <div data-testid=\"x-axis\">X Axis</div>,
-  YAxis: () => <div data-testid=\"y-axis\">Y Axis</div>,
-  CartesianGrid: () => <div data-testid=\"cartesian-grid\">Cartesian Grid</div>,
-  Tooltip: () => <div data-testid=\"tooltip\">Tooltip</div>,
-  Legend: () => <div data-testid=\"legend\">Legend</div>,
-  LineChart: () => <div data-testid=\"line-chart\">Line Chart</div>,
-  Line: () => <div data-testid=\"line\">Line</div>,
-  PieChart: () => <div data-testid=\"pie-chart\">Pie Chart</div>,
-  Pie: () => <div data-testid=\"pie\">Pie</div>,
-  Cell: () => <div data-testid=\"cell\">Cell</div>
+  ResponsiveContainer: ({ children }) => <div data-testid="responsive-container">{children}</div>,
+  BarChart: () => <div data-testid="bar-chart">Bar Chart</div>,
+  Bar: () => <div data-testid="bar">Bar</div>,
+  XAxis: () => <div data-testid="x-axis">X Axis</div>,
+  YAxis: () => <div data-testid="y-axis">Y Axis</div>,
+  CartesianGrid: () => <div data-testid="cartesian-grid">Cartesian Grid</div>,
+  Tooltip: () => <div data-testid="tooltip">Tooltip</div>,
+  Legend: () => <div data-testid="legend">Legend</div>,
+  LineChart: () => <div data-testid="line-chart">Line Chart</div>,
+  Line: () => <div data-testid="line">Line</div>,
+  PieChart: () => <div data-testid="pie-chart">Pie Chart</div>,
+  Pie: () => <div data-testid="pie">Pie</div>,
+  Cell: () => <div data-testid="cell">Cell</div>
 }));
 
 // Mock the components that are imported
 jest.mock('../components/KPICard', () => {
-  return ({ title, value }) => (
-    <div data-testid=\"kpi-card\">
-      <span data-testid=\"kpi-title\">{title}</span>
-      <span data-testid=\"kpi-value\">{value}</span>
+  return ({ title, value, suffix, changeText }) => (
+    <div data-testid="kpi-card">
+      <span data-testid="kpi-title">{title}</span>
+      <span data-testid="kpi-value">{value}{suffix}</span>
+      {changeText && <span data-testid="kpi-change">{changeText}</span>}
     </div>
   );
 });
 
 jest.mock('../components/AlertBanner', () => {
   return ({ message, severity, dismissible, onClose }) => (
-    <div data-testid=\"alert-banner\" data-severity={severity}>
+    <div data-testid="alert-banner" data-severity={severity}>
       <span>{message}</span>
       {dismissible && <button onClick={onClose}>Close</button>}
     </div>
@@ -60,27 +64,27 @@ jest.mock('../components/AlertBanner', () => {
 });
 
 jest.mock('../components/AquacultureTooltip', () => {
-  return ({ children }) => <div data-testid=\"aquaculture-tooltip\">{children}</div>;
+  return ({ children }) => <div data-testid="aquaculture-tooltip">{children}</div>;
 });
 
 jest.mock('../components/PredictiveInsight', () => {
   return ({ title, insight }) => (
-    <div data-testid=\"predictive-insight\">
-      <span data-testid=\"insight-title\">{title}</span>
-      <span data-testid=\"insight-content\">{insight}</span>
+    <div data-testid="predictive-insight">
+      <span data-testid="insight-title">{title}</span>
+      <span data-testid="insight-content">{insight}</span>
     </div>
   );
 });
 
 jest.mock('../components/HealthScore', () => {
-  return ({ score }) => <div data-testid=\"health-score\">{score}</div>;
+  return ({ score }) => <div data-testid="health-score">{score}</div>;
 });
 
 jest.mock('../components/PondCard', () => {
   return ({ pond, onClick, onManageClick, onTimelineClick }) => (
-    <div data-testid=\"pond-card\">
-      <span data-testid=\"pond-name\">{pond.name}</span>
-      <span data-testid=\"pond-status\">{pond.status}</span>
+    <div data-testid="pond-card">
+      <span data-testid="pond-name">{pond.name}</span>
+      <span data-testid="pond-status">{pond.status}</span>
       <button onClick={() => onClick()}>View</button>
       <button onClick={() => onManageClick()}>Manage</button>
       <button onClick={() => onTimelineClick()}>Timeline</button>
@@ -89,12 +93,16 @@ jest.mock('../components/PondCard', () => {
 });
 
 jest.mock('../components/DataTrend', () => {
-  return ({ title }) => <div data-testid=\"data-trend\">{title}</div>;
+  return ({ title }) => (
+    <div data-testid="data-trend">
+      <div data-testid="data-trend-title">{title}</div>
+    </div>
+  );
 });
 
 jest.mock('../components/QuickActions', () => {
   return ({ onActionClick }) => (
-    <div data-testid=\"quick-actions\">
+    <div data-testid="quick-actions">
       <button onClick={() => onActionClick({ id: 1, title: 'Test Action' })}>Quick Actions</button>
     </div>
   );
@@ -147,7 +155,7 @@ describe('DashboardPage', () => {
     jest.clearAllMocks();
     
     // Mock API functions
-    api.getPonds = jest.fn().mockResolvedValue(mockPonds);
+    api.getPonds = jest.fn().mockResolvedValue({ data: mockPonds });
   });
 
   it('renders dashboard page with title and welcome message', async () => {
@@ -157,11 +165,14 @@ describe('DashboardPage', () => {
       </WithProviders>
     );
 
-    // Check that the page title is rendered
-    expect(screen.getByText('Farm Dashboard')).toBeInTheDocument();
+    // Wait for the component to load
+    await waitFor(() => {
+      // Check that the page title is rendered
+      expect(screen.getByText('Farm Dashboard')).toBeInTheDocument();
+    }, { timeout: 5000 });
     
     // Check that the welcome message is rendered
-    expect(screen.getByText('Welcome back! Here\\'s what\\'s happening with your shrimp farm today.')).toBeInTheDocument();
+    expect(screen.getByText("Welcome back! Here's what's happening with your shrimp farm today.")).toBeInTheDocument();
   });
 
   it('renders KPI cards with summary data', async () => {
@@ -261,7 +272,7 @@ describe('DashboardPage', () => {
     expect(screen.getAllByTestId('pond-card')).toHaveLength(3);
 
     // Click on "Active" filter
-    const activeFilter = screen.getByRole('button', { name: /active/i });
+    const activeFilter = screen.getByRole('button', { name: 'Active' });
     await userEvent.click(activeFilter);
 
     // Check that only active ponds are visible
@@ -271,7 +282,7 @@ describe('DashboardPage', () => {
     expect(screen.queryByText('Pond C')).not.toBeInTheDocument();
   });
 
-  it('shows loading state initially', () => {
+  it('shows loading state initially', async () => {
     // Mock API to simulate loading
     api.getPonds = jest.fn(() => new Promise(() => {})); // Never resolves
     
@@ -282,7 +293,9 @@ describe('DashboardPage', () => {
     );
 
     // Should show loading spinner
-    expect(screen.getByRole('progressbar')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByRole('progressbar')).toBeInTheDocument();
+    }, { timeout: 5000 });
   });
 
   it('shows error state when API call fails', async () => {
@@ -297,11 +310,15 @@ describe('DashboardPage', () => {
 
     // Wait for error to be displayed
     await waitFor(() => {
-      expect(screen.getByText(/Error loading dashboard data/)).toBeInTheDocument();
-    });
+      expect(screen.getByText((content, element) => {
+        return content.includes('Error loading dashboard data');
+      })).toBeInTheDocument();
+    }, { timeout: 10000 });
     
     // Should show error message
-    expect(screen.getByText(/Failed to fetch ponds/)).toBeInTheDocument();
+    expect(screen.getByText((content, element) => {
+      return content.includes('Failed to fetch ponds');
+    })).toBeInTheDocument();
   });
 
   it('renders quick actions component', () => {

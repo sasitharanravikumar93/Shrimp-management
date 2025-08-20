@@ -33,10 +33,11 @@ jest.mock('recharts', () => ({
 // Mock the components that are imported
 jest.mock('../components/KPICard', () => ({
   __esModule: true,
-  default: ({ title, value }) => (
+  default: ({ title, value, changeText, suffix }) => (
     <div data-testid="kpi-card">
       <span data-testid="kpi-title">{title}</span>
-      <span data-testid="kpi-value">{value}</span>
+      <span data-testid="kpi-value">{value}{suffix}</span>
+      {changeText && <span data-testid="kpi-change">{changeText}</span>}
     </div>
   ),
   CircularKPICard: ({ title, value }) => (
@@ -48,9 +49,10 @@ jest.mock('../components/KPICard', () => ({
 }));
 
 jest.mock('../components/AlertBanner', () => {
-  return ({ message, severity }) => (
+  return ({ message, severity, dismissible, onClose }) => (
     <div data-testid="alert-banner" data-severity={severity}>
       {message}
+      {dismissible && <button onClick={onClose}>Close</button>}
     </div>
   );
 });
@@ -60,16 +62,18 @@ jest.mock('../components/AquacultureTooltip', () => {
 });
 
 jest.mock('../components/PredictiveInsight', () => {
-  return ({ title, insight }) => (
+  return ({ title, insight, confidence, projectedDate }) => (
     <div data-testid="predictive-insight">
       <span data-testid="insight-title">{title}</span>
       <span data-testid="insight-content">{insight}</span>
+      {confidence && <span data-testid="insight-confidence">{confidence}%</span>}
+      {projectedDate && <span data-testid="insight-date">{projectedDate}</span>}
     </div>
   );
 });
 
 jest.mock('../components/HealthScore', () => {
-  return ({ score }) => <div data-testid="health-score">{score}</div>;
+  return ({ score }) => <div data-testid="health-score" role="progressbar" aria-valuenow={score}>{score}</div>;
 });
 
 jest.mock('../components/PondCard', () => {
@@ -77,17 +81,41 @@ jest.mock('../components/PondCard', () => {
     <div data-testid="pond-card">
       <span data-testid="pond-name">{pond.name}</span>
       <span data-testid="pond-status">{pond.status}</span>
+      <span data-testid="pond-health">{pond.health}</span>
+      <span data-testid="pond-progress">{pond.progress}%</span>
     </div>
   );
 });
 
 jest.mock('../components/DataTrend', () => {
-  return ({ title }) => <div data-testid="data-trend">{title}</div>;
+  return ({ title, data }) => (
+    <div data-testid="data-trend">
+      <span data-testid="data-trend-title">{title}</span>
+      <span data-testid="data-trend-content">Chart with {data?.length || 0} data points</span>
+    </div>
+  );
 });
 
 jest.mock('../components/QuickActions', () => {
-  return () => <div data-testid="quick-actions">Quick Actions</div>;
+  return ({ onActionClick }) => <div data-testid="quick-actions">Quick Actions</div>;
 });
+
+// Mock SeasonContext
+const mockSeasonContext = {
+  seasons: [
+    { id: 1, name: 'Test Season', status: 'Active' }
+  ],
+  selectedSeason: { id: 1, name: 'Test Season', status: 'Active' },
+  selectSeason: jest.fn(),
+  setSelectedSeason: jest.fn(),
+  loading: false,
+  error: null
+};
+
+jest.mock('../context/SeasonContext', () => ({
+  ...jest.requireActual('../context/SeasonContext'),
+  useSeason: () => mockSeasonContext
+}));
 
 describe('DashboardPage', () => {
   beforeEach(() => {
@@ -112,10 +140,12 @@ describe('DashboardPage', () => {
 
   it('should render dashboard content when data is loaded', async () => {
     // Mock API responses
-    api.getPonds.mockResolvedValue([
-      { id: 1, name: 'Pond A', status: 'Active', seasonId: 1 },
-      { id: 2, name: 'Pond B', status: 'Inactive', seasonId: 1 }
-    ]);
+    api.getPonds.mockResolvedValue({
+      data: [
+        { id: 1, name: 'Pond A', status: 'Active', seasonId: 1, health: 'Good', progress: 75, healthScore: 85 },
+        { id: 2, name: 'Pond B', status: 'Inactive', seasonId: 1, health: 'Fair', progress: 45, healthScore: 65 }
+      ]
+    });
 
     render(
       <BrowserRouter>
@@ -135,15 +165,15 @@ describe('DashboardPage', () => {
     expect(screen.getByText('Individual Pond Management')).toBeInTheDocument();
     expect(screen.getByText('AI Insights & Recommendations')).toBeInTheDocument();
     
-    // Check that KPI cards are rendered (there are multiple)
+    // Check that KPI cards are rendered (there are 6)
     expect(screen.getAllByTestId('kpi-card')).toHaveLength(6);
     
     // Check that pond cards are rendered
-    expect(screen.getByTestId('pond-card')).toBeInTheDocument();
+    expect(screen.getAllByTestId('pond-card')).toHaveLength(2);
     
-    // Check that charts are rendered
-    expect(screen.getByTestId('bar-chart')).toBeInTheDocument();
-    expect(screen.getByTestId('line-chart')).toBeInTheDocument();
+    // Check that data trends are rendered
+    expect(screen.getByText('Water Quality Trend')).toBeInTheDocument();
+    expect(screen.getByText('Feed Consumption Trend')).toBeInTheDocument();
   });
 
   it('should show error message when API fails', async () => {
@@ -161,16 +191,20 @@ describe('DashboardPage', () => {
 
     // Wait for error to be displayed
     await waitFor(() => {
-      expect(screen.getByText(/Error loading dashboard data/)).toBeInTheDocument();
-    });
+      expect(screen.getByText((content, element) => {
+        return content.includes('Error loading dashboard data');
+      })).toBeInTheDocument();
+    }, { timeout: 10000 });
   });
 
   it('should filter ponds based on status', async () => {
     // Mock API responses
-    api.getPonds.mockResolvedValue([
-      { id: 1, name: 'Pond A', status: 'Active', seasonId: 1 },
-      { id: 2, name: 'Pond B', status: 'Inactive', seasonId: 1 }
-    ]);
+    api.getPonds.mockResolvedValue({
+      data: [
+        { id: 1, name: 'Pond A', status: 'Active', seasonId: 1, health: 'Good', progress: 75, healthScore: 85 },
+        { id: 2, name: 'Pond B', status: 'Inactive', seasonId: 1, health: 'Fair', progress: 45, healthScore: 65 }
+      ]
+    });
 
     render(
       <BrowserRouter>

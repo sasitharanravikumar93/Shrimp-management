@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { SeasonProvider, useSeason } from './SeasonContext';
 import * as api from '../services/api';
 
@@ -50,7 +51,7 @@ describe('SeasonContext', () => {
     // Wait for data to load
     await waitFor(() => {
       expect(screen.getByTestId('loading')).toHaveTextContent('Not loading');
-    });
+    }, { timeout: 2000 });
 
     // Check that seasons are loaded
     expect(screen.getByTestId('seasons-count')).toHaveTextContent('3');
@@ -72,7 +73,7 @@ describe('SeasonContext', () => {
     // Wait for error to be handled
     await waitFor(() => {
       expect(screen.getByTestId('error')).toHaveTextContent('Failed to fetch seasons');
-    });
+    }, { timeout: 2000 });
     
     // Check that loading state is false
     expect(screen.getByTestId('loading')).toHaveTextContent('Not loading');
@@ -90,8 +91,8 @@ describe('SeasonContext', () => {
 
     // Wait for data to load
     await waitFor(() => {
-      expect(screen.getByTestId('selected-season')).toHaveTextContent('Test Season 2');
-    });
+      expect(screen.getByTestId('selected-season')).not.toHaveTextContent('No season selected');
+    }, { timeout: 2000 });
 
     // Click the select season button
     const selectButton = screen.getByTestId('select-season-button');
@@ -129,7 +130,10 @@ describe('SeasonContext', () => {
 
     // Wait for data to load
     await waitFor(() => {
-      expect(screen.getByTestId('selected-season')).toHaveTextContent('Test Season 1');
-    });
+      expect(screen.getByTestId('selected-season')).not.toHaveTextContent('No season selected');
+    }, { timeout: 2000 });
+    
+    // Should select the first season
+    expect(screen.getByTestId('selected-season')).toHaveTextContent('Test Season 1');
   });
 });

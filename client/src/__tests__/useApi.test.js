@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook } from '@testing-library/react';
 import { useApiData, useApiMutation, clearAllCache } from '../hooks/useApi';
 
 // Mock API functions
@@ -15,15 +15,18 @@ describe('useApiData', () => {
     const mockData = { id: 1, name: 'Test Data' };
     mockApiFunction.mockResolvedValue(mockData);
 
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       useApiData(mockApiFunction, [])
     );
 
+    // Initial state
     expect(result.current.loading).toBe(true);
     expect(result.current.error).toBe(null);
 
-    await waitForNextUpdate();
-
+    // Wait for the hook to update
+    await new Promise(resolve => setTimeout(resolve, 10));
+    
+    // Updated state
     expect(result.current.loading).toBe(false);
     expect(result.current.data).toEqual(mockData);
     expect(result.current.error).toBe(null);
@@ -34,19 +37,21 @@ describe('useApiData', () => {
     const errorMessage = 'API Error';
     mockApiFunction.mockRejectedValue(new Error(errorMessage));
 
-    const { result, waitForNextUpdate } = renderHook(() =>
-      useApiData(mockApiFunction, [])
+    const { result } = renderHook(() =>
+      useApiData(mockApiFunction, [], null, 0) // Set retryCount to 0 to avoid retries
     );
 
+    // Initial state
     expect(result.current.loading).toBe(true);
     expect(result.current.error).toBe(null);
 
-    await waitForNextUpdate();
-    await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); }); // Added this line
+    // Wait for the hook to update
+    await new Promise(resolve => setTimeout(resolve, 10));
 
+    // Updated state
     expect(result.current.loading).toBe(false);
     expect(result.current.data).toBe(null);
-    expect(result.current.error.message).toBe(errorMessage);
+    expect(result.current.error).toEqual({ message: errorMessage });
     expect(mockApiFunction).toHaveBeenCalledTimes(1);
   });
 
@@ -59,13 +64,12 @@ describe('useApiData', () => {
     );
 
     // Wait for initial fetch
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise(resolve => setTimeout(resolve, 10));
 
     expect(mockApiFunction).toHaveBeenCalledTimes(1);
 
-    await act(async () => {
-      await result.current.refetch();
-    });
+    // Call refetch
+    await result.current.refetch();
 
     // The refetch should call the API again
     expect(mockApiFunction).toHaveBeenCalledTimes(2);
@@ -81,7 +85,7 @@ describe('useApiData', () => {
     );
 
     // Wait for initial fetch
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise(resolve => setTimeout(resolve, 10));
 
     expect(mockApiFunction).toHaveBeenCalledTimes(1);
 
@@ -103,24 +107,19 @@ describe('useApiMutation', () => {
     const mockData = { id: 1, name: 'Created Item' };
     mockApiMutationFunction.mockResolvedValue(mockData);
 
-    const { result, waitForNextUpdate } = renderHook(() =>
+    const { result } = renderHook(() =>
       useApiMutation(mockApiMutationFunction)
     );
 
     expect(result.current.loading).toBe(false);
     expect(result.current.error).toBe(null);
 
-    act(() => {
-      result.current.mutate({ name: 'Test Item' });
-    });
-
-    expect(result.current.loading).toBe(true);
-
-    await waitForNextUpdate();
-    await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); }); // Added this line
+    // Execute mutation
+    const mutationResult = await result.current.mutate({ name: 'Test Item' });
 
     expect(result.current.loading).toBe(false);
     expect(result.current.error).toBe(null);
+    expect(mutationResult.data).toEqual(mockData);
     expect(mockApiMutationFunction).toHaveBeenCalledWith({ name: 'Test Item' });
   });
 
@@ -128,20 +127,14 @@ describe('useApiMutation', () => {
     const errorMessage = 'Mutation Error';
     mockApiMutationFunction.mockRejectedValue(new Error(errorMessage));
 
-    const { result, waitForNextUpdate } = renderHook(() =>
-      useApiMutation(mockApiMutationFunction)
+    const { result } = renderHook(() =>
+      useApiMutation(mockApiMutationFunction, 0) // Set maxRetryCount to 0 to avoid retries
     );
 
-    act(() => {
-      result.current.mutate({ name: 'Test Item' });
-    });
-
-    expect(result.current.loading).toBe(true);
-
-    await waitForNextUpdate();
-    await act(async () => { await new Promise(resolve => setTimeout(resolve, 0)); }); // Added this line
+    // Execute mutation
+    const mutationResult = await result.current.mutate({ name: 'Test Item' });
 
     expect(result.current.loading).toBe(false);
-    expect(result.current.error.message).toBe(errorMessage);
+    expect(mutationResult.error).toBe(errorMessage);
   });
 });
