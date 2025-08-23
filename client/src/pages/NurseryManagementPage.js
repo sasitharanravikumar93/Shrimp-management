@@ -59,7 +59,7 @@ const NurseryManagementPage = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [editingBatch, setEditingBatch] = useState(null);
   const [formData, setFormData] = useState({
-    batchName: { en: '', hi: '', ta: '' },
+    batchName: '',
     startDate: new Date(),
     initialCount: '',
     species: '',
@@ -96,7 +96,7 @@ const NurseryManagementPage = () => {
     if (batch) {
       setEditingBatch(batch);
       setFormData({
-        batchName: typeof batch.batchName === 'object' ? batch.batchName : { en: batch.batchName || batch.name || '', hi: '', ta: '' },
+        batchName: typeof batch.batchName === 'object' ? (batch.batchName.en || '') : (batch.batchName || batch.name || ''),
         startDate: batch.startDate ? new Date(batch.startDate) : new Date(),
         initialCount: batch.initialCount || '',
         species: batch.species || '',
@@ -107,7 +107,7 @@ const NurseryManagementPage = () => {
     } else {
       setEditingBatch(null);
       setFormData({
-        batchName: { en: '', hi: '', ta: '' },
+        batchName: '',
         startDate: new Date(),
         initialCount: '',
         species: '',
@@ -132,17 +132,6 @@ const NurseryManagementPage = () => {
     }));
   };
 
-  // Handle multilingual batch name input changes
-  const handleBatchNameChange = (language, value) => {
-    setFormData(prev => ({
-      ...prev,
-      batchName: {
-        ...prev.batchName,
-        [language]: value
-      }
-    }));
-  };
-
   const handleDateChange = (date) => {
     setFormData(prev => ({
       ...prev,
@@ -155,7 +144,7 @@ const NurseryManagementPage = () => {
     
     try {
       const batchData = {
-        batchName: formData.batchName,
+        batchName: { en: formData.batchName },
         startDate: formData.startDate,
         initialCount: parseInt(formData.initialCount),
         species: formData.species,
@@ -345,32 +334,13 @@ const NurseryManagementPage = () => {
             <TextField
               autoFocus
               margin="dense"
-              label={`${t('batchName')} (${t('english')})`}
+              label={t('batchName')}
               type="text"
               fullWidth
               variant="outlined"
-              value={formData.batchName.en}
-              onChange={(e) => handleBatchNameChange('en', e.target.value)}
-            />
-            <TextField
-              margin="dense"
-              label={`${t('batchName')} (${t('hindi')})`}
-              type="text"
-              fullWidth
-              variant="outlined"
-              sx={{ mt: 2 }}
-              value={formData.batchName.hi}
-              onChange={(e) => handleBatchNameChange('hi', e.target.value)}
-            />
-            <TextField
-              margin="dense"
-              label={`${t('batchName')} (${t('tamil')})`}
-              type="text"
-              fullWidth
-              variant="outlined"
-              sx={{ mt: 2 }}
-              value={formData.batchName.ta}
-              onChange={(e) => handleBatchNameChange('ta', e.target.value)}
+              value={formData.batchName}
+              onChange={handleInputChange}
+              name="batchName"
             />
             <DatePicker
               label={t('startDate')}

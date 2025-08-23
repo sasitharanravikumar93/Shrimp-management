@@ -42,5 +42,6 @@
   "bugs": {
     "url": "https://github.com/example/shrimp-farm-management-system/issues"
   },
-  "homepage": "https://github.com/example/shrimp-farm-management-system#readme"
+  "homepage": "https://github.com/example/shrimp-farm-management-system#readme",
+  "dependencies": {}
 }

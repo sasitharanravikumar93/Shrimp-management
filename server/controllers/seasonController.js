@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const logger = require('../logger');
 const Season = require('../models/Season');
 const User = require('../models/User');
@@ -64,12 +65,15 @@ exports.createSeason = async (req, res) => {
       return res.status(400).json({ message: 'Name, start date, and end date are required' });
     }
     
-    // Validate that name is an object with language keys
-    if (typeof name !== 'object' || Array.isArray(name)) {
-      return res.status(400).json({ message: 'Name must be an object with language keys (e.g., { "en": "Season A", "ta": "பருவம் ஏ" })' });
+    // Convert simple string to multilingual map if needed
+    let processedName = name;
+    if (typeof name === 'string') {
+      processedName = { en: name };
+    } else if (typeof name !== 'object' || Array.isArray(name)) {
+      return res.status(400).json({ message: 'Name must be a string or an object with language keys (e.g., { "en": "Season A", "ta": "பருவம் ஏ" })' });
     }
     
-    const season = new Season({ name, startDate, endDate, status });
+    const season = new Season({ name: processedName, startDate, endDate, status });
     await season.save();
     
     res.status(201).json(season);
@@ -128,11 +132,14 @@ exports.updateSeason = async (req, res) => {
     // Prepare update object with only provided fields
     const updateData = {};
     if (name !== undefined) {
-      // Validate that name is an object with language keys if provided
-      if (typeof name !== 'object' || Array.isArray(name)) {
-        return res.status(400).json({ message: 'Name must be an object with language keys (e.g., { "en": "Season A", "ta": "பருவம் ஏ" })' });
+      // Convert simple string to multilingual map if needed
+      if (typeof name === 'string') {
+        updateData.name = { en: name };
+      } else if (typeof name !== 'object' || Array.isArray(name)) {
+        return res.status(400).json({ message: 'Name must be a string or an object with language keys (e.g., { "en": "Season A", "ta": "பருவம் ஏ" })' });
+      } else {
+        updateData.name = name;
       }
-      updateData.name = name;
     }
     if (startDate !== undefined) updateData.startDate = startDate;
     if (endDate !== undefined) updateData.endDate = endDate;
@@ -168,7 +175,8 @@ exports.updateSeason = async (req, res) => {
 exports.deleteSeason = async (req, res) => {
   logger.info(`Deleting season by ID: ${req.params.id}`);
   try {
-    const season = await Season.findByIdAndDelete(req.params.id);
+    const seasonId = new mongoose.Types.ObjectId(req.params.id);
+    const season = await Season.findByIdAndDelete(seasonId);
     
     if (!season) {
       return res.status(404).json({ message: 'Season not found' });

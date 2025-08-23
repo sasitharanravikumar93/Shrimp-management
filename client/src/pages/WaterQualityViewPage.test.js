@@ -24,6 +24,7 @@ jest.mock('@mui/x-date-pickers/LocalizationProvider', () => {
 });
 
 jest.mock('@mui/x-date-pickers/DatePicker', () => {
+  const React = require('react');
   return ({ renderInput, value, onChange, label }) => {
     const inputProps = renderInput({ inputProps: {} });
     return (

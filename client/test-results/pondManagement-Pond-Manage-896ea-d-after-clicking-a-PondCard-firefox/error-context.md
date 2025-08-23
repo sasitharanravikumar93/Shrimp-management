@@ -1,0 +1,59 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]:
+      - generic [ref=e6]: Shrimp Farm Management System
+      - button "Notifications" [ref=e7] [cursor=pointer]:
+        - generic [ref=e8] [cursor=pointer]:
+          - img [ref=e9] [cursor=pointer]
+          - generic [ref=e11] [cursor=pointer]: "2"
+      - button "Generate Report" [ref=e12] [cursor=pointer]:
+        - img [ref=e13] [cursor=pointer]
+      - button "User Account" [ref=e16] [cursor=pointer]:
+        - img [ref=e17] [cursor=pointer]
+  - navigation "mailbox folders" [ref=e19]:
+    - generic [ref=e21]:
+      - generic [ref=e23]:
+        - img [ref=e25]
+        - generic [ref=e28]: ShrimpFarm
+      - generic [ref=e31]:
+        - img [ref=e33]
+        - combobox "summer2025" [ref=e35] [cursor=pointer]
+        - textbox: 68a0a0671830c1d437db24d7
+        - img
+        - group
+      - separator [ref=e36]
+      - list [ref=e37]:
+        - link "Dashboard" [ref=e39] [cursor=pointer]:
+          - /url: /
+          - img [ref=e41] [cursor=pointer]
+          - generic [ref=e44] [cursor=pointer]: Dashboard
+        - link "Pond Management" [ref=e46] [cursor=pointer]:
+          - /url: /pond
+          - img [ref=e48] [cursor=pointer]
+          - generic [ref=e51] [cursor=pointer]: Pond Management
+        - link "Admin" [ref=e53] [cursor=pointer]:
+          - /url: /admin
+          - img [ref=e55] [cursor=pointer]
+          - generic [ref=e59] [cursor=pointer]: Admin
+        - link "Nursery" [ref=e61] [cursor=pointer]:
+          - /url: /nursery
+          - img [ref=e63] [cursor=pointer]
+          - generic [ref=e66] [cursor=pointer]: Nursery
+        - link "Inventory Management" [ref=e68] [cursor=pointer]:
+          - /url: /inventory-management
+          - img [ref=e70] [cursor=pointer]
+          - generic [ref=e73] [cursor=pointer]: Inventory Management
+        - link "Historical Insights" [ref=e75] [cursor=pointer]:
+          - /url: /historical-insights
+          - img [ref=e77] [cursor=pointer]
+          - generic [ref=e80] [cursor=pointer]: Historical Insights
+      - separator [ref=e81]
+      - list [ref=e82]:
+        - button "User Account" [ref=e83] [cursor=pointer]:
+          - img [ref=e85] [cursor=pointer]
+          - generic [ref=e88] [cursor=pointer]: User Account
+  - main [ref=e89]
+```

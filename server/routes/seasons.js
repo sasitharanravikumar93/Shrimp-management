@@ -45,7 +45,7 @@ const validateSeasonDatesAndActive = async (req, res, next) => {
         }
 
         // Check for overlapping dates
-        const query = seasonId ? { _id: { $ne: seasonId } } : {};
+        const query = seasonId ? { _id: { $ne: seasonId }, status: { $in: ['Planning', 'Active', 'Completed'] } } : { status: { $in: ['Planning', 'Active', 'Completed'] } };
         const existingSeasons = await Season.find(query);
 
         for (let season of existingSeasons) {
@@ -56,7 +56,17 @@ const validateSeasonDatesAndActive = async (req, res, next) => {
             if (
                 (newStartDate < existingEndDate && newEndDate > existingStartDate)
             ) {
-                return res.status(400).json({ message: `Season dates overlap with existing season: ${season.name}` });
+                // Handle both string and Map name formats
+                let seasonName = 'Unknown Season';
+                if (typeof season.name === 'string') {
+                    seasonName = season.name;
+                } else if (season.name instanceof Map) {
+                    seasonName = season.name.get('en') || [...season.name.values()][0] || 'Unknown Season';
+                } else if (typeof season.name === 'object') {
+                    seasonName = season.name.en || Object.values(season.name)[0] || 'Unknown Season';
+                }
+                
+                return res.status(400).json({ message: `Season dates overlap with existing season: ${seasonName}` });
             }
         }
     }

@@ -5,7 +5,7 @@ import i18n from '../src/i18n';
 import LanguageSwitcher from '../src/components/LanguageSwitcher';
 
 // Mock the API call
-jest.mock('../src/services/api', () => ({
+jest.mock('../../services/api', () => ({
   put: jest.fn().mockResolvedValue({}),
 }));
 

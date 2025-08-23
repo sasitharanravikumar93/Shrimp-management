@@ -121,16 +121,11 @@ const Layout = ({ children, toggleDarkMode, darkMode }) => {
     { 
       text: 'Pond Management', 
       icon: <PondIcon />, 
-      path: '/pond/1',
-      subItems: [
-        { text: 'Feed', icon: <FeedIcon />, path: '/pond/1' },
-        { text: 'Water Quality', icon: <WaterIcon />, path: '/water-quality-view' },
-        { text: 'Growth Sampling', icon: <GrowthIcon />, path: '/feed-view' }
-      ]
+      path: '/pond'
     },
     { text: 'Admin', icon: <AdminIcon />, path: '/admin' },
     { text: 'Nursery', icon: <NurseryIcon />, path: '/nursery' },
-    { text: 'Inventory Management', icon: <InventoryIcon />, path: '/inventory' },
+    { text: 'Inventory Management', icon: <InventoryIcon />, path: '/inventory-management' },
     { text: 'Historical Insights', icon: <HistoryIcon />, path: '/historical-insights' },
   ];
 
@@ -170,8 +165,14 @@ const Layout = ({ children, toggleDarkMode, darkMode }) => {
             fullWidth
             size="small"
             select
-            value={selectedSeason}
-            onChange={(e) => setSelectedSeason(e.target.value)}
+            value={selectedSeason ? selectedSeason._id : ''}
+            onChange={(e) => {
+              const seasonId = e.target.value;
+              const season = seasons.find(s => s._id === seasonId);
+              if (season) {
+                setSelectedSeason(season);
+              }
+            }}
             placeholder="Select season..."
             InputProps={{
               startAdornment: (
@@ -214,7 +215,7 @@ const Layout = ({ children, toggleDarkMode, darkMode }) => {
               component={item.path ? Link : 'div'} 
               to={item.path}
               selected={location.pathname === item.path || 
-                        (item.path === '/pond/1' && location.pathname.startsWith('/pond/'))}
+                        (item.path === '/admin' && location.pathname.startsWith('/pond/'))}
               onClick={item.subItems ? handlePondMenuToggle : undefined}
               sx={{ 
                 borderRadius: '0 24px 24px 0',
@@ -232,7 +233,7 @@ const Layout = ({ children, toggleDarkMode, darkMode }) => {
               <ListItemIcon 
                 sx={{ 
                   color: location.pathname === item.path || 
-                         (item.path === '/pond/1' && location.pathname.startsWith('/pond/')) ? 
+                         (item.path === '/admin' && location.pathname.startsWith('/pond/')) ? 
                          'inherit' : 'inherit',
                   minWidth: isSidebarCollapsed ? 'auto' : 40
                 }}
@@ -258,7 +259,8 @@ const Layout = ({ children, toggleDarkMode, darkMode }) => {
                     key={subItem.text}
                     component={Link}
                     to={subItem.path}
-                    selected={location.pathname === subItem.path}
+                    selected={location.pathname === subItem.path || 
+                              (subItem.path === '/admin' && location.pathname.startsWith('/pond/'))}
                     sx={{
                       pl: 4,
                       borderRadius: '0 24px 24px 0',

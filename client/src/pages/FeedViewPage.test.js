@@ -24,16 +24,19 @@ jest.mock('@mui/x-date-pickers/LocalizationProvider', () => {
   return ({ children }) => <div data-testid="localization-provider">{children}</div>;
 });
 
-jest.mock('@mui/x-date-pickers/DatePicker', () => ({
-  DatePicker: ({ label, value, onChange }) => (
-    <TextField
-      label={label}
-      value={value ? value.toISOString().split('T')[0] : ''}
-      onChange={(e) => onChange(new Date(e.target.value))}
-      data-testid={`date-picker-${label}`}
-    />
-  ),
-}));
+jest.mock('@mui/x-date-pickers/DatePicker', () => {
+  const TextField = require('@mui/material/TextField').default;
+  return {
+    DatePicker: ({ label, value, onChange }) => (
+      <TextField
+        label={label}
+        value={value ? value.toISOString().split('T')[0] : ''}
+        onChange={(e) => onChange(new Date(e.target.value))}
+        data-testid={`date-picker-${label}`}
+      />
+    ),
+  };
+});
 
 // Create a theme for testing
 const theme = createTheme();

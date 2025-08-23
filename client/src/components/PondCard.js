@@ -15,6 +15,7 @@ import {
   Warning as WarningIcon
 } from '@mui/icons-material';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import HealthScore from './HealthScore';
 
 const PondCard = ({ 
@@ -23,6 +24,8 @@ const PondCard = ({
   onManageClick, 
   onTimelineClick 
 }) => {
+  const { i18n } = useTranslation();
+    const pondName = pond.name[i18n.language] || pond.name.en || 'Pond';
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -47,7 +50,7 @@ const PondCard = ({
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <Box>
               <Typography variant="h6" component="div">
-                {pond.name}
+                {pondName}
               </Typography>
               <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
                 <Chip 

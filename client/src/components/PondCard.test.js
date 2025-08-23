@@ -14,6 +14,16 @@ const WithTheme = ({ children }) => (
   </ThemeProvider>
 );
 
+// Mock HealthScore component
+jest.mock('./HealthScore', () => {
+  const HealthScore = ({ score }) => (
+    <div data-testid="health-score" role="progressbar" aria-valuenow={score}>
+      Health Score: {score}
+    </div>
+  );
+  return HealthScore;
+});
+
 describe('PondCard', () => {
   const mockPond = {
     id: 1,
@@ -60,7 +70,7 @@ describe('PondCard', () => {
     );
 
     // Health score is rendered as a component, so we check for its presence
-    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '85');
+    expect(screen.getByTestId('health-score')).toHaveAttribute('aria-valuenow', '85');
   });
 
   it('shows different chip colors based on status', () => {
@@ -175,7 +185,7 @@ describe('PondCard', () => {
     );
 
     // 75% progress should have success color
-    const progressBar = screen.getByText('75%').nextElementSibling.querySelector('div');
+    const progressBar = screen.getByText('75%').parentElement?.nextElementSibling?.querySelector('div');
     expect(progressBar).toHaveStyle('background-color: rgb(46, 125, 50)'); // success.main
 
     // Test with medium progress (45%)
@@ -189,7 +199,7 @@ describe('PondCard', () => {
     );
 
     // 45% progress should have warning color
-    const mediumProgressBar = screen.getByText('45%').nextElementSibling.querySelector('div');
+    const mediumProgressBar = screen.getByText('45%').parentElement?.nextElementSibling?.querySelector('div');
     expect(mediumProgressBar).toHaveStyle('background-color: rgb(239, 108, 0)'); // warning.main
 
     // Test with low progress (25%)
@@ -203,17 +213,7 @@ describe('PondCard', () => {
     );
 
     // 25% progress should have error color
-    const lowProgressBar = screen.getByText('25%').nextElementSibling.querySelector('div');
+    const lowProgressBar = screen.getByText('25%').parentElement?.nextElementSibling?.querySelector('div');
     expect(lowProgressBar).toHaveStyle('background-color: rgb(211, 47, 47)'); // error.main
   });
-});
-
-// Mock HealthScore component
-jest.mock('./HealthScore', () => {
-  const HealthScore = ({ score }) => (
-    <div role="progressbar" aria-valuenow={score}>
-      Health Score: {score}
-    </div>
-  );
-  return HealthScore;
 });

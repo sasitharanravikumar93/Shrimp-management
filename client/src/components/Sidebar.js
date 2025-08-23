@@ -52,49 +52,49 @@ const Sidebar = () => {
           <ListItemIcon>
             <InputIcon />
           </ListItemIcon>
-          <ListItemText primary={t('feed_inputs')} />
+          <ListItemText primary={t('feed_input_entry')} />
         </ListItem>
         <ListItem button component={Link} to="/growth-sampling">
           <ListItemIcon>
             <ShowChartIcon />
           </ListItemIcon>
-          <ListItemText primary={t('growth_sampling')} />
+          <ListItemText primary={t('growth_sampling_entry')} />
         </ListItem>
         <ListItem button component={Link} to="/water-quality-input">
           <ListItemIcon>
             <WaterDropIcon />
           </ListItemIcon>
-          <ListItemText primary={t('water_quality')} />
+          <ListItemText primary={t('water_quality_input_entry')} />
         </ListItem>
         <ListItem button component={Link} to="/nursery-management">
           <ListItemIcon>
             <SpaIcon />
           </ListItemIcon>
-          <ListItemText primary={t('nursery_batches')} />
+          <ListItemText primary={t('nursery_management')} />
         </ListItem>
-        <ListItem button component={Link} to="/inventory-management"> {/* New Inventory Management Link */}
+        <ListItem button component={Link} to="/inventory-management">
           <ListItemIcon>
             <InventoryIcon />
           </ListItemIcon>
-          <ListItemText primary={t('inventory')} />
+          <ListItemText primary={t('inventory_management')} />
         </ListItem>
         <ListItem button component={Link} to="/admin">
           <ListItemIcon>
             <AdminPanelSettingsIcon />
           </ListItemIcon>
-          <ListItemText primary={t('admin')} />
+          <ListItemText primary={t('admin_settings')} />
         </ListItem>
         <ListItem button component={Link} to="/feed-view">
           <ListItemIcon>
             <HistoryIcon />
           </ListItemIcon>
-          <ListItemText primary={t('feed_inputs')} />
+          <ListItemText primary={t('feed_data_view')} />
         </ListItem>
         <ListItem button component={Link} to="/water-quality-view">
           <ListItemIcon>
             <HistoryIcon />
           </ListItemIcon>
-          <ListItemText primary={t('water_quality')} />
+          <ListItemText primary={t('water_quality_data_view')} />
         </ListItem>
         <ListItem button component={Link} to="/historical-insights">
           <ListItemIcon>

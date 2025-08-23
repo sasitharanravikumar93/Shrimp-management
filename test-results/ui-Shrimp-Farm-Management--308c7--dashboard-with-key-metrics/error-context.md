@@ -1,0 +1,247 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - generic [ref=e6]: Shrimp Farm Management System
+        - button "Notifications" [ref=e7] [cursor=pointer]:
+          - generic [ref=e8] [cursor=pointer]:
+            - img [ref=e9] [cursor=pointer]
+            - generic [ref=e11] [cursor=pointer]: "2"
+        - button "Generate Report" [ref=e12] [cursor=pointer]:
+          - img [ref=e13] [cursor=pointer]
+        - button "User Account" [ref=e16] [cursor=pointer]:
+          - img [ref=e17] [cursor=pointer]
+    - navigation "mailbox folders" [ref=e19]:
+      - generic [ref=e21]:
+        - generic [ref=e23]:
+          - img [ref=e25]
+          - generic [ref=e28]: ShrimpFarm
+        - generic [ref=e31]:
+          - img [ref=e33]
+          - combobox "summer2025" [ref=e35] [cursor=pointer]
+          - textbox: 68a0a0671830c1d437db24d7
+          - img
+          - group
+        - separator [ref=e36]
+        - list [ref=e37]:
+          - link "Dashboard" [ref=e39] [cursor=pointer]:
+            - /url: /
+            - img [ref=e41] [cursor=pointer]
+            - generic [ref=e44] [cursor=pointer]: Dashboard
+          - link "Pond Management" [ref=e46] [cursor=pointer]:
+            - /url: /pond
+            - img [ref=e48] [cursor=pointer]
+            - generic [ref=e51] [cursor=pointer]: Pond Management
+          - link "Admin" [ref=e53] [cursor=pointer]:
+            - /url: /admin
+            - img [ref=e55] [cursor=pointer]
+            - generic [ref=e59] [cursor=pointer]: Admin
+          - link "Nursery" [ref=e61] [cursor=pointer]:
+            - /url: /nursery
+            - img [ref=e63] [cursor=pointer]
+            - generic [ref=e66] [cursor=pointer]: Nursery
+          - link "Inventory Management" [ref=e68] [cursor=pointer]:
+            - /url: /inventory-management
+            - img [ref=e70] [cursor=pointer]
+            - generic [ref=e73] [cursor=pointer]: Inventory Management
+          - link "Historical Insights" [ref=e75] [cursor=pointer]:
+            - /url: /historical-insights
+            - img [ref=e77] [cursor=pointer]
+            - generic [ref=e80] [cursor=pointer]: Historical Insights
+        - separator [ref=e81]
+        - list [ref=e82]:
+          - button "User Account" [ref=e83] [cursor=pointer]:
+            - img [ref=e85] [cursor=pointer]
+            - generic [ref=e88] [cursor=pointer]: User Account
+    - main [ref=e89]:
+      - generic [ref=e90]:
+        - generic [ref=e92]:
+          - img [ref=e94]
+          - paragraph [ref=e96]: Water quality alert in 2 ponds. Please check Pond B and Pond E immediately.
+          - button [ref=e97] [cursor=pointer]:
+            - img [ref=e98] [cursor=pointer]
+        - generic [ref=e100]:
+          - generic [ref=e101]:
+            - heading "Farm Dashboard" [level=1] [ref=e102]
+            - paragraph [ref=e103]: Welcome back! Here's what's happening with your shrimp farm today.
+          - button "Generate Report" [ref=e104] [cursor=pointer]:
+            - img [ref=e106] [cursor=pointer]
+            - text: Generate Report
+        - generic [ref=e109]:
+          - generic [ref=e114]:
+            - generic [ref=e115]:
+              - paragraph [ref=e116]: Total Ponds
+              - generic [ref=e117]: "0"
+            - img [ref=e119]
+          - generic [ref=e125]:
+            - generic [ref=e126]:
+              - paragraph [ref=e127]: Active Ponds
+              - generic [ref=e128]: "0"
+            - img [ref=e130]
+          - generic [ref=e137]:
+            - generic [ref=e138]:
+              - paragraph [ref=e139]: Avg. Growth Rate
+              - generic [ref=e140]: 1.2g/day
+              - generic [ref=e141]:
+                - img [ref=e142]
+                - paragraph [ref=e144]: +0.1 from last week
+            - img [ref=e146]
+          - generic [ref=e152]:
+            - generic [ref=e153]:
+              - paragraph [ref=e154]: Feed Efficiency
+              - generic [ref=e155]: 1.4:1
+              - generic [ref=e156]:
+                - img [ref=e157]
+                - paragraph [ref=e159]: "-0.1 from last week"
+            - img [ref=e161]
+          - generic [ref=e167]:
+            - generic [ref=e168]:
+              - paragraph [ref=e169]: Water Quality
+              - generic [ref=e170]: 85%
+              - generic [ref=e171]:
+                - img [ref=e172]
+                - paragraph [ref=e174]: +5% from last week
+            - img [ref=e176]
+          - generic [ref=e182]:
+            - generic [ref=e183]:
+              - paragraph [ref=e184]: Feed Consumption
+              - generic [ref=e185]: 1250kg
+              - generic [ref=e186]:
+                - img [ref=e187]
+                - paragraph [ref=e189]: +12% from last week
+            - img [ref=e191]
+        - generic [ref=e193]:
+          - generic [ref=e197]:
+            - generic [ref=e198]:
+              - heading "Water Quality Trend" [level=3] [ref=e199]
+              - generic [ref=e200]:
+                - img [ref=e201]
+                - generic [ref=e203]: Increasing
+            - img [ref=e207]:
+              - generic [ref=e212]:
+                - generic [ref=e215]: Pond B
+                - generic [ref=e218]: Pond D
+                - generic [ref=e221]: Pond F
+              - generic [ref=e223]:
+                - generic [ref=e226]: 0mg/L
+                - generic [ref=e229]: 2mg/L
+                - generic [ref=e232]: 4mg/L
+                - generic [ref=e235]: 6mg/L
+                - generic [ref=e238]: 8mg/L
+            - generic [ref=e248]:
+              - paragraph [ref=e249]: "Current: 5.8 mg/L"
+              - paragraph [ref=e250]: "Average: 5.08 mg/L"
+          - generic [ref=e254]:
+            - generic [ref=e255]:
+              - heading "Feed Consumption Trend" [level=3] [ref=e256]
+              - generic [ref=e257]:
+                - img [ref=e258]
+                - generic [ref=e260]: Increasing
+            - img [ref=e264]:
+              - generic [ref=e269]:
+                - generic [ref=e272]: Tue
+                - generic [ref=e275]: Thu
+                - generic [ref=e278]: Fri
+                - generic [ref=e281]: Sat
+                - generic [ref=e284]: Sun
+              - generic [ref=e286]:
+                - generic [ref=e289]: 0kg
+                - generic [ref=e292]: 40kg
+                - generic [ref=e295]: 80kg
+                - generic [ref=e298]: 120kg
+                - generic [ref=e301]: 160kg
+            - generic [ref=e312]:
+              - paragraph [ref=e313]: "Current: 140 kg"
+              - paragraph [ref=e314]: "Average: 135.71 kg"
+        - generic [ref=e316]:
+          - generic [ref=e317]:
+            - heading "Individual Pond Management" [level=6] [ref=e318]
+            - generic [ref=e319]:
+              - group [ref=e320]:
+                - button "All Ponds" [pressed] [ref=e321] [cursor=pointer]: All Ponds
+                - button "Active" [ref=e322] [cursor=pointer]: Active
+                - button "Inactive" [ref=e323] [cursor=pointer]: Inactive
+              - button "More Filters" [ref=e324] [cursor=pointer]:
+                - img [ref=e326] [cursor=pointer]
+                - text: More Filters
+          - generic [ref=e331]:
+            - heading "Quick Actions" [level=3] [ref=e332]
+            - generic [ref=e333]:
+              - generic [ref=e337] [cursor=pointer]:
+                - generic [ref=e338] [cursor=pointer]:
+                  - img [ref=e340] [cursor=pointer]
+                  - heading "Schedule Feeding" [level=4] [ref=e342] [cursor=pointer]
+                - paragraph [ref=e343] [cursor=pointer]: Add a new feeding event
+              - generic [ref=e347] [cursor=pointer]:
+                - generic [ref=e348] [cursor=pointer]:
+                  - img [ref=e350] [cursor=pointer]
+                  - heading "Water Quality Check" [level=4] [ref=e352] [cursor=pointer]
+                - paragraph [ref=e353] [cursor=pointer]: Log water parameters
+              - generic [ref=e357] [cursor=pointer]:
+                - generic [ref=e358] [cursor=pointer]:
+                  - img [ref=e360] [cursor=pointer]
+                  - heading "Growth Sampling" [level=4] [ref=e362] [cursor=pointer]
+                - paragraph [ref=e363] [cursor=pointer]: Record shrimp growth data
+              - generic [ref=e367] [cursor=pointer]:
+                - generic [ref=e368] [cursor=pointer]:
+                  - img [ref=e370] [cursor=pointer]
+                  - heading "Maintenance Task" [level=4] [ref=e372] [cursor=pointer]
+                - paragraph [ref=e373] [cursor=pointer]: Schedule equipment maintenance
+              - generic [ref=e377] [cursor=pointer]:
+                - generic [ref=e378] [cursor=pointer]:
+                  - img [ref=e380] [cursor=pointer]
+                  - heading "View Calendar" [level=4] [ref=e382] [cursor=pointer]
+                - paragraph [ref=e383] [cursor=pointer]: Check upcoming events
+              - generic [ref=e387] [cursor=pointer]:
+                - generic [ref=e388] [cursor=pointer]:
+                  - img [ref=e390] [cursor=pointer]
+                  - heading "Send Notification" [level=4] [ref=e392] [cursor=pointer]
+                - paragraph [ref=e393] [cursor=pointer]: Alert team about issues
+          - button "Schedule Feeding for All Active Ponds" [ref=e395] [cursor=pointer]:
+            - img [ref=e397] [cursor=pointer]
+            - text: Schedule Feeding for All Active Ponds
+        - generic [ref=e400]:
+          - generic [ref=e401]:
+            - img [ref=e402]
+            - heading "AI Insights & Recommendations" [level=2] [ref=e405]
+          - paragraph [ref=e406]: "Based on current data trends, here are our recommendations:"
+          - generic [ref=e407]:
+            - generic [ref=e410]:
+              - generic [ref=e411]:
+                - img [ref=e413]
+                - heading "Water Quality Alert" [level=3] [ref=e415]
+              - paragraph [ref=e416]: Pond B and Pond E have low dissolved oxygen levels. Recommend immediate aeration.
+              - generic [ref=e417]:
+                - generic [ref=e418]:
+                  - paragraph [ref=e419]: Confidence Level
+                  - paragraph [ref=e420]: 85%
+                - progressbar [ref=e421]
+            - generic [ref=e425]:
+              - generic [ref=e426]:
+                - img [ref=e428]
+                - heading "Growth Optimization" [level=3] [ref=e430]
+              - paragraph [ref=e431]: Increase feeding frequency for Pond A and Pond D to optimize growth rate.
+              - generic [ref=e432]:
+                - generic [ref=e433]:
+                  - paragraph [ref=e434]: Confidence Level
+                  - paragraph [ref=e435]: 78%
+                - progressbar [ref=e436]
+            - generic [ref=e440]:
+              - generic [ref=e441]:
+                - img [ref=e443]
+                - heading "Harvest Projection" [level=3] [ref=e445]
+              - paragraph [ref=e446]: Pond D is projected to reach harvest size in 28 days based on current growth rate.
+              - generic [ref=e447]:
+                - generic [ref=e448]:
+                  - paragraph [ref=e449]: Confidence Level
+                  - paragraph [ref=e450]: 92%
+                - progressbar [ref=e451]
+              - generic [ref=e453]:
+                - img [ref=e454]
+                - paragraph [ref=e456]: "Projected: July 15, 2023"
+          - button "View Detailed Analysis" [ref=e458] [cursor=pointer]: View Detailed Analysis
+  - generic [ref=e459]: "40"
+```

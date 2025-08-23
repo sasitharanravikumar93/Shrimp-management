@@ -15,15 +15,22 @@ const apiCall = async (endpoint, method = 'GET', data = null) => {
     },
   };
 
+  console.log('Making API call:', { url, method, data });
+  
   if (data && (method === 'POST' || method === 'PUT')) {
     options.body = JSON.stringify(data);
   }
 
   try {
     const response = await fetch(url, options);
+    console.log('API response received:', { url, status: response.status, statusText: response.statusText });
+    
+    // Log response headers for debugging
+    console.log('API response headers:', [...response.headers.entries()]);
     
     if (!response.ok) {
       const errorText = await response.text();
+      console.error('API error response:', { url, status: response.status, errorText });
       let errorMessage = `HTTP error! status: ${response.status}`;
       
       try {
@@ -40,10 +47,28 @@ const apiCall = async (endpoint, method = 'GET', data = null) => {
     }
     
     const contentType = response.headers.get('content-type');
+    console.log('API response content type:', contentType);
+    
     if (contentType && contentType.includes('application/json')) {
-      return await response.json();
+      const jsonData = await response.json();
+      console.log('API response JSON data:', { url, data: jsonData });
+      
+      // Add additional logging for pond-related responses
+      if (url.includes('/ponds')) {
+        console.log('Pond API response details:', { 
+          url, 
+          isArray: Array.isArray(jsonData),
+          dataLength: Array.isArray(jsonData) ? jsonData.length : 'N/A',
+          dataType: typeof jsonData,
+          dataKeys: jsonData && typeof jsonData === 'object' ? Object.keys(jsonData) : 'N/A'
+        });
+      }
+      
+      return jsonData;
     } else {
-      return await response.text();
+      const textData = await response.text();
+      console.log('API response text data:', { url, data: textData });
+      return textData;
     }
   } catch (error) {
     console.error('API call failed:', error);
@@ -63,6 +88,14 @@ export const useApiData = (apiFunction, dependencies = [], cacheKey = null, retr
     if (retryTimeoutRef.current) {
       clearTimeout(retryTimeoutRef.current);
       retryTimeoutRef.current = null;
+    }
+    
+    // If apiFunction is null, don't make the request
+    if (!apiFunction) {
+      setData(null);
+      setLoading(false);
+      setError(null);
+      return null;
     }
     
     try {
@@ -100,7 +133,7 @@ export const useApiData = (apiFunction, dependencies = [], cacheKey = null, retr
         return;
       }
       
-      setError(err.message);
+      setError({ message: err.message || 'An unknown error occurred' });
     } finally {
       setLoading(false);
     }
@@ -133,38 +166,43 @@ export const useApiData = (apiFunction, dependencies = [], cacheKey = null, retr
 };
 
 // Custom hook for API mutations (POST, PUT, DELETE)
-export const useApiMutation = (apiFunction, retryCount = 3) => {
+export const useApiMutation = (apiFunction, maxRetryCount = 3) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const retryTimeoutRef = useRef(null);
 
   const mutate = async (...args) => {
-    // Clear any existing retry timeout
-    if (retryTimeoutRef.current) {
-      clearTimeout(retryTimeoutRef.current);
-      retryTimeoutRef.current = null;
-    }
-    
-    try {
-      setLoading(true);
-      setError(null);
-      const result = await apiFunction(...args);
-      return { data: result, error: null };
-    } catch (err) {
-      // Retry logic
-      if (retryCount > 0) {
-        console.warn(`API mutation failed, retrying... (1/${retryCount})`);
-        retryTimeoutRef.current = setTimeout(() => {
-          mutate(...args);
-        }, 1000); // Simple retry after 1 second
-        return;
+    // Wrapper function that handles retries with decrementing count
+    const attemptMutation = async (remainingRetries) => {
+      // Clear any existing retry timeout
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+        retryTimeoutRef.current = null;
       }
       
-      setError(err.message);
-      return { data: null, error: err.message };
-    } finally {
-      setLoading(false);
-    }
+      try {
+        setLoading(true);
+        setError(null);
+        const result = await apiFunction(...args);
+        return { data: result, error: null };
+      } catch (err) {
+        // Retry logic
+        if (remainingRetries > 0) {
+          console.warn(`API mutation failed, retrying... (${maxRetryCount - remainingRetries + 1}/${maxRetryCount})`);
+          retryTimeoutRef.current = setTimeout(() => {
+            attemptMutation(remainingRetries - 1);
+          }, 1000 * (maxRetryCount - remainingRetries)); // Exponential backoff
+          return;
+        }
+        
+        setError({ message: err.message || 'An unknown error occurred' });
+        return { data: null, error: err.message };
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    return await attemptMutation(maxRetryCount);
   };
 
   // Cleanup function to clear any pending retries

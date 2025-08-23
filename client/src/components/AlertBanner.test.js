@@ -14,6 +14,15 @@ const WithTheme = ({ children }) => (
   </ThemeProvider>
 );
 
+// Mock MUI icons
+jest.mock('@mui/icons-material', () => ({
+  Info: () => <div data-testid="infoicon">Info Icon</div>,
+  CheckCircle: () => <div data-testid="checkcircleicon">Check Circle Icon</div>,
+  Warning: () => <div data-testid="warningicon">Warning Icon</div>,
+  Error: () => <div data-testid="erroricon">Error Icon</div>,
+  Close: () => <div data-testid="closeicon">Close Icon</div>
+}));
+
 describe('AlertBanner', () => {
   it('renders correctly with default props', () => {
     render(

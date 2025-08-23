@@ -146,35 +146,35 @@ const AdminPage = () => {
     setEditingItem(item);
     
     if (item) {
-      // Populate form with existing data
-      if (type === 'season') {
+        // Populate form with existing data
+        if (type === 'season') {
+          setFormData({
+            name: typeof item.name === 'object' ? (item.name.en || '') : (item.name || ''),
+            startDate: item.startDate ? format(new Date(item.startDate), 'yyyy-MM-dd') : '',
+            endDate: item.endDate ? format(new Date(item.endDate), 'yyyy-MM-dd') : '',
+            status: item.status || ''
+          });
+        } else if (type === 'pond') {
+          setFormData({
+            name: typeof item.name === 'object' ? (item.name.en || '') : (item.name || ''),
+            size: item.size || '',
+            capacity: item.capacity || '',
+            seasonId: item.seasonId || item.season || '',
+            status: item.status || ''
+          });
+        }
+      } else {
+        // Reset form for new item
         setFormData({
-          name: typeof item.name === 'object' ? item.name : { en: item.name || '', hi: '', ta: '' },
-          startDate: item.startDate ? format(new Date(item.startDate), 'yyyy-MM-dd') : '',
-          endDate: item.endDate ? format(new Date(item.endDate), 'yyyy-MM-dd') : '',
-          status: item.status || ''
-        });
-      } else if (type === 'pond') {
-        setFormData({
-          name: typeof item.name === 'object' ? item.name : { en: item.name || '', hi: '', ta: '' },
-          size: item.size || '',
-          capacity: item.capacity || '',
-          seasonId: item.seasonId || item.season || '',
-          status: item.status || ''
+          name: '',
+          startDate: '',
+          endDate: '',
+          status: '',
+          size: '',
+          capacity: '',
+          seasonId: ''
         });
       }
-    } else {
-      // Reset form for new item
-      setFormData({
-        name: { en: '', hi: '', ta: '' },
-        startDate: '',
-        endDate: '',
-        status: '',
-        size: '',
-        capacity: '',
-        seasonId: ''
-      });
-    }
     
     setOpenDialog(true);
   };
@@ -250,17 +250,6 @@ const AdminPage = () => {
     }));
   };
 
-  // Handle multilingual name input changes
-  const handleNameChange = (language, value) => {
-    setFormData(prev => ({
-      ...prev,
-      name: {
-        ...prev.name,
-        [language]: value
-      }
-    }));
-  };
-
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -268,42 +257,67 @@ const AdminPage = () => {
     try {
       if (dialogType === 'season') {
         const seasonData = {
-          name: formData.name,
+          name: { en: formData.name },
           startDate: formData.startDate,
           endDate: formData.endDate,
           status: formData.status
         };
         
+        console.log('Submitting season data:', seasonData);
+        
         if (editingItem) {
           // Update existing season
+          console.log('Updating existing season:', editingItem._id || editingItem.id);
           await updateSeasonMutation(editingItem._id || editingItem.id, seasonData);
         } else {
           // Create new season
+          console.log('Creating new season');
           await createSeasonMutation(seasonData);
         }
       } else if (dialogType === 'pond') {
         const pondData = {
-          name: formData.name,
+          name: { en: formData.name },
           size: parseFloat(formData.size),
           capacity: parseInt(formData.capacity),
           seasonId: formData.seasonId,
           status: formData.status
         };
         
+        console.log('Submitting pond data:', pondData);
+        
         if (editingItem) {
           // Update existing pond
-          await updatePondMutation(editingItem._id || editingItem.id, pondData);
+          console.log('Updating existing pond:', editingItem._id || editingItem.id);
+          const result = await updatePondMutation(editingItem._id || editingItem.id, pondData);
+          console.log('Pond update result:', result);
         } else {
           // Create new pond
-          await createPondMutation(pondData);
+          console.log('Creating new pond');
+          const result = await createPondMutation(pondData);
+          console.log('Pond creation result:', result);
+          
+          // Log the created pond details
+          if (result && result.data) {
+            console.log('Created pond details:', result.data);
+          }
         }
       }
       
       // Refresh data
+      console.log('Refreshing data after submission');
       if (dialogType === 'season') {
+        console.log('Refetching seasons');
         refetchSeasons();
       } else if (dialogType === 'pond') {
+        console.log('Refetching ponds');
         refetchPonds();
+        
+        // Also clear the cache for the specific season
+        if (formData.seasonId) {
+          console.log('Clearing cache for season-specific ponds:', formData.seasonId);
+          // We don't have a direct way to clear the cache in useApiData, 
+          // so we'll just log this for now
+        }
       }
       
       handleCloseDialog();
@@ -314,6 +328,10 @@ const AdminPage = () => {
 
   // Handle delete
   const handleDelete = async (type, id) => {
+    if (!id) {
+      console.warn(`Attempted to delete ${type} with no ID.`);
+      return;
+    }
     if (window.confirm(`${t('areYouSure')} ${t('delete')} ${type}?`)) {
       try {
         if (type === 'season') {
@@ -367,9 +385,20 @@ const AdminPage = () => {
       yield: season.yield ? parseFloat(season.yield.toString().replace(' tons', '')) || 0 : 0
     })), [seasonsData]);
 
+  // Use real data or fallback to mock data
+  const seasons = seasonsData || [];
+  const ponds = pondsData ? pondsData.data : [];
+
   // Loading and error states
   const isLoading = seasonsLoading || pondsLoading;
   const hasError = seasonsError || pondsError;
+
+  // Debugging: Log pond data to see what's being passed
+  React.useEffect(() => {
+    if (ponds && ponds.length > 0) {
+      console.log('Pond data:', ponds[0]);
+    }
+  }, [ponds]);
 
   if (isLoading) {
     return (
@@ -389,16 +418,9 @@ const AdminPage = () => {
     );
   }
 
-  // Use real data or fallback to mock data
-  const seasons = seasonsData || [];
-  const ponds = pondsData ? pondsData.data : [];
-
   return (
     <Container maxWidth="lg" sx={{ mt: 2, mb: 4 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          {t('administration')}
-        </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
         <Button 
           variant="contained" 
           startIcon={<ExportIcon />} 
@@ -634,16 +656,23 @@ const AdminPage = () => {
                             id: 'name',
                             label: t('name'),
                             render: (value, row) => (
-                              <Button 
-                                variant="text" 
+                              <Typography 
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  navigate(`/pond/${row._id || row.id}`);
+                                  console.log('Navigating with pond ID:', row._id);
+                                  navigate(`/pond/${row._id}`);
                                 }}
-                                sx={{ justifyContent: 'flex-start', padding: 0, minWidth: 0, textAlign: 'left' }}
+                                sx={{ 
+                                  cursor: 'pointer',
+                                  color: 'text.primary',
+                                  textDecoration: 'none',
+                                  '&:hover': {
+                                    textDecoration: 'underline'
+                                  }
+                                }}
                               >
                                 {typeof value === 'object' ? value[i18n.language] || value.en : value}
-                              </Button>
+                              </Typography>
                             )
                           },
                           {
@@ -712,7 +741,7 @@ const AdminPage = () => {
                                     color="error"
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      handleDelete('pond', row._id || row.id);
+                                      handleDelete('pond', row._id);
                                     }}
                                     disabled={deletePondLoading}
                                     sx={{ 
@@ -732,7 +761,10 @@ const AdminPage = () => {
                         ]}
                         data={getPagedData(ponds)}
                         rowKey="_id"
-                        onRowClick={(row) => navigate(`/pond/${row._id || row.id}`)}
+                        onRowClick={(row) => {
+                          console.log('Row clicked, pond ID:', row._id);
+                          navigate(`/pond/${row._id}`);
+                        }}
                       />
                       
                       {/* Pagination */}
@@ -829,34 +861,13 @@ const AdminPage = () => {
                 <TextField
                   autoFocus
                   margin="dense"
-                  label={`${t('name')} (${t('english')})`}
+                  label={t('name')}
                   type="text"
                   fullWidth
                   variant="outlined"
-                  value={formData.name.en}
-                  onChange={(e) => handleNameChange('en', e.target.value)}
-                  required
-                />
-                <TextField
-                  margin="dense"
-                  label={`${t('name')} (${t('hindi')})`}
-                  type="text"
-                  fullWidth
-                  variant="outlined"
-                  sx={{ mt: 2 }}
-                  value={formData.name.hi}
-                  onChange={(e) => handleNameChange('hi', e.target.value)}
-                  required
-                />
-                <TextField
-                  margin="dense"
-                  label={`${t('name')} (${t('tamil')})`}
-                  type="text"
-                  fullWidth
-                  variant="outlined"
-                  sx={{ mt: 2 }}
-                  value={formData.name.ta}
-                  onChange={(e) => handleNameChange('ta', e.target.value)}
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  name="name"
                   required
                 />
                 <TextField
@@ -913,34 +924,13 @@ const AdminPage = () => {
                 <TextField
                   autoFocus
                   margin="dense"
-                  label={`${t('name')} (${t('english')})`}
+                  label={t('name')}
                   type="text"
                   fullWidth
                   variant="outlined"
-                  value={formData.name.en}
-                  onChange={(e) => handleNameChange('en', e.target.value)}
-                  required
-                />
-                <TextField
-                  margin="dense"
-                  label={`${t('name')} (${t('hindi')})`}
-                  type="text"
-                  fullWidth
-                  variant="outlined"
-                  sx={{ mt: 2 }}
-                  value={formData.name.hi}
-                  onChange={(e) => handleNameChange('hi', e.target.value)}
-                  required
-                />
-                <TextField
-                  margin="dense"
-                  label={`${t('name')} (${t('tamil')})`}
-                  type="text"
-                  fullWidth
-                  variant="outlined"
-                  sx={{ mt: 2 }}
-                  value={formData.name.ta}
-                  onChange={(e) => handleNameChange('ta', e.target.value)}
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  name="name"
                   required
                 />
                 <TextField
@@ -984,7 +974,7 @@ const AdminPage = () => {
                   {seasons.map((season) => (
                     <MenuItem key={season._id || season.id} value={season._id || season.id}>
                       {typeof season.name === 'object' 
-                        ? season.name[i18n.language] || season.name.en 
+                        ? (season.name[i18n.language] || season.name.en || season.name)
                         : season.name}
                     </MenuItem>
                   ))}

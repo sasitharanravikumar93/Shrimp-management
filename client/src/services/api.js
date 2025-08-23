@@ -104,6 +104,56 @@ export const createNurseryBatch = (nurseryData) => apiCall('/nursery-batches', '
 export const updateNurseryBatch = (id, nurseryData) => apiCall(`/nursery-batches/${id}`, 'PUT', nurseryData);
 export const deleteNurseryBatch = (id) => apiCall(`/nursery-batches/${id}`, 'DELETE');
 
+// Inventory API calls
+export const getInventoryItems = (seasonId) => {
+  const params = new URLSearchParams();
+  if (seasonId) params.append('seasonId', seasonId);
+  const queryString = params.toString() ? `?${params.toString()}` : '';
+  return apiCall(`/inventory-items${queryString}`);
+};
+
+export const getInventoryItemById = (id, seasonId) => {
+  const params = new URLSearchParams();
+  if (seasonId) params.append('seasonId', seasonId);
+  const queryString = params.toString() ? `?${params.toString()}` : '';
+  return apiCall(`/inventory-items/${id}${queryString}`);
+};
+
+export const getInventoryItemsByType = (itemType, seasonId) => {
+  const params = new URLSearchParams();
+  params.append('itemType', itemType);
+  if (seasonId) params.append('seasonId', seasonId);
+  return apiCall(`/inventory-items?${params.toString()}`);
+};
+
+export const createInventoryItem = (inventoryData, seasonId) => {
+  const params = new URLSearchParams();
+  if (seasonId) params.append('seasonId', seasonId);
+  const queryString = params.toString() ? `?${params.toString()}` : '';
+  return apiCall(`/inventory-items${queryString}`, 'POST', inventoryData);
+};
+
+export const updateInventoryItem = (id, inventoryData, seasonId) => {
+  const params = new URLSearchParams();
+  if (seasonId) params.append('seasonId', seasonId);
+  const queryString = params.toString() ? `?${params.toString()}` : '';
+  return apiCall(`/inventory-items/${id}${queryString}`, 'PUT', inventoryData);
+};
+
+export const deleteInventoryItem = (id, seasonId) => {
+  const params = new URLSearchParams();
+  if (seasonId) params.append('seasonId', seasonId);
+  const queryString = params.toString() ? `?${params.toString()}` : '';
+  return apiCall(`/inventory-items/${id}${queryString}`, 'DELETE');
+};
+
+export const getInventoryAdjustments = (itemId, seasonId) => {
+  const params = new URLSearchParams();
+  if (seasonId) params.append('seasonId', seasonId);
+  const queryString = params.toString() ? `?${params.toString()}` : '';
+  return apiCall(`/inventory-items/${itemId}/adjustments${queryString}`);
+};
+
 // Event API calls
 export const getEvents = () => apiCall('/events');
 export const getEventById = (id) => apiCall(`/events/${id}`);
@@ -114,3 +164,11 @@ export const getEventsByDateRange = (startDate, endDate) =>
 export const createEvent = (eventData) => apiCall('/events', 'POST', eventData);
 export const updateEvent = (id, eventData) => apiCall(`/events/${id}`, 'PUT', eventData);
 export const deleteEvent = (id) => apiCall(`/events/${id}`, 'DELETE');
+
+// Historical Insights API calls
+export const getHistoricalSeasons = () => apiCall('/historical-insights/seasons');
+export const getHistoricalPondsForCurrentSeason = () => apiCall('/historical-insights/ponds/current');
+export const getHistoricalPondsBySeasonId = (seasonId) => apiCall(`/historical-insights/ponds/season/${seasonId}`);
+export const comparePondsCurrentSeason = (comparisonData) => apiCall('/historical-insights/compare/current', 'POST', comparisonData);
+export const comparePondsHistorical = (comparisonData) => apiCall('/historical-insights/compare/historical', 'POST', comparisonData);
+export const exportComparisonData = (exportData) => apiCall('/historical-insights/export', 'POST', exportData);

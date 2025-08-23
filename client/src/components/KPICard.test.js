@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { TrendingUp as TrendingUpIcon } from '@mui/icons-material';
+import { TrendingUp as TrendingUpIcon, TrendingDown as TrendingDownIcon } from '@mui/icons-material';
 import KPICard, { CircularKPICard } from './KPICard';
 
 // Create a theme for testing
@@ -13,6 +13,12 @@ const WithTheme = ({ children }) => (
     {children}
   </ThemeProvider>
 );
+
+// Mock MUI icons
+jest.mock('@mui/icons-material', () => ({
+  TrendingUp: () => <div data-testid="trendingupicon">Trending Up Icon</div>,
+  TrendingDown: () => <div data-testid="trendingdownicon">Trending Down Icon</div>
+}));
 
 describe('KPICard', () => {
   const defaultProps = {
@@ -107,7 +113,7 @@ describe('KPICard', () => {
     const progressBars = screen.queryAllByRole('progressbar');
     // Filter out the circular progress from the icon
     const linearProgressBars = progressBars.filter(pb => 
-      pb.classList.contains('MuiLinearProgress-root')
+      pb.classList && pb.classList.contains && pb.classList.contains('MuiLinearProgress-root')
     );
     expect(linearProgressBars).toHaveLength(0);
   });

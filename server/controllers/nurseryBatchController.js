@@ -67,9 +67,12 @@ exports.createNurseryBatch = async (req, res) => {
       });
     }
     
-    // Validate that batchName is an object with language keys
-    if (typeof batchName !== 'object' || Array.isArray(batchName)) {
-      return res.status(400).json({ message: 'Batch name must be an object with language keys (e.g., { "en": "Batch A", "ta": "பேட்ச் ஏ" })' });
+    // Convert simple string to multilingual map if needed
+    let processedBatchName = batchName;
+    if (typeof batchName === 'string') {
+      processedBatchName = { en: batchName };
+    } else if (typeof batchName !== 'object' || Array.isArray(batchName)) {
+      return res.status(400).json({ message: 'Batch name must be a string or an object with language keys (e.g., { "en": "Batch A", "ta": "பேட்ச் ஏ" })' });
     }
     
     // Check if season exists
@@ -79,7 +82,7 @@ exports.createNurseryBatch = async (req, res) => {
     }
     
     const nurseryBatch = new NurseryBatch({ 
-      batchName, 
+      batchName: processedBatchName, 
       startDate, 
       initialCount, 
       species, 
@@ -142,9 +145,15 @@ exports.updateNurseryBatch = async (req, res) => {
   try {
     const { batchName, startDate, initialCount, species, source, seasonId } = req.body;
     
-    // Validate that batchName is an object with language keys if provided
-    if (batchName !== undefined && (typeof batchName !== 'object' || Array.isArray(batchName))) {
-      return res.status(400).json({ message: 'Batch name must be an object with language keys (e.g., { "en": "Batch A", "ta": "பேட்ச் ஏ" })' });
+    // Convert simple string to multilingual map if needed
+    if (batchName !== undefined) {
+      if (typeof batchName === 'string') {
+        updateData.batchName = { en: batchName };
+      } else if (typeof batchName !== 'object' || Array.isArray(batchName)) {
+        return res.status(400).json({ message: 'Batch name must be a string or an object with language keys (e.g., { "en": "Batch A", "ta": "பேட்ச் ஏ" })' });
+      } else {
+        updateData.batchName = batchName;
+      }
     }
     
     // Check if season exists
