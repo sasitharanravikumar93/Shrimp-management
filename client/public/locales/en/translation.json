@@ -140,6 +140,6 @@
   "create_first_pond": "Create First Pond",
   "manage_pond": "Manage Pond",
   "add_new_pond": "Add New Pond",
-  "error_loading_ponds": "Error loading ponds"
-}
+  "error_loading_ponds": "Error loading ponds",
+  "no_seasons_available_create_season_first": "No seasons available. Please create a season first before creating a pond."
 }

@@ -140,5 +140,6 @@
   "create_first_pond": "ಮೊದಲ ಕೊಳವನ್ನು ರಚಿಸಿ",
   "manage_pond": "ಕೊಳವನ್ನು ನಿರ್ವಹಿಸಿ",
   "add_new_pond": "ಹೊಸ ಕೊಳವನ್ನು ಸೇರಿಸಿ",
-  "error_loading_ponds": "ಕೊಳಗಳನ್ನು ಲೋಡ್ ಮಾಡುವಾಗ ದೋಷ"
+  "error_loading_ponds": "ಕೊಳಗಳನ್ನು ಲೋಡ್ ಮಾಡುವಾಗ ದೋಷ",
+  "no_seasons_available_create_season_first": "ಯಾವುದೇ ಋತುಗಳು ಲಭ್ಯವಿಲ್ಲ. ಒಂದು ಕೊಳವನ್ನು ರಚಿಸುವ ಮೊದಲು ದಯವಿಟ್ಟು ಮೊದಲು ಒಂದು ಋತುವನ್ನು ರಚಿಸಿ."
 }

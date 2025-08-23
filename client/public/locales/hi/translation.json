@@ -140,5 +140,6 @@
   "create_first_pond": "पहला तालाब बनाएं",
   "manage_pond": "तालाब प्रबंधित करें",
   "add_new_pond": "नया तालाब जोड़ें",
-  "error_loading_ponds": "तालाब लोड करने में त्रुटि"
+  "error_loading_ponds": "तालाब लोड करने में त्रुटि",
+  "no_seasons_available_create_season_first": "कोई मौसम उपलब्ध नहीं है। कृपया एक तालाब बनाने से पहले पहले एक मौसम बनाएं।"
 }
