@@ -187,9 +187,10 @@ const PondManagementPage = () => {
 
   useEffect(() => {
     const fetchFeedInventory = async () => {
+      if (!selectedSeason || !selectedSeason._id) return;
       try {
-        const response = await api.get('/inventory-items?itemType=Feed');
-        setFeedInventoryItems(response.data || []);
+        const response = await api.get(`/inventory-items?itemType=Feed&seasonId=${selectedSeason._id}`);
+        setFeedInventoryItems(response || []);
       } catch (err) {
         console.error('Error fetching feed inventory:', err);
         setFeedInventoryError('Failed to load feed types.');
@@ -199,10 +200,11 @@ const PondManagementPage = () => {
     };
 
     const fetchChemicalProbioticInventory = async () => {
+      if (!selectedSeason || !selectedSeason._id) return;
       try {
-        const chemicalResponse = await api.get('/inventory-items?itemType=Chemical');
-        const probioticResponse = await api.get('/inventory-items?itemType=Probiotic');
-        setChemicalProbioticInventoryItems([...(chemicalResponse.data || []), ...(probioticResponse.data || [])]);
+        const chemicalResponse = await api.get(`/inventory-items?itemType=Chemical&seasonId=${selectedSeason._id}`);
+        const probioticResponse = await api.get(`/inventory-items?itemType=Probiotic&seasonId=${selectedSeason._id}`);
+        setChemicalProbioticInventoryItems([...(chemicalResponse || []), ...(probioticResponse || [])]);
       } catch (err) {
         console.error('Error fetching chemical/probiotic inventory:', err);
         setChemicalProbioticInventoryError('Failed to load chemical/probiotic types.');
@@ -213,7 +215,7 @@ const PondManagementPage = () => {
 
     fetchFeedInventory();
     fetchChemicalProbioticInventory();
-  }, []);
+  }, [selectedSeason, api]);
   const [activeTab, setActiveTab] = useState(0);
   const [viewMode, setViewMode] = useState('tabs');
   const [calendarDate, setCalendarDate] = useState(new Date());
@@ -706,11 +708,14 @@ const PondManagementPage = () => {
                                     error={!!feedInventoryError}
                                     helperText={feedInventoryError || (feedInventoryLoading ? 'Loading feed types...' : '')}
                                   >
-                                    {Array.isArray(feedInventoryItems) && feedInventoryItems.map((item) => (
-                                      <MenuItem key={item._id} value={item._id}>
-                                        {item.itemName}
-                                      </MenuItem>
-                                    ))}
+                                    {Array.isArray(feedInventoryItems) && feedInventoryItems.map((item) => {
+                                      const itemName = typeof item.itemName === 'object' ? (item.itemName[i18n.language] || item.itemName.en) : item.itemName;
+                                      return (
+                                        <MenuItem key={item._id} value={item._id}>
+                                          {itemName}
+                                        </MenuItem>
+                                      )
+                                    })}}}
                                   </TextField>
                                 )}
                               />
@@ -946,11 +951,14 @@ const PondManagementPage = () => {
                                     error={!!chemicalProbioticInventoryError}
                                     helperText={chemicalProbioticInventoryError || (chemicalProbioticInventoryLoading ? 'Loading chemicals/probiotics...' : '')}
                                   >
-                                    {Array.isArray(chemicalProbioticInventoryItems) && chemicalProbioticInventoryItems.map((item) => (
-                                      <MenuItem key={item._id} value={item._id}>
-                                        {item.itemName}
-                                      </MenuItem>
-                                    ))}
+                                    {Array.isArray(chemicalProbioticInventoryItems) && chemicalProbioticInventoryItems.map((item) => {
+                                      const itemName = typeof item.itemName === 'object' ? (item.itemName[i18n.language] || item.itemName.en) : item.itemName;
+                                      return (
+                                        <MenuItem key={item._id} value={item._id}>
+                                          {itemName}
+                                        </MenuItem>
+                                      )
+                                    })}}
                                   </TextField>
                                 )}
                               />
