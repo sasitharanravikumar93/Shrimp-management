@@ -62,6 +62,8 @@ function App() {
                   <Suspense fallback={<LoadingComponent />}>
                     <Routes>
                       <Route path="/" element={<DashboardPage />} />
+                      <Route path="/dashboard/:pondId" element={<DashboardPage />} />
+                      <Route path="/dashboard" element={<DashboardPage />} />
                       <Route path="/admin" element={<AdminPage />} />
                       <Route path="/pond" element={<PondManagementPage />} />
                       <Route path="/pond/:pondId" element={<PondManagementPage />} />
