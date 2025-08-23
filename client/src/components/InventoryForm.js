@@ -37,8 +37,7 @@ const InventoryForm = ({ open, onClose, item, onSave }) => {
     purchaseDate: null,
     unit: '',
     costPerUnit: '',
-    lowStockThreshold: '',
-    currentQuantity: '',
+    quantityBought: '',
   });
   const [errors, setErrors] = useState({});
 
@@ -51,8 +50,7 @@ const InventoryForm = ({ open, onClose, item, onSave }) => {
         purchaseDate: item.purchaseDate ? new Date(item.purchaseDate) : null,
         unit: item.unit || '',
         costPerUnit: item.costPerUnit || '',
-        lowStockThreshold: item.lowStockThreshold || '',
-        currentQuantity: item.currentQuantity || '',
+        quantityBought: item.quantityBought || '',
       });
     } else {
       setFormData({
@@ -62,8 +60,7 @@ const InventoryForm = ({ open, onClose, item, onSave }) => {
         purchaseDate: null,
         unit: '',
         costPerUnit: '',
-        lowStockThreshold: '',
-        currentQuantity: '',
+        quantityBought: '',
       });
     }
     setErrors({});
@@ -99,11 +96,8 @@ const InventoryForm = ({ open, onClose, item, onSave }) => {
     if (formData.costPerUnit === '' || isNaN(formData.costPerUnit) || formData.costPerUnit < 0) {
       tempErrors.costPerUnit = t('cost_per_unit_must_be_non_negative');
     }
-    if (formData.lowStockThreshold !== '' && (isNaN(formData.lowStockThreshold) || formData.lowStockThreshold < 0)) {
-      tempErrors.lowStockThreshold = t('low_stock_threshold_must_be_non_negative');
-    }
-    if (!item && (formData.currentQuantity === '' || isNaN(formData.currentQuantity) || formData.currentQuantity < 0)) {
-      tempErrors.currentQuantity = t('current_quantity_must_be_a_non_negative_number');
+    if (!item && (formData.quantityBought === '' || isNaN(formData.quantityBought) || formData.quantityBought <= 0)) {
+      tempErrors.quantityBought = t('quantity_bought_must_be_a_positive_number');
     }
     setErrors(tempErrors);
     return Object.keys(tempErrors).length === 0;
@@ -119,15 +113,15 @@ const InventoryForm = ({ open, onClose, item, onSave }) => {
           purchaseDate: formData.purchaseDate ? formData.purchaseDate.toISOString() : null,
           unit: formData.unit,
           costPerUnit: parseFloat(formData.costPerUnit),
-          lowStockThreshold: formData.lowStockThreshold !== '' ? parseFloat(formData.lowStockThreshold) : undefined,
+          seasonId: selectedSeason._id
         };
 
         if (item) {
-          const updatedItem = await api.put(`/inventory-items/${item._id}?seasonId=${selectedSeason._id}`, dataToSend);
+          const updatedItem = await api.put(`/inventory-items/${item._id}`, dataToSend);
           onSave(updatedItem.data);
         } else {
-          dataToSend.currentQuantity = formData.currentQuantity !== '' ? parseFloat(formData.currentQuantity) : 0;
-          const newItem = await api.post(`/inventory-items?seasonId=${selectedSeason._id}`, dataToSend);
+          dataToSend.quantityBought = formData.quantityBought !== '' ? parseFloat(formData.quantityBought) : 0;
+          const newItem = await api.post(`/inventory-items`, dataToSend);
           onSave(newItem.data);
         }
         onClose();
@@ -242,26 +236,13 @@ const InventoryForm = ({ open, onClose, item, onSave }) => {
               <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label={t('lowStockThreshold')}
-                  name="lowStockThreshold"
+                  label={t('quantity_bought')}
+                  name="quantityBought"
                   type="number"
-                  value={formData.lowStockThreshold}
+                  value={formData.quantityBought}
                   onChange={handleChange}
-                  error={!!errors.lowStockThreshold}
-                  helperText={errors.lowStockThreshold}
-                  disabled={!selectedSeason}
-                />
-              </Grid>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  label={t('current_quantity')}
-                  name="currentQuantity"
-                  type="number"
-                  value={formData.currentQuantity}
-                  onChange={handleChange}
-                  error={!!errors.currentQuantity}
-                  helperText={errors.currentQuantity}
+                  error={!!errors.quantityBought}
+                  helperText={errors.quantityBought}
                   disabled={!selectedSeason || !!item}
                 />
               </Grid>

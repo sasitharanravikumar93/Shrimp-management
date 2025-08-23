@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 
 // Simple in-memory cache
 const apiCache = new Map();
@@ -220,12 +220,12 @@ export const useApiMutation = (apiFunction, maxRetryCount = 3) => {
 
 // Helper hook that provides API methods (backward compatibility)
 const useApi = () => {
-  return {
+  return useMemo(() => ({
     get: (endpoint) => apiCall(endpoint, 'GET'),
     post: (endpoint, data) => apiCall(endpoint, 'POST', data),
     put: (endpoint, data) => apiCall(endpoint, 'PUT', data),
     delete: (endpoint) => apiCall(endpoint, 'DELETE'),
-  };
+  }), []);
 };
 
 export default useApi;

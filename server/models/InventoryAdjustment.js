@@ -9,7 +9,7 @@ const inventoryAdjustmentSchema = new mongoose.Schema({
   adjustmentType: {
     type: String,
     required: true,
-    enum: ['Purchase', 'Usage', 'Correction', 'Spoilage', 'Initial Entry Error']
+    enum: ['Purchase', 'Usage', 'Correction', 'Spoilage', 'Initial Entry Error', 'initial']
   },
   quantityChange: {
     type: Number,

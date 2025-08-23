@@ -5,6 +5,7 @@ const inventoryController = require('../controllers/inventoryController');
 // Inventory Items
 router.post('/', inventoryController.createInventoryItem);
 router.get('/', inventoryController.getAllInventoryItems);
+router.get('/stock', inventoryController.getAggregatedStock);
 router.get('/:id', inventoryController.getInventoryItemById);
 router.put('/:id', inventoryController.updateInventoryItem);
 router.delete('/:id', inventoryController.deleteInventoryItem); // Soft delete

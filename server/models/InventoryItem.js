@@ -29,15 +29,15 @@ const inventoryItemSchema = new mongoose.Schema({
     required: true,
     min: 0
   },
-  lowStockThreshold: {
-    type: Number,
-    min: 0
-  },
-  currentQuantity: {
+  quantityBought: {
     type: Number,
     required: true,
-    min: 0,
-    default: 0
+    min: 0
+  },
+  seasonId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Season',
+    required: true
   },
   isActive: {
     type: Boolean,

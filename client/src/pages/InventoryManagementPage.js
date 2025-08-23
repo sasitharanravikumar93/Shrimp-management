@@ -16,6 +16,8 @@ import {
   TextField,
   InputAdornment,
   IconButton,
+  ToggleButton,
+  ToggleButtonGroup,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import AddIcon from '@mui/icons-material/Add';
@@ -23,8 +25,8 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import HistoryIcon from '@mui/icons-material/History';
 import InventoryForm from '../components/InventoryForm';
-import InventoryAdjustmentModal from '../components/InventoryAdjustmentModal';
 import AdjustmentHistoryModal from '../components/AdjustmentHistoryModal'; // New import
+import CurrentStockView from '../components/CurrentStockView'; // New import
 import useApi from '../hooks/useApi';
 import { useSeason } from '../context/SeasonContext';
 import { useTranslation } from 'react-i18next';
@@ -36,12 +38,12 @@ const InventoryManagementPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filter, setFilter] = useState('all');
   const [openForm, setOpenForm] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
-  const [openAdjustmentModal, setOpenAdjustmentModal] = useState(false);
-  const [adjustingItem, setAdjustingItem] = useState(null);
   const [openHistoryModal, setOpenHistoryModal] = useState(false);
   const [historyItem, setHistoryItem] = useState(null);
+  const [view, setView] = useState('bought'); // 'bought' or 'stock'
 
   const api = useApi();
 
@@ -68,21 +70,43 @@ const InventoryManagementPage = () => {
   }, [selectedSeason?._id]);
 
   useEffect(() => {
-    fetchInventoryItems();
-  }, [fetchInventoryItems]);
+    if (view === 'bought') {
+      fetchInventoryItems();
+    } else {
+      setInventoryItems([]);
+    }
+  }, [view, fetchInventoryItems]);
 
   const handleSearchChange = (event) => {
     setSearchTerm(event.target.value);
   };
 
-  const filteredItems = useMemo(() => inventoryItems.filter(item =>
-    (item.itemName && 
-      (typeof item.itemName === 'object' 
-        ? (item.itemName[i18n.language] || item.itemName.en || '').toLowerCase().includes(searchTerm.toLowerCase())
-        : item.itemName.toLowerCase().includes(searchTerm.toLowerCase()))) ||
-    (item.itemType && item.itemType.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (item.supplier && item.supplier.toLowerCase().includes(searchTerm.toLowerCase()))
-  ), [inventoryItems, searchTerm, i18n.language]);
+  const handleFilterChange = (event, newFilter) => {
+    if (newFilter !== null) {
+      setFilter(newFilter);
+    }
+  };
+
+  const filteredItems = useMemo(() => {
+    let items = inventoryItems;
+
+    if (filter !== 'all') {
+      items = items.filter(item => item.itemType && item.itemType.toLowerCase() === filter.toLowerCase());
+    }
+
+    return items.filter(item =>
+      (item.itemName &&
+        (typeof item.itemName === 'object'
+          ? (item.itemName[i18n.language] || item.itemName.en || '').toLowerCase().includes(searchTerm.toLowerCase())
+          : item.itemName.toLowerCase().includes(searchTerm.toLowerCase()))) ||
+      (item.itemType && item.itemType.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (item.supplier && item.supplier.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+  }, [inventoryItems, searchTerm, i18n.language, filter]);
+
+  const itemTypes = useMemo(() => 
+    Array.from(new Set(inventoryItems.map(item => item.itemType).filter(Boolean)))
+  , [inventoryItems]);
 
   const handleOpenForm = (item = null) => {
     setEditingItem(item);
@@ -97,17 +121,6 @@ const InventoryManagementPage = () => {
 
   const handleSaveForm = (savedItem) => {
     fetchInventoryItems(); // Refresh data
-  };
-
-  const handleOpenAdjustmentModal = (item) => {
-    setAdjustingItem(item);
-    setOpenAdjustmentModal(true);
-  };
-
-  const handleCloseAdjustmentModal = () => {
-    setOpenAdjustmentModal(false);
-    setAdjustingItem(null);
-    fetchInventoryItems(); // Refresh data after adjustment
   };
 
   const handleOpenHistoryModal = (item) => {
@@ -130,14 +143,6 @@ const InventoryManagementPage = () => {
         setError(t('failed_to_delete_inventory_item'));
       }
     }
-  };
-
-  // Helper to determine status
-  const getItemStatus = (item) => {
-    const currentQty = item.currentQuantity;
-    if (currentQty <= 0) return t('out_of_stock');
-    if (item.lowStockThreshold && currentQty <= item.lowStockThreshold) return t('low_stock');
-    return t('in_stock');
   };
 
   // Helper to get item name based on language
@@ -163,21 +168,54 @@ const InventoryManagementPage = () => {
         </Button>
       </Box>
 
+      <Box sx={{ mb: 2 }}>
+        <ToggleButtonGroup
+          color="primary"
+          value={view}
+          exclusive
+          onChange={(e, newView) => { if (newView) setView(newView); }}
+          aria-label="text alignment"
+        >
+          <ToggleButton value="bought" aria-label="left aligned">
+            {t('inventory_bought')}
+          </ToggleButton>
+          <ToggleButton value="stock" aria-label="centered">
+            {t('current_stock')}
+          </ToggleButton>
+        </ToggleButtonGroup>
+      </Box>
+
       <Paper sx={{ p: 3, mb: 3 }}>
-        <TextField
-          fullWidth
-          label={t('search_inventory')}
-          variant="outlined"
-          value={searchTerm}
-          onChange={handleSearchChange}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position="end">
-                <SearchIcon />
-              </InputAdornment>
-            ),
-          }}
-        />
+        <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
+          <TextField
+            fullWidth
+            label={t('search_inventory')}
+            variant="outlined"
+            value={searchTerm}
+            onChange={handleSearchChange}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <SearchIcon />
+                </InputAdornment>
+              ),
+            }}
+            sx={{ flexGrow: 1, minWidth: 300 }}
+          />
+          <ToggleButtonGroup
+            size="small"
+            value={filter}
+            exclusive
+            onChange={handleFilterChange}
+          >
+            <ToggleButton value="all">{t('all')}</ToggleButton>
+            {itemTypes.map(type => (
+              <ToggleButton key={type} value={type.toLowerCase()}>
+                {t(type)}
+              </ToggleButton>
+            ))}
+          </ToggleButtonGroup>
+        </Box>
       </Paper>
 
       {loading && (
@@ -192,7 +230,7 @@ const InventoryManagementPage = () => {
         </Alert>
       )}
 
-      {!loading && !error && (
+      {!loading && !error && view === 'bought' && (
         <Paper>
           <TableContainer>
             <Table>
@@ -200,11 +238,11 @@ const InventoryManagementPage = () => {
                 <TableRow>
                   <TableCell>{t('itemName')}</TableCell>
                   <TableCell>{t('itemType')}</TableCell>
+                  <TableCell>{t('purchaseDate')}</TableCell>
                   <TableCell>{t('supplier')}</TableCell>
                   <TableCell>{t('unit')}</TableCell>
                   <TableCell align="right">{t('costPerUnit')}</TableCell>
-                  <TableCell align="right">{t('current_quantity')}</TableCell>
-                  <TableCell>{t('status')}</TableCell>
+                  <TableCell align="right">{t('quantity_bought')}</TableCell>
                   <TableCell>{t('actions')}</TableCell>
                 </TableRow>
               </TableHead>
@@ -222,32 +260,14 @@ const InventoryManagementPage = () => {
                         {getItemName(item)}
                       </TableCell>
                       <TableCell>{item.itemType}</TableCell>
+                      <TableCell>{item.purchaseDate ? new Date(item.purchaseDate).toLocaleDateString() : 'N/A'}</TableCell>
                       <TableCell>{item.supplier}</TableCell>
                       <TableCell>{item.unit}</TableCell>
                       <TableCell align="right">{item.costPerUnit}</TableCell>
-                      <TableCell align="right">{item.currentQuantity}</TableCell>
-                      <TableCell>
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            color:
-                              getItemStatus(item) === t('low_stock')
-                                ? 'orange'
-                                : getItemStatus(item) === t('out_of_stock')
-                                ? 'red'
-                                : 'green',
-                            fontWeight: 'bold',
-                          }}
-                        >
-                          {getItemStatus(item)}
-                        </Typography>
-                      </TableCell>
+                      <TableCell align="right">{item.quantityBought}</TableCell>
                       <TableCell>
                         <IconButton color="primary" onClick={() => handleOpenForm(item)}>
                           <EditIcon />
-                        </IconButton>
-                        <IconButton color="secondary" onClick={() => handleOpenAdjustmentModal(item)}>
-                          <AddIcon />
                         </IconButton>
                         <IconButton onClick={() => handleOpenHistoryModal(item)}>
                           <HistoryIcon />
@@ -265,20 +285,14 @@ const InventoryManagementPage = () => {
         </Paper>
       )}
 
+      {!loading && !error && view === 'stock' && <CurrentStockView />}
+
       {openForm && (
         <InventoryForm
           open={openForm}
           onClose={handleCloseForm}
           item={editingItem}
           onSave={handleSaveForm}
-        />
-      )}
-
-      {openAdjustmentModal && (
-        <InventoryAdjustmentModal
-          open={openAdjustmentModal}
-          onClose={handleCloseAdjustmentModal}
-          item={adjustingItem}
         />
       )}
 
