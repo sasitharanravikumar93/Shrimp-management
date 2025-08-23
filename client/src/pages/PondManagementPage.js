@@ -103,6 +103,25 @@ const PondManagementPage = () => {
   const [chemicalProbioticInventoryItems, setChemicalProbioticInventoryItems] = useState([]);
   const [chemicalProbioticInventoryLoading, setChemicalProbioticInventoryLoading] = useState(true);
   const [chemicalProbioticInventoryError, setChemicalProbioticInventoryError] = useState(null);
+  const [feedType, setFeedType] = useState('');
+  const [chemicalType, setChemicalType] = useState('');
+  const [nurseryBatches, setNurseryBatches] = useState([]);
+
+  useEffect(() => {
+    const fetchNurseryBatches = async () => {
+      if (!selectedSeason || !selectedSeason._id) {
+        setNurseryBatches([]);
+        return;
+      }
+      try {
+        const response = await api.get(`/nursery-batches/season/${selectedSeason._id}`);
+        setNurseryBatches(response || []);
+      } catch (err) {
+        console.error('Error fetching nursery batches:', err);
+      }
+    };
+    fetchNurseryBatches();
+  }, [selectedSeason, api]);
 
   useEffect(() => {
     const fetchPonds = async () => {
@@ -260,12 +279,12 @@ const PondManagementPage = () => {
     refetch: refetchEvents
   } = useApiData(() => pondId && getEventsByPondId(pondId), [pondId], `events-${pondId}`, 3);
   
-  const { mutate: createFeedInputMutation, loading: createFeedInputLoading } = useApiMutation(createFeedInput, 3);
-  const { mutate: createWaterQualityInputMutation, loading: createWaterQualityInputLoading } = useApiMutation(createWaterQualityInput, 3);
-  const { mutate: createGrowthSamplingMutation, loading: createGrowthSamplingLoading } = useApiMutation(createGrowthSampling, 3);
-  const { mutate: createEventMutation, loading: createEventLoading } = useApiMutation(createEvent, 3);
+  const { mutate: createFeedInputMutation, loading: createFeedInputLoading, error: createFeedInputError } = useApiMutation(createFeedInput, 3);
+  const { mutate: createWaterQualityInputMutation, loading: createWaterQualityInputLoading, error: createWaterQualityInputError } = useApiMutation(createWaterQualityInput, 3);
+  const { mutate: createGrowthSamplingMutation, loading: createGrowthSamplingLoading, error: createGrowthSamplingError } = useApiMutation(createGrowthSampling, 3);
+  const { mutate: createEventMutation, loading: createEventLoading, error: createEventError } = useApiMutation(createEvent, 3);
 
-  const { control, handleSubmit, reset, setValue } = useForm({
+  const { control, handleSubmit, reset, setValue, watch } = useForm({
     defaultValues: {
       date: new Date(),
       time: new Date(),
@@ -283,6 +302,8 @@ const PondManagementPage = () => {
       description: ''
     }
   });
+
+  const eventType = watch('eventType');
 
   const handleTabChange = (event, newValue) => {
     setActiveTab(newValue);
@@ -333,52 +354,37 @@ const PondManagementPage = () => {
 
   const handleEventSubmit = async (data) => {
     try {
-      if (activeTab === 0 || data.eventType === 'Feed') {
-        await createFeedInputMutation({
-          pondId,
-          seasonId: selectedSeason._id,
-          date: data.date,
-          time: data.time,
-          inventoryItemId: data.inventoryItemId,
-          quantity: parseFloat(data.quantity)
-        });
-        refetchFeedEntries();
-      } else if (activeTab === 1 || data.eventType === 'Water Quality') {
-        await createWaterQualityInputMutation({
-          pondId,
-          seasonId: selectedSeason._id,
-          date: data.date,
-          time: data.time,
-          pH: parseFloat(data.pH),
-          dissolvedOxygen: parseFloat(data.dissolvedOxygen),
-          temperature: parseFloat(data.temperature),
-          salinity: parseFloat(data.salinity),
-          inventoryItemId: data.inventoryItemId,
-          quantityUsed: parseFloat(data.quantityUsed)
-        });
-        refetchWaterQualityEntries();
-      } else if (activeTab === 2 || data.eventType === 'Growth Sampling') {
-        await createGrowthSamplingMutation({
-          pondId,
-          seasonId: selectedSeason._id,
-          date: data.date,
-          time: data.time,
-          totalWeight: parseFloat(data.totalWeight),
-          totalCount: parseInt(data.totalCount)
-        });
-        refetchGrowthSamplingEntries();
-      } else {
-        await createEventMutation({
-          pondId,
-          seasonId: selectedSeason._id,
-          title: data.title,
-          date: data.date,
-          time: data.time,
-          type: data.eventType,
-          description: data.description
-        });
-        refetchEvents();
+      const details = {};
+      if (data.eventType === 'Feeding') {
+        details.inventoryItemId = feedType;
+        details.quantity = parseFloat(data.quantity);
+      } else if (data.eventType === 'Water Quality') {
+        details.pH = parseFloat(data.pH);
+        details.dissolvedOxygen = parseFloat(data.dissolvedOxygen);
+        details.temperature = parseFloat(data.temperature);
+        details.salinity = parseFloat(data.salinity);
+        details.inventoryItemId = chemicalType;
+        details.quantityUsed = parseFloat(data.quantityUsed);
+      } else if (data.eventType === 'Growth Sampling') {
+        details.totalWeight = parseFloat(data.totalWeight);
+        details.totalCount = parseInt(data.totalCount);
+      } else if (data.eventType === 'Stocking') {
+        details.nurseryBatchId = data.nurseryBatchId;
+        details.species = data.species;
+        details.initialCount = parseInt(data.initialCount);
       }
+
+      await createEventMutation({
+        pondId,
+        seasonId: selectedSeason._id,
+        title: data.title,
+        date: data.date,
+        time: data.time,
+        eventType: data.eventType,
+        description: data.description,
+        details
+      });
+      refetchEvents();
       
       setOpenAddModal(false);
     } catch (error) {
@@ -459,53 +465,7 @@ const PondManagementPage = () => {
   const hasError = pondError || feedEntriesError || waterQualityEntriesError || 
                    growthSamplingEntriesError || eventsError;
 
-  if (!pondId) {
-    return (
-      <Container maxWidth="lg" sx={{ mt: 2, mb: 4 }}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          {t('pond_management')}
-        </Typography>
-        {pondsLoading ? (
-          <CircularProgress />
-        ) : pondsError ? (
-          <Alert severity="error">{pondsError}</Alert>
-        ) : !selectedSeason ? (
-          <Alert severity="info">{t('please_select_a_season_to_manage_ponds')}</Alert>
-        ) : ponds.length === 0 ? (
-          <Alert severity="info">
-            {t('no_ponds_found_for_selected_season')}
-            <Button component="a" href="/#/admin" variant="contained" sx={{ ml: 2 }}>
-              {t('create_pond_in_admin_page')}
-            </Button>
-          </Alert>
-        ) : (
-          <Card elevation={3}>
-            <CardHeader title={t('select_pond_to_manage')} />
-            <CardContent>
-              <Grid container spacing={2}>
-                {(showAllPonds ? ponds : ponds.slice(0, 3)).map((pond) => (
-                  <Grid item xs={12} md={4} key={pond._id}>
-                    <PondCard 
-                      pond={pond} 
-                      onClick={() => navigate(`/pond/${pond._id}`)} 
-                      selected={pond._id === pondId}
-                    />
-                  </Grid>
-                ))}
-              </Grid>
-              {ponds.length > 3 && (
-                <Box sx={{ mt: 2, textAlign: 'center' }}>
-                  <Button onClick={() => setShowAllPonds(!showAllPonds)}>
-                    {showAllPonds ? t('show_less') : t('show_more')}
-                  </Button>
-                </Box>
-              )}
-            </CardContent>
-          </Card>
-        )}
-      </Container>
-    );
-  }
+  
 
   if (isLoading) {
     return (
@@ -567,6 +527,25 @@ const PondManagementPage = () => {
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
       <Container maxWidth="lg" sx={{ mt: 2, mb: 4 }}>
+        <Grid container spacing={2} sx={{ mb: 2 }}>
+          {(showAllPonds ? ponds : ponds.slice(0, 3)).map((p) => (
+            <Grid item xs={12} md={4} key={p._id}>
+              <PondCard 
+                pond={p} 
+                onClick={() => navigate(`/pond/${p._id}`)} 
+                selected={p._id === pondId}
+              />
+            </Grid>
+          ))}
+        </Grid>
+        {ponds.length > 3 && (
+          <Box sx={{ mb: 2, textAlign: 'center' }}>
+            <Button onClick={() => setShowAllPonds(!showAllPonds)}>
+              {showAllPonds ? t('show_less') : t('show_more')}
+            </Button>
+          </Box>
+        )}
+
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <Box>
             <Typography variant="h4" component="h1" gutterBottom>
@@ -655,6 +634,11 @@ const PondManagementPage = () => {
                     <Card variant="outlined">
                       <CardHeader title="Record Feed Input" />
                       <CardContent>
+                        {createFeedInputError && (
+                          <Alert severity="error" sx={{ mb: 2 }}>
+                            {createFeedInputError.message}
+                          </Alert>
+                        )}
                         <FeedCalculator 
                           initialBiomass={500} 
                           initialShrimpCount={25000} 
@@ -695,30 +679,25 @@ const PondManagementPage = () => {
                             </Grid>
                             
                             <Grid item xs={12}>
-                              <Controller
-                                name="inventoryItemId"
-                                control={control}
-                                render={({ field }) => (
-                                  <TextField
-                                    {...field}
-                                    label="Feed Type"
-                                    fullWidth
-                                    select
-                                    disabled={feedInventoryLoading}
-                                    error={!!feedInventoryError}
-                                    helperText={feedInventoryError || (feedInventoryLoading ? 'Loading feed types...' : '')}
-                                  >
-                                    {Array.isArray(feedInventoryItems) && feedInventoryItems.map((item) => {
-                                      const itemName = typeof item.itemName === 'object' ? (item.itemName[i18n.language] || item.itemName.en) : item.itemName;
-                                      return (
-                                        <MenuItem key={item._id} value={item._id}>
-                                          {itemName}
-                                        </MenuItem>
-                                      )
-                                    })}}}
-                                  </TextField>
-                                )}
-                              />
+                              <TextField
+                                label="Feed Type"
+                                fullWidth
+                                select
+                                disabled={feedInventoryLoading}
+                                error={!!feedInventoryError}
+                                helperText={feedInventoryError || (feedInventoryLoading ? 'Loading feed types...' : '')}
+                                value={feedType}
+                                onChange={(e) => setFeedType(e.target.value)}
+                              >
+                                {Array.isArray(feedInventoryItems) && feedInventoryItems.map((item) => {
+                                  const itemName = typeof item.itemName === 'object' ? (item.itemName[i18n.language] || item.itemName.en) : item.itemName;
+                                  return (
+                                    <MenuItem key={item._id} value={item._id}>
+                                      {itemName}
+                                    </MenuItem>
+                                  )
+                                })}
+                              </TextField>
                             </Grid>
                             
                             <Grid item xs={12}>
@@ -836,6 +815,11 @@ const PondManagementPage = () => {
                     <Card variant="outlined">
                       <CardHeader title="Record Water Quality" />
                       <CardContent>
+                        {createWaterQualityInputError && (
+                          <Alert severity="error" sx={{ mb: 2 }}>
+                            {createWaterQualityInputError.message}
+                          </Alert>
+                        )}
                         <WaterQualityAlert 
                           pondName={pond.name && typeof pond.name === 'object' ? (pond.name[i18n.language] || pond.name.en || 'Pond') : pond.name}
                           pH={7.2}
@@ -938,30 +922,25 @@ const PondManagementPage = () => {
                             </Grid>
 
                             <Grid item xs={12} md={6}>
-                              <Controller
-                                name="inventoryItemId"
-                                control={control}
-                                render={({ field }) => (
-                                  <TextField
-                                    {...field}
-                                    label="Chemical/Probiotic Used"
-                                    fullWidth
-                                    select
-                                    disabled={chemicalProbioticInventoryLoading}
-                                    error={!!chemicalProbioticInventoryError}
-                                    helperText={chemicalProbioticInventoryError || (chemicalProbioticInventoryLoading ? 'Loading chemicals/probiotics...' : '')}
-                                  >
-                                    {Array.isArray(chemicalProbioticInventoryItems) && chemicalProbioticInventoryItems.map((item) => {
-                                      const itemName = typeof item.itemName === 'object' ? (item.itemName[i18n.language] || item.itemName.en) : item.itemName;
-                                      return (
-                                        <MenuItem key={item._id} value={item._id}>
-                                          {itemName}
-                                        </MenuItem>
-                                      )
-                                    })}}
-                                  </TextField>
-                                )}
-                              />
+                              <TextField
+                                label="Chemical/Probiotic Used"
+                                fullWidth
+                                select
+                                disabled={chemicalProbioticInventoryLoading}
+                                error={!!chemicalProbioticInventoryError}
+                                helperText={chemicalProbioticInventoryError || (chemicalProbioticInventoryLoading ? 'Loading chemicals/probiotics...' : '')}
+                                value={chemicalType}
+                                onChange={(e) => setChemicalType(e.target.value)}
+                              >
+                                {Array.isArray(chemicalProbioticInventoryItems) && chemicalProbioticInventoryItems.map((item) => {
+                                  const itemName = typeof item.itemName === 'object' ? (item.itemName[i18n.language] || item.itemName.en) : item.itemName;
+                                  return (
+                                    <MenuItem key={item._id} value={item._id}>
+                                      {itemName}
+                                    </MenuItem>
+                                  )
+                                })}
+                              </TextField>
                             </Grid>
 
                             <Grid item xs={12} md={6}>
@@ -1091,6 +1070,11 @@ const PondManagementPage = () => {
                     <Card variant="outlined">
                       <CardHeader title="Record Growth Sampling" />
                       <CardContent>
+                        {createGrowthSamplingError && (
+                          <Alert severity="error" sx={{ mb: 2 }}>
+                            {createGrowthSamplingError.message}
+                          </Alert>
+                        )}
                         <form onSubmit={handleSubmit(handleEventSubmit)}>
                           <Grid container spacing={2}>
                             <Grid item xs={12} md={6}>
@@ -1452,6 +1436,30 @@ const PondManagementPage = () => {
             <Grid container spacing={2} sx={{ mt: 1 }}>
               <Grid item xs={12}>
                 <Controller
+                  name="eventType"
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      label="Event Type"
+                      fullWidth
+                      select
+                      required
+                    >
+                      <MenuItem value="Routine">Routine</MenuItem>
+                      <MenuItem value="Monitoring">Monitoring</MenuItem>
+                      <MenuItem value="Maintenance">Maintenance</MenuItem>
+                      <MenuItem value="Feeding">Feeding</MenuItem>
+                      <MenuItem value="Water Quality">Water Quality</MenuItem>
+                      <MenuItem value="Growth Sampling">Growth Sampling</MenuItem>
+                      <MenuItem value="Stocking">Stocking</MenuItem>
+                    </TextField>
+                  )}
+                />
+              </Grid>
+
+              <Grid item xs={12}>
+                <Controller
                   name="title"
                   control={control}
                   render={({ field }) => (
@@ -1459,7 +1467,6 @@ const PondManagementPage = () => {
                       {...field}
                       label="Event Title"
                       fullWidth
-                      required
                     />
                   )}
                 />
@@ -1495,29 +1502,223 @@ const PondManagementPage = () => {
                 />
               </Grid>
               
-              <Grid item xs={12}>
-                <Controller
-                  name="eventType"
-                  control={control}
-                  render={({ field }) => (
+              {eventType === 'Feeding' && (
+                <>
+                  <Grid item xs={12}>
                     <TextField
-                      {...field}
-                      label="Event Type"
+                      label="Feed Type"
                       fullWidth
                       select
-                      required
+                      disabled={feedInventoryLoading}
+                      error={!!feedInventoryError}
+                      helperText={feedInventoryError || (feedInventoryLoading ? 'Loading feed types...' : '')}
+                      value={feedType}
+                      onChange={(e) => setFeedType(e.target.value)}
                     >
-                      <MenuItem value="Routine">Routine</MenuItem>
-                      <MenuItem value="Monitoring">Monitoring</MenuItem>
-                      <MenuItem value="Maintenance">Maintenance</MenuItem>
-                      <MenuItem value="Feeding">Feeding</MenuItem>
-                      <MenuItem value="Water Quality">Water Quality</MenuItem>
-                      <MenuItem value="Growth Sampling">Growth Sampling</MenuItem>
+                      {Array.isArray(feedInventoryItems) && feedInventoryItems.map((item) => {
+                        const itemName = typeof item.itemName === 'object' ? (item.itemName[i18n.language] || item.itemName.en) : item.itemName;
+                        return (
+                          <MenuItem key={item._id} value={item._id}>
+                            {itemName}
+                          </MenuItem>
+                        )
+                      })}
                     </TextField>
-                  )}
-                />
-              </Grid>
-              
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Controller
+                      name="quantity"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Quantity (kg)"
+                          type="number"
+                          fullWidth
+                        />
+                      )}
+                    />
+                  </Grid>
+                </>
+              )}
+
+              {eventType === 'Water Quality' && (
+                <>
+                  <Grid item xs={12} md={6}>
+                    <Controller
+                      name="pH"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="pH"
+                          type="number"
+                          fullWidth
+                        />
+                      )}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Controller
+                      name="dissolvedOxygen"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Dissolved Oxygen (mg/L)"
+                          type="number"
+                          fullWidth
+                        />
+                      )}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Controller
+                      name="temperature"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Temperature (°C)"
+                          type="number"
+                          fullWidth
+                        />
+                      )}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Controller
+                      name="salinity"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Salinity (ppt)"
+                          type="number"
+                          fullWidth
+                        />
+                      )}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      label="Chemical/Probiotic Used"
+                      fullWidth
+                      select
+                      disabled={chemicalProbioticInventoryLoading}
+                      error={!!chemicalProbioticInventoryError}
+                      helperText={chemicalProbioticInventoryError || (chemicalProbioticInventoryLoading ? 'Loading chemicals/probiotics...' : '')}
+                      value={chemicalType}
+                      onChange={(e) => setChemicalType(e.target.value)}
+                    >
+                      {Array.isArray(chemicalProbioticInventoryItems) && chemicalProbioticInventoryItems.map((item) => {
+                        const itemName = typeof item.itemName === 'object' ? (item.itemName[i18n.language] || item.itemName.en) : item.itemName;
+                        return (
+                          <MenuItem key={item._id} value={item._id}>
+                            {itemName}
+                          </MenuItem>
+                        )
+                      })}
+                    </TextField>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Controller
+                      name="quantityUsed"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Quantity Used (unit)"
+                          type="number"
+                          fullWidth
+                        />
+                      )}
+                    />
+                  </Grid>
+                </>
+              )}
+
+              {eventType === 'Growth Sampling' && (
+                <>
+                  <Grid item xs={12} md={6}>
+                    <Controller
+                      name="totalWeight"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Total Weight (kg)"
+                          type="number"
+                          fullWidth
+                        />
+                      )}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Controller
+                      name="totalCount"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Total Count"
+                          type="number"
+                          fullWidth
+                        />
+                      )}
+                    />
+                  </Grid>
+                </>
+              )}
+
+              {eventType === 'Stocking' && (
+                <>
+                  <Grid item xs={12}>
+                    <Controller
+                      name="nurseryBatchId"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Nursery Batch"
+                          fullWidth
+                          select
+                        >
+                          {/* TODO: Populate with nursery batches */}
+                        </TextField>
+                      )}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Controller
+                      name="species"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Species"
+                          fullWidth
+                        />
+                      )}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Controller
+                      name="initialCount"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          label="Initial Count"
+                          type="number"
+                          fullWidth
+                        />
+                      )}
+                    />
+                  </Grid>
+                </>
+              )}
+
               <Grid item xs={12}>
                 <Controller
                   name="description"

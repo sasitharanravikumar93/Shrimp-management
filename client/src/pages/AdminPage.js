@@ -689,12 +689,16 @@ const AdminPage = () => {
                             render: (value) => {
                               if (!value) return 'N/A';
                               if (typeof value === 'object') {
-                                if (typeof value.name === 'object') {
-                                  return value.name[i18n.language] || value.name.en;
+                                // Check if season name is an empty object
+                                if (typeof value.name === 'object' && value.name !== null && Object.keys(value.name).length === 0) {
+                                  return 'Unnamed Season';
                                 }
-                                return value.name;
+                                if (typeof value.name === 'object') {
+                                  return value.name[i18n.language] || value.name.en || 'Unnamed Season';
+                                }
+                                return value.name || 'Unnamed Season';
                               }
-                              return value;
+                              return value || 'Unnamed Season';
                             }
                           },
                           {
@@ -959,26 +963,34 @@ const AdminPage = () => {
                   onChange={handleInputChange}
                   required
                 />
-                <TextField
-                  margin="dense"
-                  name="seasonId"
-                  select
-                  label={t('season')}
-                  fullWidth
-                  variant="outlined"
-                  sx={{ mt: 2 }}
-                  value={formData.seasonId}
-                  onChange={handleInputChange}
-                  required
-                >
-                  {seasons.map((season) => (
-                    <MenuItem key={season._id || season.id} value={season._id || season.id}>
-                      {typeof season.name === 'object' 
-                        ? (season.name[i18n.language] || season.name.en || season.name)
-                        : season.name}
-                    </MenuItem>
-                  ))}
-                </TextField>
+                {seasons.length === 0 ? (
+                  <Alert severity="warning" sx={{ mt: 2 }}>
+                    {t('no_seasons_available_create_season_first')}
+                  </Alert>
+                ) : (
+                  <TextField
+                    margin="dense"
+                    name="seasonId"
+                    select
+                    label={t('season')}
+                    fullWidth
+                    variant="outlined"
+                    sx={{ mt: 2 }}
+                    value={formData.seasonId}
+                    onChange={handleInputChange}
+                    required
+                  >
+                    {seasons.map((season) => (
+                      <MenuItem key={season._id || season.id} value={season._id || season.id}>
+                        {typeof season.name === 'object' && season.name !== null
+                          ? (Object.keys(season.name).length > 0 
+                              ? (season.name[i18n.language] || season.name.en || 'Unnamed Season')
+                              : 'Unnamed Season')
+                          : (season.name || 'Unnamed Season')}
+                      </MenuItem>
+                    ))}
+                  </TextField>
+                )}
                 <TextField
                   margin="dense"
                   name="status"

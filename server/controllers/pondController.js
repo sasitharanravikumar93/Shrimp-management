@@ -34,16 +34,41 @@ const translateDocument = (doc, language) => {
   
   // Process name field if it's a Map
   if (plainDoc.name && typeof plainDoc.name === 'object' && !(plainDoc.name instanceof Date)) {
-    if (plainDoc.name.get) {
+    if (plainDoc.name instanceof Map) {
       // It's a Map
       plainDoc.name = plainDoc.name.get(language) || plainDoc.name.get('en') || '';
-    } else if (plainDoc.name[language]) {
+    } else if (typeof plainDoc.name === 'object' && !Array.isArray(plainDoc.name) && plainDoc.name !== null) {
       // It's a plain object
-      plainDoc.name = plainDoc.name[language];
-    } else if (plainDoc.name['en']) {
-      plainDoc.name = plainDoc.name['en'];
+      if (plainDoc.name[language]) {
+        plainDoc.name = plainDoc.name[language];
+      } else if (plainDoc.name['en']) {
+        plainDoc.name = plainDoc.name['en'];
+      } else {
+        plainDoc.name = '';
+      }
     } else {
       plainDoc.name = '';
+    }
+  }
+  
+  // Process season name if it exists
+  if (plainDoc.seasonId && typeof plainDoc.seasonId === 'object' && plainDoc.seasonId !== null) {
+    if (plainDoc.seasonId.name && typeof plainDoc.seasonId.name === 'object' && !(plainDoc.seasonId.name instanceof Date)) {
+      if (plainDoc.seasonId.name instanceof Map) {
+        // It's a Map
+        plainDoc.seasonId.name = plainDoc.seasonId.name.get(language) || plainDoc.seasonId.name.get('en') || '';
+      } else if (typeof plainDoc.seasonId.name === 'object' && !Array.isArray(plainDoc.seasonId.name) && plainDoc.seasonId.name !== null) {
+        // It's a plain object
+        if (plainDoc.seasonId.name[language]) {
+          plainDoc.seasonId.name = plainDoc.seasonId.name[language];
+        } else if (plainDoc.seasonId.name['en']) {
+          plainDoc.seasonId.name = plainDoc.seasonId.name['en'];
+        } else {
+          plainDoc.seasonId.name = '';
+        }
+      } else {
+        plainDoc.seasonId.name = '';
+      }
     }
   }
   
@@ -143,10 +168,10 @@ exports.getAllPonds = async (req, res) => {
     logger.info('Total pond count', { total });
     
     const ponds = await Pond.find()
-      .populate('seasonId', 'name')
+      .populate('seasonId')
       .skip(skip)
       .limit(limit)
-      .sort({ createdAt: -1 }); // Sort by creation date, newest first
+      .sort({ createdAt: -1 });
     
     logger.info('Ponds fetched with pagination', { 
       page, 
@@ -165,6 +190,21 @@ exports.getAllPonds = async (req, res) => {
         pondSize: pond.size,
         pondCapacity: pond.capacity
       });
+      
+      // Log detailed season information for debugging
+      if (pond.seasonId) {
+        logger.info(`Season details for pond ${index + 1}`, {
+          seasonId: pond.seasonId._id,
+          seasonName: pond.seasonId.name,
+          seasonNameType: typeof pond.seasonId.name,
+          seasonNameIsMap: pond.seasonId.name instanceof Map,
+          seasonNameKeys: pond.seasonId.name instanceof Map ? 
+            Array.from(pond.seasonId.name.keys()) : 
+            (typeof pond.seasonId.name === 'object' && pond.seasonId.name !== null ? 
+              Object.keys(pond.seasonId.name) : 
+              'Not an object')
+        });
+      }
     });
     
     const translatedPonds = translateDocuments(ponds, language);
@@ -198,7 +238,7 @@ exports.getPondById = async (req, res) => {
   logger.info(`Getting pond by ID: ${req.params.id}`);
   try {
     const language = getLanguageForUser(req);
-    const pond = await Pond.findById(req.params.id).populate('seasonId', 'name');
+    const pond = await Pond.findById(req.params.id).populate('seasonId');
     if (!pond) {
       logger.warn(`Pond not found with ID: ${req.params.id}`);
       return res.status(404).json({ message: 'Pond not found' });
@@ -211,6 +251,21 @@ exports.getPondById = async (req, res) => {
       pondSize: pond.size,
       pondCapacity: pond.capacity
     });
+    
+    // Log detailed season information for debugging
+    if (pond.seasonId) {
+      logger.info('Season details for pond', {
+        seasonId: pond.seasonId._id,
+        seasonName: pond.seasonId.name,
+        seasonNameType: typeof pond.seasonId.name,
+        seasonNameIsMap: pond.seasonId.name instanceof Map,
+        seasonNameKeys: pond.seasonId.name instanceof Map ? 
+          Array.from(pond.seasonId.name.keys()) : 
+          (typeof pond.seasonId.name === 'object' && pond.seasonId.name !== null ? 
+            Object.keys(pond.seasonId.name) : 
+            'Not an object')
+      });
+    }
     
     const translatedPond = translateDocument(pond, language);
     res.json(translatedPond);
@@ -324,7 +379,7 @@ exports.getPondsBySeasonId = async (req, res) => {
     }
     
     logger.info('Fetching ponds for season', { seasonId });
-    const ponds = await Pond.find({ seasonId }).populate('seasonId', 'name');
+    const ponds = await Pond.find({ seasonId }).populate('seasonId');
     logger.info('Ponds fetched successfully', { seasonId, pondCount: ponds.length });
     
     // Add additional logging to help debug
