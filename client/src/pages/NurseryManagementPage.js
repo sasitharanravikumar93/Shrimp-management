@@ -37,8 +37,10 @@ import {
 import { 
   Add as AddIcon,
   Edit as EditIcon,
-  Delete as DeleteIcon
+  Delete as DeleteIcon,
+  Visibility as ViewIcon
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -55,6 +57,7 @@ import { useTranslation } from 'react-i18next';
 
 const NurseryManagementPage = () => {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(0);
   const [openDialog, setOpenDialog] = useState(false);
   const [editingBatch, setEditingBatch] = useState(null);
@@ -65,7 +68,9 @@ const NurseryManagementPage = () => {
     species: '',
     source: '',
     seasonId: '',
-    status: 'Active'
+    size: '',
+    capacity: '',
+    status: 'Planning'
   });
 
   // Fetch nursery batches
@@ -102,7 +107,9 @@ const NurseryManagementPage = () => {
         species: batch.species || '',
         source: batch.source || '',
         seasonId: batch.seasonId || '',
-        status: batch.status || 'Active'
+        size: batch.size || '',
+        capacity: batch.capacity || '',
+        status: batch.status || 'Planning'
       });
     } else {
       setEditingBatch(null);
@@ -113,7 +120,9 @@ const NurseryManagementPage = () => {
         species: '',
         source: '',
         seasonId: '',
-        status: 'Active'
+        size: '',
+        capacity: '',
+        status: 'Planning'
       });
     }
     setOpenDialog(true);
@@ -150,6 +159,8 @@ const NurseryManagementPage = () => {
         species: formData.species,
         source: formData.source,
         seasonId: formData.seasonId,
+        size: parseFloat(formData.size),
+        capacity: parseInt(formData.capacity),
         status: formData.status
       };
 
@@ -177,6 +188,10 @@ const NurseryManagementPage = () => {
         console.error('Error deleting batch:', error);
       }
     }
+  };
+
+  const handleViewBatch = (batchId) => {
+    navigate(`/nursery/batch/${batchId}`);
   };
 
   // Loading and error states
@@ -251,6 +266,8 @@ const NurseryManagementPage = () => {
                             <TableCell>{t('initialCount')}</TableCell>
                             <TableCell>{t('species')}</TableCell>
                             <TableCell>{t('source')}</TableCell>
+                            <TableCell>{t('size')}</TableCell>
+                            <TableCell>{t('capacity')}</TableCell>
                             <TableCell>{t('season')}</TableCell>
                             <TableCell>{t('status')}</TableCell>
                             <TableCell>{t('actions')}</TableCell>
@@ -270,6 +287,8 @@ const NurseryManagementPage = () => {
                               <TableCell>{batch.initialCount}</TableCell>
                               <TableCell>{batch.species}</TableCell>
                               <TableCell>{batch.source}</TableCell>
+                              <TableCell>{batch.size}</TableCell>
+                              <TableCell>{batch.capacity}</TableCell>
                               <TableCell>
                                 {batch.seasonId ? 
                                   (typeof batch.seasonId === 'object' ? 
@@ -282,16 +301,25 @@ const NurseryManagementPage = () => {
                               </TableCell>
                               <TableCell>
                                 <Chip 
-                                  label={batch.status || 'Active'} 
+                                  label={batch.status || 'Planning'} 
                                   size="small" 
                                   color={
-                                    (batch.status || 'Active') === 'Active' ? 'success' : 
-                                    (batch.status || 'Active') === 'Completed' ? 'default' : 
-                                    'warning'
+                                    (batch.status || 'Planning') === 'Active' ? 'success' : 
+                                    (batch.status || 'Planning') === 'Completed' ? 'default' : 
+                                    (batch.status || 'Planning') === 'Inactive' ? 'warning' : 
+                                    'primary'
                                   } 
                                 />
                               </TableCell>
                               <TableCell>
+                                <Tooltip title={t('view')}>
+                                  <IconButton 
+                                    size="small" 
+                                    onClick={() => handleViewBatch(batch._id || batch.id)}
+                                  >
+                                    <ViewIcon />
+                                  </IconButton>
+                                </Tooltip>
                                 <Tooltip title={t('edit')}>
                                   <IconButton 
                                     size="small" 
@@ -341,12 +369,13 @@ const NurseryManagementPage = () => {
               value={formData.batchName}
               onChange={handleInputChange}
               name="batchName"
+              required
             />
             <DatePicker
               label={t('startDate')}
               value={formData.startDate}
               onChange={handleDateChange}
-              renderInput={(params) => <TextField {...params} fullWidth variant="outlined" sx={{ mt: 2 }} />}
+              renderInput={(params) => <TextField {...params} fullWidth variant="outlined" sx={{ mt: 2 }} required />}
             />
             <TextField
               margin="dense"
@@ -358,6 +387,7 @@ const NurseryManagementPage = () => {
               sx={{ mt: 2 }}
               value={formData.initialCount}
               onChange={handleInputChange}
+              required
             />
             <TextField
               margin="dense"
@@ -369,6 +399,7 @@ const NurseryManagementPage = () => {
               sx={{ mt: 2 }}
               value={formData.species}
               onChange={handleInputChange}
+              required
             />
             <TextField
               margin="dense"
@@ -380,6 +411,31 @@ const NurseryManagementPage = () => {
               sx={{ mt: 2 }}
               value={formData.source}
               onChange={handleInputChange}
+              required
+            />
+            <TextField
+              margin="dense"
+              name="size"
+              label={t('size')}
+              type="number"
+              fullWidth
+              variant="outlined"
+              sx={{ mt: 2 }}
+              value={formData.size}
+              onChange={handleInputChange}
+              required
+            />
+            <TextField
+              margin="dense"
+              name="capacity"
+              label={t('capacity')}
+              type="number"
+              fullWidth
+              variant="outlined"
+              sx={{ mt: 2 }}
+              value={formData.capacity}
+              onChange={handleInputChange}
+              required
             />
             <FormControl fullWidth variant="outlined" margin="dense" sx={{ mt: 2 }}>
               <InputLabel id="season-select-label">{t('season')}</InputLabel>
@@ -389,6 +445,7 @@ const NurseryManagementPage = () => {
                 value={formData.seasonId}
                 onChange={handleInputChange}
                 label={t('season')}
+                required
               >
                 {seasons.map((season) => (
                   <MenuItem key={season._id || season.id} value={season._id || season.id}>
@@ -408,6 +465,7 @@ const NurseryManagementPage = () => {
                 onChange={handleInputChange}
                 label={t('status')}
               >
+                <MenuItem value="Planning">{t('planning')}</MenuItem>
                 <MenuItem value="Active">{t('active')}</MenuItem>
                 <MenuItem value="Inactive">{t('inactive')}</MenuItem>
                 <MenuItem value="Completed">{t('completed')}</MenuItem>

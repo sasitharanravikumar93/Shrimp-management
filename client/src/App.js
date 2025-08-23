@@ -15,6 +15,7 @@ const PondManagementPage = lazy(() => import('./pages/PondManagementPage'));
 const FeedViewPage = lazy(() => import('./pages/FeedViewPage'));
 const WaterQualityViewPage = lazy(() => import('./pages/WaterQualityViewPage'));
 const NurseryManagementPage = lazy(() => import('./pages/NurseryManagementPage'));
+const NurseryBatchDetailPage = lazy(() => import('./pages/NurseryBatchDetailPage'));
 const InventoryManagementPage = lazy(() => import('./pages/InventoryManagementPage'));
 const HistoricalInsightsPage = lazy(() => import('./pages/HistoricalInsightsPage'));
 
@@ -67,6 +68,7 @@ function App() {
                       <Route path="/feed-view" element={<FeedViewPage />} />
                       <Route path="/water-quality-view" element={<WaterQualityViewPage />} />
                       <Route path="/nursery" element={<NurseryManagementPage />} />
+                      <Route path="/nursery/batch/:id" element={<NurseryBatchDetailPage />} />
                       <Route path="/inventory-management" element={<InventoryManagementPage />} />
                       <Route path="/historical-insights" element={<HistoricalInsightsPage />} />
                     </Routes>

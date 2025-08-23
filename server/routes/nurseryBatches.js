@@ -20,4 +20,7 @@ router.delete('/:id', nurseryBatchController.deleteNurseryBatch);
 // GET /api/nursery-batches/season/:seasonId - Get nursery batches by season ID
 router.get('/season/:seasonId', nurseryBatchController.getNurseryBatchesBySeasonId);
 
+// GET /api/nursery-batches/:id/events - Get events for a nursery batch
+router.get('/:id/events', nurseryBatchController.getEventsForNurseryBatch);
+
 module.exports = router;

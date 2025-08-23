@@ -20,6 +20,9 @@ router.delete('/:id', eventController.deleteEvent);
 // GET /api/events/pond/:pondId - Get events by pond ID
 router.get('/pond/:pondId', eventController.getEventsByPondId);
 
+// GET /api/events/nursery/:nurseryBatchId - Get events by nursery batch ID
+router.get('/nursery/:nurseryBatchId', eventController.getEventsByNurseryBatchId);
+
 // GET /api/events/season/:seasonId - Get events by season ID
 router.get('/season/:seasonId', eventController.getEventsBySeasonId);
 

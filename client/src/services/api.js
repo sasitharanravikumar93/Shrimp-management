@@ -100,6 +100,7 @@ export const deleteWaterQualityInput = (id) => apiCall(`/water-quality-inputs/${
 export const getNurseryBatches = () => apiCall('/nursery-batches');
 export const getNurseryBatchById = (id) => apiCall(`/nursery-batches/${id}`);
 export const getNurseryBatchesBySeasonId = (seasonId) => apiCall(`/nursery-batches/season/${seasonId}`);
+export const getEventsForNurseryBatch = (id) => apiCall(`/nursery-batches/${id}/events`);
 export const createNurseryBatch = (nurseryData) => apiCall('/nursery-batches', 'POST', nurseryData);
 export const updateNurseryBatch = (id, nurseryData) => apiCall(`/nursery-batches/${id}`, 'PUT', nurseryData);
 export const deleteNurseryBatch = (id) => apiCall(`/nursery-batches/${id}`, 'DELETE');
@@ -158,6 +159,7 @@ export const getInventoryAdjustments = (itemId, seasonId) => {
 export const getEvents = () => apiCall('/events');
 export const getEventById = (id) => apiCall(`/events/${id}`);
 export const getEventsByPondId = (pondId) => apiCall(`/events/pond/${pondId}`);
+export const getEventsByNurseryBatchId = (nurseryBatchId) => apiCall(`/events/nursery/${nurseryBatchId}`);
 export const getEventsBySeasonId = (seasonId) => apiCall(`/events/season/${seasonId}`);
 export const getEventsByDateRange = (startDate, endDate) => 
   apiCall(`/events/date-range?startDate=${startDate}&endDate=${endDate}`);

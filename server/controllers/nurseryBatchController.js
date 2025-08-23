@@ -2,6 +2,7 @@ const logger = require('../logger');
 const NurseryBatch = require('../models/NurseryBatch');
 const Season = require('../models/Season');
 const User = require('../models/User');
+const Event = require('../models/Event');
 
 // Helper function to get the appropriate language for a user
 const getLanguageForUser = (req) => {
@@ -58,12 +59,12 @@ const translateDocuments = (docs, language) => {
 exports.createNurseryBatch = async (req, res) => {
   logger.info('Creating a new nursery batch', { body: req.body });
   try {
-    const { batchName, startDate, initialCount, species, source, seasonId } = req.body;
+    const { batchName, startDate, initialCount, species, source, seasonId, size, capacity } = req.body;
     
     // Basic validation
-    if (!batchName || !startDate || !initialCount || !species || !source || !seasonId) {
+    if (!batchName || !startDate || !initialCount || !species || !source || !seasonId || !size || !capacity) {
       return res.status(400).json({ 
-        message: 'Batch name, start date, initial count, species, source, and season ID are required' 
+        message: 'Batch name, start date, initial count, species, source, season ID, size, and capacity are required' 
       });
     }
     
@@ -87,7 +88,9 @@ exports.createNurseryBatch = async (req, res) => {
       initialCount, 
       species, 
       source, 
-      seasonId 
+      seasonId,
+      size,
+      capacity
     });
     
     await nurseryBatch.save();
@@ -143,7 +146,7 @@ exports.getNurseryBatchById = async (req, res) => {
 exports.updateNurseryBatch = async (req, res) => {
   logger.info(`Updating nursery batch by ID: ${req.params.id}`, { body: req.body });
   try {
-    const { batchName, startDate, initialCount, species, source, seasonId } = req.body;
+    const { batchName, startDate, initialCount, species, source, seasonId, size, capacity, status } = req.body;
     
     // Convert simple string to multilingual map if needed
     if (batchName !== undefined) {
@@ -170,6 +173,9 @@ exports.updateNurseryBatch = async (req, res) => {
     if (species !== undefined) updateData.species = species;
     if (source !== undefined) updateData.source = source;
     if (seasonId !== undefined) updateData.seasonId = seasonId;
+    if (size !== undefined) updateData.size = size;
+    if (capacity !== undefined) updateData.capacity = capacity;
+    if (status !== undefined) updateData.status = status;
     
     const nurseryBatch = await NurseryBatch.findByIdAndUpdate(
       req.params.id,
@@ -236,5 +242,33 @@ exports.getNurseryBatchesBySeasonId = async (req, res) => {
     }
     res.status(500).json({ message: 'Error fetching nursery batches for season', error: error.message });
     logger.error(`Error fetching nursery batches for season ID: ${req.params.seasonId}`, { error: error.message, stack: error.stack });
+  }
+};
+
+// Get events for a nursery batch
+exports.getEventsForNurseryBatch = async (req, res) => {
+  logger.info(`Getting events for nursery batch ID: ${req.params.id}`);
+  try {
+    const { id } = req.params;
+    
+    // Check if nursery batch exists
+    const nurseryBatch = await NurseryBatch.findById(id);
+    if (!nurseryBatch) {
+      return res.status(404).json({ message: 'Nursery batch not found' });
+    }
+    
+    const events = await Event.find({ nurseryBatchId: id })
+      .populate('pondId', 'name')
+      .populate('nurseryBatchId', 'batchName')
+      .populate('seasonId', 'name')
+      .sort({ date: -1 });
+    
+    res.json(events);
+  } catch (error) {
+    if (error.name === 'CastError') {
+      return res.status(400).json({ message: 'Invalid nursery batch ID' });
+    }
+    res.status(500).json({ message: 'Error fetching events for nursery batch', error: error.message });
+    logger.error(`Error fetching events for nursery batch ID: ${req.params.id}`, { error: error.message, stack: error.stack });
   }
 };
