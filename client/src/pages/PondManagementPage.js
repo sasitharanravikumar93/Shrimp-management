@@ -45,7 +45,7 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import { useSeason } from '../context/SeasonContext';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useApiData, useApiMutation } from '../hooks/useApi';
 import useApi from '../hooks/useApi';
 import { 
@@ -81,11 +81,20 @@ import HarvestProjection from '../components/HarvestProjection';
 import FeedCalculator from '../components/FeedCalculator';
 import WaterQualityAlert from '../components/WaterQualityAlert';
 import EventSuggestions from '../components/EventSuggestions';
+import PondCard from '../components/PondCard';
 import { useTranslation } from 'react-i18next';
 
 const PondManagementPage = () => {
   const { t, i18n } = useTranslation();
   const api = useApi(); // Initialize useApi
+  const navigate = useNavigate();
+  const { selectedSeason } = useSeason();
+  const { pondId } = useParams();
+
+  const [ponds, setPonds] = useState([]);
+  const [pondsLoading, setPondsLoading] = useState(false);
+  const [pondsError, setPondsError] = useState(null);
+  const [showAllPonds, setShowAllPonds] = useState(false);
 
   const [feedInventoryItems, setFeedInventoryItems] = useState([]);
   const [feedInventoryLoading, setFeedInventoryLoading] = useState(true);
@@ -96,10 +105,91 @@ const PondManagementPage = () => {
   const [chemicalProbioticInventoryError, setChemicalProbioticInventoryError] = useState(null);
 
   useEffect(() => {
+    const fetchPonds = async () => {
+      console.log('Fetching ponds for season:', selectedSeason);
+      if (!selectedSeason || !selectedSeason._id) {
+        console.log('No selected season, setting ponds to empty array');
+        setPonds([]);
+        return;
+      }
+      
+      setPondsLoading(true);
+      setPondsError(null);
+      
+      try {
+        console.log('Making API call to fetch ponds for season ID:', selectedSeason._id);
+        // Add cache-busting parameter to ensure we get fresh data
+        const cacheBuster = `_=${new Date().getTime()}`;
+        const url = `/ponds/season/${selectedSeason._id}?${cacheBuster}`;
+        console.log('API URL with cache buster:', url);
+        
+        const response = await api.get(url);
+        console.log('Received response from ponds API:', response);
+        
+        // Check if response is an array or an object with data property
+        let pondsData = [];
+        if (Array.isArray(response)) {
+          pondsData = response;
+        } else if (response && Array.isArray(response.data)) {
+          pondsData = response.data;
+        } else if (response && typeof response === 'object' && response.data) {
+          // Handle pagination response format
+          pondsData = Array.isArray(response.data) ? response.data : [];
+          console.log('Pagination response detected:', {
+            page: response.pagination?.page,
+            total: response.pagination?.total,
+            pages: response.pagination?.pages
+          });
+        } else if (response) {
+          // Handle case where response is a single object (unexpected)
+          console.warn('Unexpected response format from ponds API:', response);
+          pondsData = [];
+        }
+        
+        console.log('Processed ponds data:', pondsData);
+        console.log('Ponds data length:', pondsData.length);
+        
+        // Log details of each pond
+        pondsData.forEach((pond, index) => {
+          console.log(`Pond ${index + 1}:`, {
+            id: pond._id || pond.id,
+            name: pond.name,
+            seasonId: pond.seasonId || pond.season,
+            size: pond.size,
+            capacity: pond.capacity
+          });
+        });
+        
+        setPonds(pondsData);
+        if (pondsData && pondsData.length > 0) {
+          if (!pondId) {
+            console.log('No pondId in URL, navigating to first pond:', pondsData[0]._id);
+            navigate(`/pond/${pondsData[0]._id}`);
+          }
+        } else {
+          console.log('No ponds found for season');
+        }
+      } catch (err) {
+        console.error('Error fetching ponds:', err);
+        console.error('Error details:', {
+          message: err.message,
+          stack: err.stack,
+          name: err.name
+        });
+        setPondsError(t('failed_to_fetch_ponds'));
+      } finally {
+        setPondsLoading(false);
+      }
+    };
+    
+    fetchPonds();
+  }, [selectedSeason, pondId, navigate, api, t]);
+
+  useEffect(() => {
     const fetchFeedInventory = async () => {
       try {
-        const response = await api.get('/inventory?itemType=Feed');
-        setFeedInventoryItems(response.data);
+        const response = await api.get('/inventory-items?itemType=Feed');
+        setFeedInventoryItems(response.data || []);
       } catch (err) {
         console.error('Error fetching feed inventory:', err);
         setFeedInventoryError('Failed to load feed types.');
@@ -110,10 +200,9 @@ const PondManagementPage = () => {
 
     const fetchChemicalProbioticInventory = async () => {
       try {
-        // Assuming the API can filter by multiple itemTypes or we make two calls
-        const chemicalResponse = await api.get('/inventory?itemType=Chemical');
-        const probioticResponse = await api.get('/inventory?itemType=Probiotic');
-        setChemicalProbioticInventoryItems([...chemicalResponse.data, ...probioticResponse.data]);
+        const chemicalResponse = await api.get('/inventory-items?itemType=Chemical');
+        const probioticResponse = await api.get('/inventory-items?itemType=Probiotic');
+        setChemicalProbioticInventoryItems([...(chemicalResponse.data || []), ...(probioticResponse.data || [])]);
       } catch (err) {
         console.error('Error fetching chemical/probiotic inventory:', err);
         setChemicalProbioticInventoryError('Failed to load chemical/probiotic types.');
@@ -124,68 +213,57 @@ const PondManagementPage = () => {
 
     fetchFeedInventory();
     fetchChemicalProbioticInventory();
-  }, [api]);
-
-
-  const { pondId } = useParams();
+  }, []);
   const [activeTab, setActiveTab] = useState(0);
-  const [viewMode, setViewMode] = useState('tabs'); // 'tabs' or 'calendar'
+  const [viewMode, setViewMode] = useState('tabs');
   const [calendarDate, setCalendarDate] = useState(new Date());
-  const [calendarView, setCalendarView] = useState('week'); // 'month', 'week', 'day'
+  const [calendarView, setCalendarView] = useState('week');
   const [calendarSearchTerm, setCalendarSearchTerm] = useState('');
   const [calendarEventTypeFilter, setCalendarEventTypeFilter] = useState('all');
   const [openEventModal, setOpenEventModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [openAddModal, setOpenAddModal] = useState(false);
-  const { selectedSeason } = useSeason();
   
-  // Fetch pond data with retry mechanism
   const { 
     data: pondData, 
     loading: pondLoading, 
     error: pondError
-  } = useApiData(() => getPondById(pondId), [pondId], `pond-${pondId}`, 3);
+  } = useApiData(() => pondId && getPondById(pondId), [pondId], `pond-${pondId}`, 3);
   
-  // Fetch feed entries with retry mechanism
   const { 
     data: feedEntriesData, 
     loading: feedEntriesLoading, 
     error: feedEntriesError,
     refetch: refetchFeedEntries
-  } = useApiData(() => getFeedInputsByPondId(pondId), [pondId], `feed-${pondId}`, 3);
+  } = useApiData(() => pondId && getFeedInputsByPondId(pondId), [pondId], `feed-${pondId}`, 3);
   
-  // Fetch water quality entries with retry mechanism
   const { 
     data: waterQualityEntriesData, 
     loading: waterQualityEntriesLoading, 
     error: waterQualityEntriesError,
     refetch: refetchWaterQualityEntries
-  } = useApiData(() => getWaterQualityInputsByPondId(pondId), [pondId], `water-${pondId}`, 3);
+  } = useApiData(() => pondId && getWaterQualityInputsByPondId(pondId), [pondId], `water-${pondId}`, 3);
   
-  // Fetch growth sampling entries with retry mechanism
   const { 
     data: growthSamplingEntriesData, 
     loading: growthSamplingEntriesLoading, 
     error: growthSamplingEntriesError,
     refetch: refetchGrowthSamplingEntries
-  } = useApiData(() => getGrowthSamplingsByPondId(pondId), [pondId], `growth-${pondId}`, 3);
+  } = useApiData(() => pondId && getGrowthSamplingsByPondId(pondId), [pondId], `growth-${pondId}`, 3);
   
-  // Fetch events with retry mechanism
   const { 
     data: eventsData, 
     loading: eventsLoading, 
     error: eventsError,
     refetch: refetchEvents
-  } = useApiData(() => getEventsByPondId(pondId), [pondId], `events-${pondId}`, 3);
+  } = useApiData(() => pondId && getEventsByPondId(pondId), [pondId], `events-${pondId}`, 3);
   
-  // Mutations for creating new entries with retry mechanism
   const { mutate: createFeedInputMutation, loading: createFeedInputLoading } = useApiMutation(createFeedInput, 3);
   const { mutate: createWaterQualityInputMutation, loading: createWaterQualityInputLoading } = useApiMutation(createWaterQualityInput, 3);
   const { mutate: createGrowthSamplingMutation, loading: createGrowthSamplingLoading } = useApiMutation(createGrowthSampling, 3);
   const { mutate: createEventMutation, loading: createEventLoading } = useApiMutation(createEvent, 3);
 
-  // Form setup with react-hook-form
-  const { control, handleSubmit, reset, setValue, watch } = useForm({
+  const { control, handleSubmit, reset, setValue } = useForm({
     defaultValues: {
       date: new Date(),
       time: new Date(),
@@ -211,7 +289,7 @@ const PondManagementPage = () => {
   const handleViewModeChange = (mode) => {
     setViewMode(mode);
     if (mode === 'calendar') {
-      setCalendarView('week'); // Default to week view when switching to calendar
+      setCalendarView('week');
     }
   };
 
@@ -225,8 +303,6 @@ const PondManagementPage = () => {
   };
 
   const handleRangeChange = (range) => {
-    // For month view, range is array of dates
-    // For week/day view, range is object with start/end
     if (Array.isArray(range)) {
       setCalendarDate(range[0]);
     } else if (range.start) {
@@ -255,9 +331,7 @@ const PondManagementPage = () => {
 
   const handleEventSubmit = async (data) => {
     try {
-      // Determine which type of event to create based on the active tab or form data
       if (activeTab === 0 || data.eventType === 'Feed') {
-        // Create feed input
         await createFeedInputMutation({
           pondId,
           seasonId: selectedSeason._id,
@@ -268,7 +342,6 @@ const PondManagementPage = () => {
         });
         refetchFeedEntries();
       } else if (activeTab === 1 || data.eventType === 'Water Quality') {
-        // Create water quality input
         await createWaterQualityInputMutation({
           pondId,
           seasonId: selectedSeason._id,
@@ -283,9 +356,9 @@ const PondManagementPage = () => {
         });
         refetchWaterQualityEntries();
       } else if (activeTab === 2 || data.eventType === 'Growth Sampling') {
-        // Create growth sampling
         await createGrowthSamplingMutation({
           pondId,
+          seasonId: selectedSeason._id,
           date: data.date,
           time: data.time,
           totalWeight: parseFloat(data.totalWeight),
@@ -293,9 +366,9 @@ const PondManagementPage = () => {
         });
         refetchGrowthSamplingEntries();
       } else {
-        // Create generic event
         await createEventMutation({
           pondId,
+          seasonId: selectedSeason._id,
           title: data.title,
           date: data.date,
           time: data.time,
@@ -320,7 +393,6 @@ const PondManagementPage = () => {
     setOpenAddModal(false);
   };
 
-  // Format date for display using locale-aware formatting
   const formatDate = (date) => {
     try {
       return new Date(date).toLocaleDateString(i18n.language);
@@ -329,7 +401,6 @@ const PondManagementPage = () => {
     }
   };
 
-  // Format time for display using locale-aware formatting
   const formatTime = (time) => {
     try {
       return new Date(time).toLocaleTimeString(i18n.language, { hour: '2-digit', minute: '2-digit' });
@@ -338,13 +409,11 @@ const PondManagementPage = () => {
     }
   };
 
-  // Feed chart data
   const feedChartData = (feedEntriesData || []).map(entry => ({
     date: formatDate(entry.date),
     quantity: entry.quantity
   }));
 
-  // Water quality chart data
   const waterQualityChartData = (waterQualityEntriesData || []).map(entry => ({
     date: formatDate(entry.date),
     pH: entry.pH,
@@ -352,13 +421,11 @@ const PondManagementPage = () => {
     temp: entry.temperature
   }));
 
-  // Growth chart data
   const growthChartData = (growthSamplingEntriesData || []).map(entry => ({
     date: formatDate(entry.date),
     avgWeight: entry.totalCount > 0 ? (entry.totalWeight * 1000 / entry.totalCount).toFixed(2) : 0
   }));
 
-  // Growth scatter data
   const growthScatterData = (growthSamplingEntriesData || []).map((entry, index) => ({
     x: index + 1,
     y: entry.totalCount > 0 ? (entry.totalWeight * 1000 / entry.totalCount).toFixed(2) : 0,
@@ -367,8 +434,6 @@ const PondManagementPage = () => {
 
   const getFilteredCalendarEvents = (allEvents) => {
     let filtered = allEvents || [];
-
-    // Apply search term filter
     if (calendarSearchTerm) {
       filtered = filtered.filter(event =>
         event.title.toLowerCase().includes(calendarSearchTerm.toLowerCase()) ||
@@ -377,8 +442,6 @@ const PondManagementPage = () => {
          event.resource.description.toLowerCase().includes(calendarSearchTerm.toLowerCase()))
       );
     }
-
-    // Apply event type filter
     if (calendarEventTypeFilter !== 'all') {
       filtered = filtered.filter(event =>
         event.type === calendarEventTypeFilter
@@ -388,12 +451,59 @@ const PondManagementPage = () => {
     return filtered;
   };
 
-  // Loading and error states
   const isLoading = pondLoading || feedEntriesLoading || waterQualityEntriesLoading || 
                    growthSamplingEntriesLoading || eventsLoading;
   
   const hasError = pondError || feedEntriesError || waterQualityEntriesError || 
                    growthSamplingEntriesError || eventsError;
+
+  if (!pondId) {
+    return (
+      <Container maxWidth="lg" sx={{ mt: 2, mb: 4 }}>
+        <Typography variant="h4" component="h1" gutterBottom>
+          {t('pond_management')}
+        </Typography>
+        {pondsLoading ? (
+          <CircularProgress />
+        ) : pondsError ? (
+          <Alert severity="error">{pondsError}</Alert>
+        ) : !selectedSeason ? (
+          <Alert severity="info">{t('please_select_a_season_to_manage_ponds')}</Alert>
+        ) : ponds.length === 0 ? (
+          <Alert severity="info">
+            {t('no_ponds_found_for_selected_season')}
+            <Button component="a" href="/#/admin" variant="contained" sx={{ ml: 2 }}>
+              {t('create_pond_in_admin_page')}
+            </Button>
+          </Alert>
+        ) : (
+          <Card elevation={3}>
+            <CardHeader title={t('select_pond_to_manage')} />
+            <CardContent>
+              <Grid container spacing={2}>
+                {(showAllPonds ? ponds : ponds.slice(0, 3)).map((pond) => (
+                  <Grid item xs={12} md={4} key={pond._id}>
+                    <PondCard 
+                      pond={pond} 
+                      onClick={() => navigate(`/pond/${pond._id}`)} 
+                      selected={pond._id === pondId}
+                    />
+                  </Grid>
+                ))}
+              </Grid>
+              {ponds.length > 3 && (
+                <Box sx={{ mt: 2, textAlign: 'center' }}>
+                  <Button onClick={() => setShowAllPonds(!showAllPonds)}>
+                    {showAllPonds ? t('show_less') : t('show_more')}
+                  </Button>
+                </Box>
+              )}
+            </CardContent>
+          </Card>
+        )}
+      </Container>
+    );
+  }
 
   if (isLoading) {
     return (
@@ -404,16 +514,26 @@ const PondManagementPage = () => {
   }
 
   if (hasError) {
+    const getErrorMessage = (error) => {
+      if (!error) return null;
+      if (typeof error === 'string') return error;
+      if (typeof error === 'object' && error.message) return error.message;
+      return 'An unknown error occurred';
+    };
+
+    const errorMessages = [pondError, feedEntriesError, waterQualityEntriesError, growthSamplingEntriesError, eventsError]
+      .map(getErrorMessage)
+      .filter(Boolean)
+      .join(', ');
+
     return (
       <Container maxWidth="lg" sx={{ mt: 2, mb: 4 }}>
         <Alert severity="error">
-          Error loading pond data: {pondError || feedEntriesError || waterQualityEntriesError || 
-                                   growthSamplingEntriesError || eventsError}
+          Error loading pond data: {errorMessages}
           <Box sx={{ mt: 2 }}>
             <Button 
               variant="outlined" 
               onClick={() => {
-                // refetchPond(); // Removed as it's not used
                 refetchFeedEntries();
                 refetchWaterQualityEntries();
                 refetchGrowthSamplingEntries();
@@ -428,7 +548,6 @@ const PondManagementPage = () => {
     );
   }
 
-  // Use real pond data or fallback to mock data
   const pond = pondData || { 
     id: pondId, 
     name: 'Pond', 
@@ -438,7 +557,6 @@ const PondManagementPage = () => {
     projectedHarvest: '28 days'
   };
 
-  // Use real data or fallback to mock data
   const feedEntries = feedEntriesData || [];
   const waterQualityEntries = waterQualityEntriesData || [];
   const growthSamplingEntries = growthSamplingEntriesData || [];
@@ -450,11 +568,11 @@ const PondManagementPage = () => {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <Box>
             <Typography variant="h4" component="h1" gutterBottom>
-              {pond.name} Management
+              {pond.name && typeof pond.name === 'object' ? (pond.name[i18n.language] || pond.name.en || 'Pond') : pond.name} Management
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
               <Chip 
-                label={pond.seasonId?.name || pond.season || 'Season'} 
+                label={ (pond && pond.seasonId && pond.seasonId.name) ? (typeof pond.seasonId.name === 'object' ? (pond.seasonId.name[i18n.language] || pond.seasonId.name.en) : pond.seasonId.name) : (pond && typeof pond.season === 'string' ? pond.season : (selectedSeason?.name || 'Season'))}
                 color="primary" 
                 variant="outlined" 
               />
@@ -471,7 +589,7 @@ const PondManagementPage = () => {
                 icon={(pond.health || 'Good') === 'Good' ? <CheckIcon /> : <WarningIcon />}
               />
               <Chip 
-                label={`Harvest: ${pond.projectedHarvest || '30 days'}`} 
+                label={`Harvest: ${pond.projectedHarvest || '30 days'}`}
                 color="info" 
                 icon={<TrendingUpIcon />}
               />
@@ -486,7 +604,6 @@ const PondManagementPage = () => {
           </Button>
         </Box>
         
-        {/* Harvest Projection Card */}
         <Grid container spacing={3} sx={{ mb: 3 }}>
           <Grid item xs={12} md={6} lg={4}>
             <HarvestProjection 
@@ -494,7 +611,7 @@ const PondManagementPage = () => {
               targetWeight={250} // Example target harvest weight in grams
               growthRate={5.2} // Example growth rate in grams per day
               startDate="2023-06-01"
-              pondName={pond.name}
+              pondName={pond.name && typeof pond.name === 'object' ? (pond.name[i18n.language] || pond.name.en || 'Pond') : pond.name}
             />
           </Grid>
         </Grid>
@@ -530,7 +647,6 @@ const PondManagementPage = () => {
               
               <Divider sx={{ mb: 3 }} />
               
-              {/* Feed Tab */}
               {activeTab === 0 && (
                 <Grid container spacing={3}>
                   <Grid item xs={12} lg={6}>
@@ -538,10 +654,9 @@ const PondManagementPage = () => {
                       <CardHeader title="Record Feed Input" />
                       <CardContent>
                         <FeedCalculator 
-                          initialBiomass={500} // Example biomass in kg
-                          initialShrimpCount={25000} // Example shrimp count
+                          initialBiomass={500} 
+                          initialShrimpCount={25000} 
                           onCalculate={(feedQty) => {
-                            // Update form with calculated feed quantity
                             setValue('quantity', feedQty.toFixed(2));
                           }}
                         />
@@ -591,7 +706,7 @@ const PondManagementPage = () => {
                                     error={!!feedInventoryError}
                                     helperText={feedInventoryError || (feedInventoryLoading ? 'Loading feed types...' : '')}
                                   >
-                                    {feedInventoryItems.map((item) => (
+                                    {Array.isArray(feedInventoryItems) && feedInventoryItems.map((item) => (
                                       <MenuItem key={item._id} value={item._id}>
                                         {item.itemName}
                                       </MenuItem>
@@ -710,7 +825,6 @@ const PondManagementPage = () => {
                 </Grid>
               )}
               
-              {/* Water Quality Tab */}
               {activeTab === 1 && (
                 <Grid container spacing={3}>
                   <Grid item xs={12} lg={6}>
@@ -718,7 +832,7 @@ const PondManagementPage = () => {
                       <CardHeader title="Record Water Quality" />
                       <CardContent>
                         <WaterQualityAlert 
-                          pondName={pond.name}
+                          pondName={pond.name && typeof pond.name === 'object' ? (pond.name[i18n.language] || pond.name.en || 'Pond') : pond.name}
                           pH={7.2}
                           dissolvedOxygen={5.5}
                           temperature={28.5}
@@ -832,7 +946,7 @@ const PondManagementPage = () => {
                                     error={!!chemicalProbioticInventoryError}
                                     helperText={chemicalProbioticInventoryError || (chemicalProbioticInventoryLoading ? 'Loading chemicals/probiotics...' : '')}
                                   >
-                                    {chemicalProbioticInventoryItems.map((item) => (
+                                    {Array.isArray(chemicalProbioticInventoryItems) && chemicalProbioticInventoryItems.map((item) => (
                                       <MenuItem key={item._id} value={item._id}>
                                         {item.itemName}
                                       </MenuItem>
@@ -913,7 +1027,7 @@ const PondManagementPage = () => {
                         </Box>
                         
                         <WaterQualityAlert 
-                          pondName={pond.name}
+                          pondName={pond.name && typeof pond.name === 'object' ? (pond.name[i18n.language] || pond.name.en || 'Pond') : pond.name}
                           pH={7.2}
                           dissolvedOxygen={5.5}
                           temperature={28.5}
@@ -921,7 +1035,7 @@ const PondManagementPage = () => {
                           ammonia={0.01}
                           nitrite={0.1}
                         />
-                        
+
                         <Divider sx={{ my: 2 }} />
                         
                         <Box sx={{ maxHeight: 300, overflow: 'auto' }}>
@@ -963,7 +1077,6 @@ const PondManagementPage = () => {
                 </Grid>
               )}
               
-              {/* Growth Sampling Tab */}
               {activeTab === 2 && (
                 <Grid container spacing={3}>
                   <Grid item xs={12} lg={6}>
@@ -1131,7 +1244,6 @@ const PondManagementPage = () => {
             </CardContent>
           </Card>
         ) : (
-          // Calendar View
           <Card elevation={3} sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
             <CardHeader
               title="Events Calendar"
@@ -1268,7 +1380,6 @@ const PondManagementPage = () => {
                     lastFeeding="2023-06-16"
                     onSuggestionClick={(suggestion) => {
                       console.log('Suggested event:', suggestion);
-                      // In a real app, this would open the add event modal with the suggestion pre-filled
                     }}
                   />
                 </Grid>
@@ -1278,7 +1389,6 @@ const PondManagementPage = () => {
         )}
       </Container>
       
-      {/* Event Detail Modal */}
       <Dialog open={openEventModal} onClose={handleCloseModal} maxWidth="sm" fullWidth>
         <DialogTitle>
           {selectedEvent?.title}
@@ -1318,7 +1428,6 @@ const PondManagementPage = () => {
         </DialogActions>
       </Dialog>
       
-      {/* Add Event Modal */}
       <Dialog open={openAddModal} onClose={handleCloseAddModal} maxWidth="sm" fullWidth>
         <DialogTitle>
           Add New Event
