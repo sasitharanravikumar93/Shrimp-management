@@ -482,9 +482,11 @@ exports.comparePondsHistorical = async (req, res) => {
             timestamp: entry.date,
             value: entry.temperature
           })),
-          differences: calculateDifferences(
+          differences: calculateDifferencesByDay(
             waterQualityA.map(e => ({ timestamp: e.date, value: e.temperature })),
-            waterQualityB.map(e => ({ timestamp: e.date, value: e.temperature }))
+            waterQualityB.map(e => ({ timestamp: e.date, value: e.temperature })),
+            startDateA,
+            startDateB
           )
         };
       }
@@ -499,9 +501,11 @@ exports.comparePondsHistorical = async (req, res) => {
             timestamp: entry.date,
             value: entry.pH
           })),
-          differences: calculateDifferences(
+          differences: calculateDifferencesByDay(
             waterQualityA.map(e => ({ timestamp: e.date, value: e.pH })),
-            waterQualityB.map(e => ({ timestamp: e.date, value: e.pH }))
+            waterQualityB.map(e => ({ timestamp: e.date, value: e.pH })),
+            startDateA,
+            startDateB
           )
         };
       }
@@ -516,9 +520,11 @@ exports.comparePondsHistorical = async (req, res) => {
             timestamp: entry.date,
             value: entry.dissolvedOxygen
           })),
-          differences: calculateDifferences(
+          differences: calculateDifferencesByDay(
             waterQualityA.map(e => ({ timestamp: e.date, value: entry.dissolvedOxygen })),
-            waterQualityB.map(e => ({ timestamp: e.date, value: entry.dissolvedOxygen }))
+            waterQualityB.map(e => ({ timestamp: e.date, value: entry.dissolvedOxygen })),
+            startDateA,
+            startDateB
           )
         };
       }
@@ -533,9 +539,11 @@ exports.comparePondsHistorical = async (req, res) => {
             timestamp: entry.date,
             value: entry.ammonia
           })).filter(entry => entry.value !== undefined),
-          differences: calculateDifferences(
+          differences: calculateDifferencesByDay(
             waterQualityA.map(e => ({ timestamp: e.date, value: e.ammonia })).filter(e => e.value !== undefined),
-            waterQualityB.map(e => ({ timestamp: e.date, value: e.ammonia })).filter(e => e.value !== undefined)
+            waterQualityB.map(e => ({ timestamp: e.date, value: e.ammonia })).filter(e => e.value !== undefined),
+            startDateA,
+            startDateB
           )
         };
       }
@@ -562,9 +570,11 @@ exports.comparePondsHistorical = async (req, res) => {
           timestamp: entry.date,
           value: entry.quantity
         })),
-        differences: calculateDifferences(
+        differences: calculateDifferencesByDay(
           feedInputsA.map(e => ({ timestamp: e.date, value: e.quantity })),
-          feedInputsB.map(e => ({ timestamp: e.date, value: e.quantity }))
+          feedInputsB.map(e => ({ timestamp: e.date, value: e.quantity })),
+          startDateA,
+          startDateB
         )
       };
     }
@@ -596,7 +606,7 @@ exports.comparePondsHistorical = async (req, res) => {
             value: avgWeight
           };
         }),
-        differences: calculateDifferences(
+        differences: calculateDifferencesByDay(
           growthSamplingsA.map(entry => {
             const avgWeight = entry.totalCount > 0 ? (entry.totalWeight * 1000) / entry.totalCount : 0;
             return { timestamp: entry.date, value: avgWeight };
@@ -604,7 +614,9 @@ exports.comparePondsHistorical = async (req, res) => {
           growthSamplingsB.map(entry => {
             const avgWeight = entry.totalCount > 0 ? (entry.totalWeight * 1000) / entry.totalCount : 0;
             return { timestamp: entry.date, value: avgWeight };
-          })
+          }),
+          startDateA,
+          startDateB
         )
       };
     }
@@ -616,7 +628,7 @@ exports.comparePondsHistorical = async (req, res) => {
   }
 };
 
-// Helper function to calculate differences between two datasets
+// Helper function to calculate differences between two datasets by timestamp (for current season comparison)
 const calculateDifferences = (dataA, dataB) => {
   // For simplicity, we'll align data by date and calculate differences
   // In a more complex implementation, we might need interpolation
@@ -645,6 +657,50 @@ const calculateDifferences = (dataA, dataB) => {
   });
   
   return differences.sort((a, b) => a.timestamp - b.timestamp);
+};
+
+// Helper function to calculate differences between two datasets by day number (for historical comparison)
+const calculateDifferencesByDay = (dataA, dataB, startDateA, startDateB) => {
+  const differences = [];
+  
+  // Convert data to day-based format
+  const dayDataA = dataA.map(item => {
+    const dayNumber = Math.floor((new Date(item.timestamp) - new Date(startDateA)) / (1000 * 60 * 60 * 24)) + 1;
+    return {
+      day: dayNumber,
+      value: item.value
+    };
+  });
+  
+  const dayDataB = dataB.map(item => {
+    const dayNumber = Math.floor((new Date(item.timestamp) - new Date(startDateB)) / (1000 * 60 * 60 * 24)) + 1;
+    return {
+      day: dayNumber,
+      value: item.value
+    };
+  });
+  
+  // Create maps for easier lookup
+  const mapA = new Map(dayDataA.map(item => [item.day, item.value]));
+  const mapB = new Map(dayDataB.map(item => [item.day, item.value]));
+  
+  // Get all unique days
+  const allDays = new Set([...dayDataA.map(item => item.day), ...dayDataB.map(item => item.day)]);
+  
+  // Calculate differences for each day
+  allDays.forEach(day => {
+    const valueA = mapA.get(day);
+    const valueB = mapB.get(day);
+    
+    if (valueA !== undefined && valueB !== undefined) {
+      differences.push({
+        day: day,
+        difference: valueA - valueB
+      });
+    }
+  });
+  
+  return differences.sort((a, b) => a.day - b.day);
 };
 
 // Export comparison data

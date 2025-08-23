@@ -223,27 +223,71 @@ const HistoricalInsightsPage = () => {
       return [];
     }
 
-    // Create a map for easier lookup
-    const pondAMap = new Map(metricData.pond_a_data.map(item => [item.timestamp, item.value]));
-    const pondBMap = new Map(metricData.pond_b_data.map(item => [item.timestamp, item.value]));
-    const diffMap = new Map(metricData.differences.map(item => [item.timestamp, item.difference]));
+    // For historical mode, data is day-based; for current mode, it's timestamp-based
+    if (mode === 'historical') {
+      // Create maps for day-based data
+      const pondADayMap = new Map();
+      const pondBDayMap = new Map();
+      
+      // Convert pond A data to day numbers
+      metricData.pond_a_data.forEach(item => {
+        const dayNumber = Math.floor((new Date(item.timestamp) - new Date(comparisonData.pond_a.season.startDate)) / (1000 * 60 * 60 * 24)) + 1;
+        pondADayMap.set(dayNumber, item.value);
+      });
+      
+      // Convert pond B data to day numbers
+      metricData.pond_b_data.forEach(item => {
+        const dayNumber = Math.floor((new Date(item.timestamp) - new Date(comparisonData.pond_b.season.startDate)) / (1000 * 60 * 60 * 24)) + 1;
+        pondBDayMap.set(dayNumber, item.value);
+      });
+      
+      // Create a map for differences (day-based)
+      const diffMap = new Map(metricData.differences.map(item => [item.day, item.difference]));
 
-    // Get all unique dates
-    const allDates = new Set([
-      ...metricData.pond_a_data.map(item => new Date(item.timestamp).toISOString().split('T')[0]),
-      ...metricData.pond_b_data.map(item => new Date(item.timestamp).toISOString().split('T')[0])
-    ]);
+      // Get all unique days
+      const allDays = new Set([
+        ...Array.from(pondADayMap.keys()),
+        ...Array.from(pondBDayMap.keys()),
+        ...metricData.differences.map(item => item.day)
+      ]);
 
-    // Format data for the chart
-    return Array.from(allDates).map(date => {
-      const timestamp = new Date(date).toISOString();
-      return {
-        date,
-        pondA: pondAMap.get(timestamp) || null,
-        pondB: pondBMap.get(timestamp) || null,
-        difference: diffMap.get(timestamp) || null
-      };
-    }).sort((a, b) => new Date(a.date) - new Date(b.date));
+      // Format data for the chart (day-based)
+      return Array.from(allDays).map(day => {
+        return {
+          day: `Day ${day}`,
+          pondA: pondADayMap.has(day) ? pondADayMap.get(day) : null,
+          pondB: pondBDayMap.has(day) ? pondBDayMap.get(day) : null,
+          difference: diffMap.get(day) || null
+        };
+      }).sort((a, b) => {
+        const dayA = parseInt(a.day.replace('Day ', ''));
+        const dayB = parseInt(b.day.replace('Day ', ''));
+        return dayA - dayB;
+      });
+    } else {
+      // Current season mode (timestamp-based)
+      // Create a map for easier lookup
+      const pondAMap = new Map(metricData.pond_a_data.map(item => [item.timestamp, item.value]));
+      const pondBMap = new Map(metricData.pond_b_data.map(item => [item.timestamp, item.value]));
+      const diffMap = new Map(metricData.differences.map(item => [item.timestamp, item.difference]));
+
+      // Get all unique dates
+      const allDates = new Set([
+        ...metricData.pond_a_data.map(item => new Date(item.timestamp).toISOString().split('T')[0]),
+        ...metricData.pond_b_data.map(item => new Date(item.timestamp).toISOString().split('T')[0])
+      ]);
+
+      // Format data for the chart
+      return Array.from(allDates).map(date => {
+        const timestamp = new Date(date).toISOString();
+        return {
+          date,
+          pondA: pondAMap.get(timestamp) || null,
+          pondB: pondBMap.get(timestamp) || null,
+          difference: diffMap.get(timestamp) || null
+        };
+      }).sort((a, b) => new Date(a.date) - new Date(b.date));
+    }
   };
 
   // Get pond name by ID
@@ -578,7 +622,7 @@ const HistoricalInsightsPage = () => {
                                 >
                                   <CartesianGrid strokeDasharray="3 3" />
                                   <XAxis 
-                                    dataKey="date" 
+                                    dataKey={mode === 'historical' ? "day" : "date"} 
                                     angle={-45} 
                                     textAnchor="end" 
                                     height={60}
@@ -587,7 +631,7 @@ const HistoricalInsightsPage = () => {
                                   <YAxis />
                                   <Tooltip 
                                     formatter={(value) => [Number(value).toFixed(2), '']}
-                                    labelFormatter={(label) => `Date: ${label}`}
+                                    labelFormatter={(label) => mode === 'historical' ? `Day: ${label}` : `Date: ${label}`}
                                   />
                                   <Legend />
                                   <Line 
