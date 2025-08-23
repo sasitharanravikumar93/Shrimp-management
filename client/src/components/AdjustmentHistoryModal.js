@@ -17,6 +17,7 @@ import {
   Typography,
 } from '@mui/material';
 import useApi from '../hooks/useApi';
+import { useSeason } from '../context/SeasonContext';
 import { format } from 'date-fns';
 
 const AdjustmentHistoryModal = ({ open, onClose, item }) => {
@@ -24,14 +25,15 @@ const AdjustmentHistoryModal = ({ open, onClose, item }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const api = useApi();
+  const { selectedSeason } = useSeason();
 
   useEffect(() => {
-    if (open && item) {
+    if (open && item && selectedSeason) {
       const fetchAdjustments = async () => {
         setLoading(true);
         setError(null);
         try {
-          const response = await api.get(`/inventory/${item._id}/adjustments`);
+          const response = await api.get(`/inventory-items/${item._id}/adjustments?seasonId=${selectedSeason._id}`);
           setAdjustments(response.data);
         } catch (err) {
           console.error('Error fetching adjustment history:', err);
@@ -40,8 +42,13 @@ const AdjustmentHistoryModal = ({ open, onClose, item }) => {
         setLoading(false);
       };
       fetchAdjustments();
+    } else if (open && !selectedSeason) {
+      // If no season is selected, clear the adjustments
+      setAdjustments([]);
+      setLoading(false);
+      setError('Please select a season to view adjustment history.');
     }
-  }, [open, item, api]);
+  }, [open, item, api, selectedSeason]);
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">

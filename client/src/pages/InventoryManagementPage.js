@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Container,
   Typography,
@@ -26,10 +26,12 @@ import InventoryForm from '../components/InventoryForm';
 import InventoryAdjustmentModal from '../components/InventoryAdjustmentModal';
 import AdjustmentHistoryModal from '../components/AdjustmentHistoryModal'; // New import
 import useApi from '../hooks/useApi';
+import { useSeason } from '../context/SeasonContext';
 import { useTranslation } from 'react-i18next';
 
 const InventoryManagementPage = () => {
   const { t, i18n } = useTranslation();
+  const { selectedSeason } = useSeason();
   const [inventoryItems, setInventoryItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -43,36 +45,44 @@ const InventoryManagementPage = () => {
 
   const api = useApi();
 
-  const fetchInventoryItems = async () => {
+  const fetchInventoryItems = useCallback(async () => {
+    // Don't fetch if no season is selected
+    if (!selectedSeason || !selectedSeason._id) {
+      setInventoryItems([]);
+      setLoading(false);
+      setError(null);
+      return;
+    }
+    
     setLoading(true);
     setError(null);
     try {
-      const response = await api.get('/inventory');
-      setInventoryItems(response.data);
+      const response = await api.get(`/inventory-items?seasonId=${selectedSeason._id}`);
+      setInventoryItems(Array.isArray(response) ? response : response.data || []);
     } catch (err) {
       console.error('Error fetching inventory items:', err);
       setError(t('failed_to_fetch_inventory_items'));
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedSeason?._id]);
 
   useEffect(() => {
     fetchInventoryItems();
-  }, []);
+  }, [fetchInventoryItems]);
 
   const handleSearchChange = (event) => {
     setSearchTerm(event.target.value);
   };
 
-  const filteredItems = inventoryItems.filter(item =>
+  const filteredItems = useMemo(() => inventoryItems.filter(item =>
     (item.itemName && 
       (typeof item.itemName === 'object' 
         ? (item.itemName[i18n.language] || item.itemName.en || '').toLowerCase().includes(searchTerm.toLowerCase())
         : item.itemName.toLowerCase().includes(searchTerm.toLowerCase()))) ||
     (item.itemType && item.itemType.toLowerCase().includes(searchTerm.toLowerCase())) ||
     (item.supplier && item.supplier.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  ), [inventoryItems, searchTerm, i18n.language]);
 
   const handleOpenForm = (item = null) => {
     setEditingItem(item);
@@ -87,11 +97,6 @@ const InventoryManagementPage = () => {
 
   const handleSaveForm = (savedItem) => {
     fetchInventoryItems(); // Refresh data
-    // If it was a new item, open the adjustment modal to prompt for initial purchase
-    if (!editingItem) {
-      setAdjustingItem(savedItem);
-      setOpenAdjustmentModal(true);
-    }
   };
 
   const handleOpenAdjustmentModal = (item) => {
@@ -118,7 +123,7 @@ const InventoryManagementPage = () => {
   const handleDeleteItem = async (id) => {
     if (window.confirm(`${t('areYouSure')} ${t('delete')} ${t('inventory_item')}? ${t('action_not_reversible')}`)) {
       try {
-        await api.delete(`/inventory/${id}`);
+        await api.delete(`/inventory-items/${id}`);
         fetchInventoryItems(); // Refresh list
       } catch (err) {
         console.error('Error deleting inventory item:', err);

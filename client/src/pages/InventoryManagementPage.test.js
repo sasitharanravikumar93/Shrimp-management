@@ -5,6 +5,7 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { BrowserRouter } from 'react-router-dom';
 import InventoryManagementPage from './InventoryManagementPage';
 import * as useApiHook from '../hooks/useApi';
+import { SeasonProvider } from '../context/SeasonContext';
 
 // Mock the API calls
 jest.mock('../hooks/useApi');
@@ -35,7 +36,9 @@ const theme = createTheme();
 const WithProviders = ({ children }) => (
   <ThemeProvider theme={theme}>
     <BrowserRouter>
-      {children}
+      <SeasonProvider>
+        {children}
+      </SeasonProvider>
     </BrowserRouter>
   </ThemeProvider>
 );
@@ -297,4 +300,5 @@ describe('InventoryManagementPage', () => {
     
     // Clean up
     mockConfirm.mockRestore();
+  });
 });

@@ -66,20 +66,23 @@ const calculateCurrentQuantity = async (inventoryItemId) => {
 exports.createInventoryItem = async (req, res) => {
   logger.info('Creating a new inventory item', { body: req.body });
   try {
-    const { itemName, itemType, supplier, purchaseDate, unit, costPerUnit, lowStockThreshold } = req.body;
+    const { itemName, itemType, supplier, purchaseDate, unit, costPerUnit, lowStockThreshold, currentQuantity } = req.body;
 
     // Basic validation
     if (!itemName || !itemType || !purchaseDate || !unit || costPerUnit === undefined) {
       return res.status(400).json({ message: 'Item name, type, purchase date, unit, and cost per unit are required' });
     }
     
-    // Validate that itemName is an object with language keys
-    if (typeof itemName !== 'object' || Array.isArray(itemName)) {
-      return res.status(400).json({ message: 'Item name must be an object with language keys (e.g., { "en": "Item A", "ta": "உருப்படி ஏ" })' });
+    // Convert simple string to multilingual map if needed
+    let processedItemName = itemName;
+    if (typeof itemName === 'string') {
+      processedItemName = { en: itemName };
+    } else if (typeof itemName !== 'object' || Array.isArray(itemName)) {
+      return res.status(400).json({ message: 'Item name must be a string or an object with language keys (e.g., { "en": "Item A", "ta": "உருப்படி ஏ" })' });
     }
 
     const inventoryItem = new InventoryItem({
-      itemName, itemType, supplier, purchaseDate, unit, costPerUnit, lowStockThreshold
+      itemName: processedItemName, itemType, supplier, purchaseDate, unit, costPerUnit, lowStockThreshold, currentQuantity
     });
     await inventoryItem.save();
 
@@ -157,13 +160,16 @@ exports.updateInventoryItem = async (req, res) => {
   try {
     const { itemName, itemType, supplier, purchaseDate, unit, costPerUnit, lowStockThreshold } = req.body;
     
-    // Validate that itemName is an object with language keys if provided
-    if (itemName !== undefined && (typeof itemName !== 'object' || Array.isArray(itemName))) {
-      return res.status(400).json({ message: 'Item name must be an object with language keys (e.g., { "en": "Item A", "ta": "உருப்படி ஏ" })' });
+    // Convert simple string to multilingual map if needed
+    if (itemName !== undefined) {
+      if (typeof itemName === 'string') {
+        updateData.itemName = { en: itemName };
+      } else if (typeof itemName !== 'object' || Array.isArray(itemName)) {
+        return res.status(400).json({ message: 'Item name must be a string or an object with language keys (e.g., { "en": "Item A", "ta": "உருப்படி ஏ" })' });
+      } else {
+        updateData.itemName = itemName;
+      }
     }
-
-    const updateData = {};
-    if (itemName !== undefined) updateData.itemName = itemName;
     if (itemType !== undefined) updateData.itemType = itemType;
     if (supplier !== undefined) updateData.supplier = supplier;
     if (purchaseDate !== undefined) updateData.purchaseDate = purchaseDate;

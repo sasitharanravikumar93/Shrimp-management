@@ -14,11 +14,13 @@ import {
   Box,
   FormHelperText,
   Typography,
+  Alert,
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import useApi from '../hooks/useApi';
+import { useSeason } from '../context/SeasonContext';
 import { useTranslation } from 'react-i18next';
 
 const itemTypes = ['Feed', 'Chemical', 'Probiotic', 'Other'];
@@ -27,61 +29,52 @@ const units = ['kg', 'g', 'litre', 'ml', 'bag', 'bottle'];
 const InventoryForm = ({ open, onClose, item, onSave }) => {
   const { t } = useTranslation();
   const api = useApi();
+  const { selectedSeason } = useSeason();
   const [formData, setFormData] = useState({
-    itemName: { en: '', hi: '', ta: '' },
+    itemName: '',
     itemType: '',
     supplier: '',
     purchaseDate: null,
     unit: '',
     costPerUnit: '',
     lowStockThreshold: '',
+    currentQuantity: '',
   });
   const [errors, setErrors] = useState({});
 
   useEffect(() => {
     if (item) {
       setFormData({
-        itemName: typeof item.itemName === 'object' ? item.itemName : { en: item.itemName || '', hi: '', ta: '' },
+        itemName: typeof item.itemName === 'object' ? (item.itemName.en || '') : (item.itemName || ''),
         itemType: item.itemType || '',
         supplier: item.supplier || '',
         purchaseDate: item.purchaseDate ? new Date(item.purchaseDate) : null,
         unit: item.unit || '',
         costPerUnit: item.costPerUnit || '',
         lowStockThreshold: item.lowStockThreshold || '',
+        currentQuantity: item.currentQuantity || '',
       });
     } else {
       setFormData({
-        itemName: { en: '', hi: '', ta: '' },
+        itemName: '',
         itemType: '',
         supplier: '',
         purchaseDate: null,
         unit: '',
         costPerUnit: '',
         lowStockThreshold: '',
+        currentQuantity: '',
       });
     }
     setErrors({});
   }, [item]);
 
+  // Handle form input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
     if (errors[name]) {
       setErrors({ ...errors, [name]: null });
-    }
-  };
-
-  // Handle multilingual item name input changes
-  const handleItemNameChange = (language, value) => {
-    setFormData(prev => ({
-      ...prev,
-      itemName: {
-        ...prev.itemName,
-        [language]: value
-      }
-    }));
-    if (errors.itemName) {
-      setErrors({ ...errors, itemName: null });
     }
   };
 
@@ -94,8 +87,11 @@ const InventoryForm = ({ open, onClose, item, onSave }) => {
 
   const validate = () => {
     let tempErrors = {};
-    if (!formData.itemName.en || !formData.itemName.hi || !formData.itemName.ta) {
-      tempErrors.itemName = t('item_name_required_all_languages');
+    if (!selectedSeason) {
+      tempErrors.season = t('please_select_a_season_before_adding_inventory_items');
+    }
+    if (!formData.itemName) {
+      tempErrors.itemName = t('item_name_required');
     }
     if (!formData.itemType) tempErrors.itemType = t('item_type_required');
     if (!formData.purchaseDate) tempErrors.purchaseDate = t('purchase_date_required');
@@ -106,6 +102,9 @@ const InventoryForm = ({ open, onClose, item, onSave }) => {
     if (formData.lowStockThreshold !== '' && (isNaN(formData.lowStockThreshold) || formData.lowStockThreshold < 0)) {
       tempErrors.lowStockThreshold = t('low_stock_threshold_must_be_non_negative');
     }
+    if (!item && (formData.currentQuantity === '' || isNaN(formData.currentQuantity) || formData.currentQuantity < 0)) {
+      tempErrors.currentQuantity = t('current_quantity_must_be_a_non_negative_number');
+    }
     setErrors(tempErrors);
     return Object.keys(tempErrors).length === 0;
   };
@@ -114,17 +113,21 @@ const InventoryForm = ({ open, onClose, item, onSave }) => {
     if (validate()) {
       try {
         const dataToSend = {
-          ...formData,
+          itemName: { en: formData.itemName },
+          itemType: formData.itemType,
+          supplier: formData.supplier,
+          purchaseDate: formData.purchaseDate ? formData.purchaseDate.toISOString() : null,
+          unit: formData.unit,
           costPerUnit: parseFloat(formData.costPerUnit),
           lowStockThreshold: formData.lowStockThreshold !== '' ? parseFloat(formData.lowStockThreshold) : undefined,
-          purchaseDate: formData.purchaseDate ? formData.purchaseDate.toISOString() : null,
         };
 
         if (item) {
-          const updatedItem = await api.put(`/inventory/${item._id}`, dataToSend);
+          const updatedItem = await api.put(`/inventory-items/${item._id}?seasonId=${selectedSeason._id}`, dataToSend);
           onSave(updatedItem.data);
         } else {
-          const newItem = await api.post('/inventory', dataToSend);
+          dataToSend.currentQuantity = formData.currentQuantity !== '' ? parseFloat(formData.currentQuantity) : 0;
+          const newItem = await api.post(`/inventory-items?seasonId=${selectedSeason._id}`, dataToSend);
           onSave(newItem.data);
         }
         onClose();
@@ -139,49 +142,24 @@ const InventoryForm = ({ open, onClose, item, onSave }) => {
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
       <DialogTitle>{item ? t('edit_inventory_item') : t('add_new_inventory_item')}</DialogTitle>
       <DialogContent>
+        {!selectedSeason && (
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            {t('please_select_a_season_before_adding_inventory_items')}
+          </Alert>
+        )}
         <LocalizationProvider dateAdapter={AdapterDateFns}>
           <Box component="form" noValidate autoComplete="off" sx={{ mt: 2 }}>
             <Grid container spacing={2}>
               <Grid item xs={12}>
-                <Typography variant="h6" gutterBottom>
-                  {t('item_name')} ({t('english')})
-                </Typography>
                 <TextField
                   fullWidth
-                  label={`${t('item_name')} (${t('english')})`}
-                  name="itemName.en"
-                  value={formData.itemName.en}
-                  onChange={(e) => handleItemNameChange('en', e.target.value)}
+                  label={t('item_name')}
+                  name="itemName"
+                  value={formData.itemName}
+                  onChange={handleChange}
                   error={!!errors.itemName}
                   helperText={errors.itemName}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <Typography variant="h6" gutterBottom>
-                  {t('item_name')} ({t('hindi')})
-                </Typography>
-                <TextField
-                  fullWidth
-                  label={`${t('item_name')} (${t('hindi')})`}
-                  name="itemName.hi"
-                  value={formData.itemName.hi}
-                  onChange={(e) => handleItemNameChange('hi', e.target.value)}
-                  error={!!errors.itemName}
-                  helperText={errors.itemName}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <Typography variant="h6" gutterBottom>
-                  {t('item_name')} ({t('tamil')})
-                </Typography>
-                <TextField
-                  fullWidth
-                  label={`${t('item_name')} (${t('tamil')})`}
-                  name="itemName.ta"
-                  value={formData.itemName.ta}
-                  onChange={(e) => handleItemNameChange('ta', e.target.value)}
-                  error={!!errors.itemName}
-                  helperText={errors.itemName}
+                  disabled={!selectedSeason}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -192,6 +170,7 @@ const InventoryForm = ({ open, onClose, item, onSave }) => {
                     value={formData.itemType}
                     label={t('itemType')}
                     onChange={handleChange}
+                    disabled={!selectedSeason}
                   >
                     {itemTypes.map((type) => (
                       <MenuItem key={type} value={type}>
@@ -209,6 +188,7 @@ const InventoryForm = ({ open, onClose, item, onSave }) => {
                   name="supplier"
                   value={formData.supplier}
                   onChange={handleChange}
+                  disabled={!selectedSeason}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -222,6 +202,7 @@ const InventoryForm = ({ open, onClose, item, onSave }) => {
                       fullWidth
                       error={!!errors.purchaseDate}
                       helperText={errors.purchaseDate}
+                      disabled={!selectedSeason}
                     />
                   )}
                 />
@@ -234,6 +215,7 @@ const InventoryForm = ({ open, onClose, item, onSave }) => {
                     value={formData.unit}
                     label={t('unit')}
                     onChange={handleChange}
+                    disabled={!selectedSeason}
                   >
                     {units.map((unit) => (
                       <MenuItem key={unit} value={unit}>
@@ -254,6 +236,7 @@ const InventoryForm = ({ open, onClose, item, onSave }) => {
                   onChange={handleChange}
                   error={!!errors.costPerUnit}
                   helperText={errors.costPerUnit}
+                  disabled={!selectedSeason}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -266,6 +249,20 @@ const InventoryForm = ({ open, onClose, item, onSave }) => {
                   onChange={handleChange}
                   error={!!errors.lowStockThreshold}
                   helperText={errors.lowStockThreshold}
+                  disabled={!selectedSeason}
+                />
+              </Grid>
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label={t('current_quantity')}
+                  name="currentQuantity"
+                  type="number"
+                  value={formData.currentQuantity}
+                  onChange={handleChange}
+                  error={!!errors.currentQuantity}
+                  helperText={errors.currentQuantity}
+                  disabled={!selectedSeason || !!item}
                 />
               </Grid>
             </Grid>
@@ -274,7 +271,7 @@ const InventoryForm = ({ open, onClose, item, onSave }) => {
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>{t('cancel')}</Button>
-        <Button onClick={handleSubmit} variant="contained">
+        <Button onClick={handleSubmit} variant="contained" disabled={!selectedSeason}>
           {item ? t('save_changes') : t('add_item')}
         </Button>
       </DialogActions>

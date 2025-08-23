@@ -33,6 +33,12 @@ const inventoryItemSchema = new mongoose.Schema({
     type: Number,
     min: 0
   },
+  currentQuantity: {
+    type: Number,
+    required: true,
+    min: 0,
+    default: 0
+  },
   isActive: {
     type: Boolean,
     default: true

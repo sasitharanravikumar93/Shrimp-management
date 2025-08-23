@@ -8,11 +8,14 @@ import {
   Button,
   Typography,
   Box,
+  Alert,
 } from '@mui/material';
 import useApi from '../hooks/useApi';
+import { useSeason } from '../context/SeasonContext';
 
 const InventoryAdjustmentModal = ({ open, onClose, item }) => {
   const api = useApi();
+  const { selectedSeason } = useSeason();
   const [adjustmentQuantity, setAdjustmentQuantity] = useState('');
   const [reason, setReason] = useState('');
   const [error, setError] = useState(null);
@@ -36,6 +39,11 @@ const InventoryAdjustmentModal = ({ open, onClose, item }) => {
   };
 
   const handleSubmit = async () => {
+    if (!selectedSeason) {
+      setError('Please select a season before making inventory adjustments.');
+      return;
+    }
+    
     if (!adjustmentQuantity || isNaN(adjustmentQuantity) || parseFloat(adjustmentQuantity) === 0) {
       setError('Please enter a valid non-zero quantity for adjustment.');
       return;
@@ -46,16 +54,13 @@ const InventoryAdjustmentModal = ({ open, onClose, item }) => {
     }
 
     try {
-      // Assuming an API endpoint for inventory adjustments
-      // This might be a new endpoint or an update to an existing one
-      // For now, we'll use a placeholder that updates the item directly
-      // In a real scenario, you'd likely have a dedicated adjustment endpoint
-      // that logs the adjustment and updates the current quantity.
-
-      // Example: If the backend has an endpoint like POST /api/inventory/adjustments
-      await api.post('/inventory/adjustments', {
+      // Using the new inventory adjustment endpoint with season parameter
+      await api.post(`/inventory-items/adjustments?seasonId=${selectedSeason._id}`, {
         inventoryItemId: item._id,
-        quantity: parseFloat(adjustmentQuantity),
+        // For backward compatibility, we'll use quantityChange instead of quantity
+        quantityChange: parseFloat(adjustmentQuantity),
+        // We'll assume a default adjustment type, or you could add a dropdown for this
+        adjustmentType: parseFloat(adjustmentQuantity) > 0 ? 'Purchase' : 'Manual Adjustment',
         reason: reason,
       });
 
@@ -70,35 +75,48 @@ const InventoryAdjustmentModal = ({ open, onClose, item }) => {
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <DialogTitle>Adjust Inventory for {item?.itemName}</DialogTitle>
       <DialogContent>
-        <Typography variant="body1" sx={{ mb: 2 }}>
-          Current Quantity: {item?.initialQuantity} {item?.unit}
-        </Typography>
-        <TextField
-          autoFocus
-          margin="dense"
-          label="Adjustment Quantity (e.g., -5 for deduction, 10 for addition)"
-          type="number"
-          fullWidth
-          value={adjustmentQuantity}
-          onChange={handleQuantityChange}
-          error={!!error}
-          helperText={error}
-        />
-        <TextField
-          margin="dense"
-          label="Reason for Adjustment"
-          type="text"
-          fullWidth
-          multiline
-          rows={3}
-          value={reason}
-          onChange={handleReasonChange}
-          sx={{ mt: 2 }}
-        />
+        {selectedSeason ? (
+          <>
+            <Typography variant="body1" sx={{ mb: 2 }}>
+              Current Quantity: {item?.currentQuantity} {item?.unit}
+            </Typography>
+            <TextField
+              autoFocus
+              margin="dense"
+              label="Adjustment Quantity (e.g., -5 for deduction, 10 for addition)"
+              type="number"
+              fullWidth
+              value={adjustmentQuantity}
+              onChange={handleQuantityChange}
+              error={!!error && !selectedSeason}
+              helperText={error && !selectedSeason ? error : ''}
+            />
+            <TextField
+              margin="dense"
+              label="Reason for Adjustment"
+              type="text"
+              fullWidth
+              multiline
+              rows={3}
+              value={reason}
+              onChange={handleReasonChange}
+              sx={{ mt: 2 }}
+            />
+            {error && selectedSeason && (
+              <Alert severity="error" sx={{ mt: 2 }}>
+                {error}
+              </Alert>
+            )}
+          </>
+        ) : (
+          <Alert severity="warning">
+            Please select a season before making inventory adjustments.
+          </Alert>
+        )}
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
-        <Button onClick={handleSubmit} variant="contained">
+        <Button onClick={handleSubmit} variant="contained" disabled={!selectedSeason}>
           Adjust
         </Button>
       </DialogActions>
