@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   Typography, 
   Grid, 
-  TextField, 
   Button, 
   FormControl, 
   InputLabel, 
@@ -17,9 +16,16 @@ import {
   Card,
   CardContent,
   CardHeader,
-  Divider,
   CircularProgress,
-  Alert
+  Alert,
+  Tabs,
+  Tab,
+  Paper,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
+  FormLabel,
+  TextField
 } from '@mui/material';
 import { 
   Insights as InsightsIcon,
@@ -28,14 +34,14 @@ import {
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { useApiData } from '../hooks/useApi';
 import { 
-  getSeasons, 
-  getPonds, 
-  getFeedInputs, 
-  getGrowthSamplings, 
-  getWaterQualityInputs 
-} from '../services/api';
+  useHistoricalSeasons,
+  useHistoricalPondsForCurrentSeason,
+  useHistoricalPondsBySeason,
+  usePondComparisonCurrentSeason,
+  usePondComparisonHistorical,
+  useExportComparison
+} from '../hooks/useHistoricalInsights';
 import { 
   BarChart, 
   Bar, 
@@ -46,246 +52,223 @@ import {
   Legend, 
   ResponsiveContainer,
   LineChart,
-  Line
+  Line,
+  ComposedChart,
+  Area
 } from 'recharts';
 
 const HistoricalInsightsPage = () => {
-  const [startDate, setStartDate] = useState(new Date(Date.now() - 365 * 24 * 60 * 60 * 1000)); // 1 year ago
+  // Mode selection: 'current' or 'historical'
+  const [mode, setMode] = useState('current');
+  
+  // Current season mode states
+  const [startDate, setStartDate] = useState(new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)); // 30 days ago
   const [endDate, setEndDate] = useState(new Date());
-  const [selectedSeasons, setSelectedSeasons] = useState([]);
-  const [selectedPonds, setSelectedPonds] = useState([]);
+  const [selectedPondA, setSelectedPondA] = useState('');
+  const [selectedPondB, setSelectedPondB] = useState('');
+  
+  // Historical mode states
+  const [selectedSeason1, setSelectedSeason1] = useState('');
+  const [selectedSeason2, setSelectedSeason2] = useState('');
+  const [selectedPondA_H, setSelectedPondA_H] = useState('');
+  const [selectedPondB_H, setSelectedPondB_H] = useState('');
+  
+  // Common states
   const [selectedMetrics, setSelectedMetrics] = useState([]);
-  const [reportData, setReportData] = useState(null);
-  const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+  const [comparisonData, setComparisonData] = useState(null);
+  const [activeTab, setActiveTab] = useState(0);
 
-  // Fetch seasons
-  const { 
-    data: seasonsData, 
-    loading: seasonsLoading, 
-    error: seasonsError
-  } = useApiData(getSeasons, []);
-
-  // Fetch ponds
-  const { 
-    data: pondsData, 
-    loading: pondsLoading, 
-    error: pondsError
-  } = useApiData(getPonds, []);
-
-  // Fetch all data for analysis
-  const { 
-    data: feedInputsData, 
-    loading: feedInputsLoading, 
-    error: feedInputsError
-  } = useApiData(getFeedInputs, []);
-
-  const { 
-    data: growthSamplingsData, 
-    loading: growthSamplingsLoading, 
-    error: growthSamplingsError
-  } = useApiData(getGrowthSamplings, []);
-
-  const { 
-    data: waterQualityInputsData, 
-    loading: waterQualityInputsLoading, 
-    error: waterQualityInputsError
-  } = useApiData(getWaterQualityInputs, []);
-
-  // Metrics options
+  // Metrics options for pond comparison
   const metricOptions = [
-    'Total Feed Consumption',
-    'Average Daily Growth',
-    'Feed Conversion Ratio (FCR)',
-    'Survival Rate',
-    'Average Water Temperature',
-    'Average Dissolved Oxygen'
+    { id: 'temperature', name: 'Water Temperature' },
+    { id: 'ph', name: 'pH Level' },
+    { id: 'dissolved_oxygen', name: 'Dissolved Oxygen' },
+    { id: 'ammonia', name: 'Ammonia Level' },
+    { id: 'feed_consumption', name: 'Feed Consumption' },
+    { id: 'average_weight', name: 'Average Shrimp Weight' }
   ];
 
+  // Fetch seasons for historical mode
+  const { 
+    data: historicalSeasonsData, 
+    loading: historicalSeasonsLoading, 
+    error: historicalSeasonsError
+  } = useHistoricalSeasons();
+
+  // Fetch ponds for current season mode
+  const { 
+    data: currentSeasonPondsData, 
+    loading: currentSeasonPondsLoading, 
+    error: currentSeasonPondsError
+  } = useHistoricalPondsForCurrentSeason();
+
+  // Fetch ponds for selected seasons in historical mode
+  const { 
+    data: season1PondsData, 
+    loading: season1PondsLoading, 
+    error: season1PondsError
+  } = useHistoricalPondsBySeason(selectedSeason1, [selectedSeason1]);
+
+  const { 
+    data: season2PondsData, 
+    loading: season2PondsLoading, 
+    error: season2PondsError
+  } = useHistoricalPondsBySeason(selectedSeason2, [selectedSeason2]);
+
+  // Pond comparison mutations
+  const { 
+    mutate: compareCurrentMutate, 
+    loading: compareCurrentLoading, 
+    error: compareCurrentError
+  } = usePondComparisonCurrentSeason();
+
+  const { 
+    mutate: compareHistoricalMutate, 
+    loading: compareHistoricalLoading, 
+    error: compareHistoricalError
+  } = usePondComparisonHistorical();
+
+  // Export mutation
+  const { 
+    mutate: exportMutate, 
+    loading: exportLoading, 
+    error: exportError
+  } = useExportComparison();
+
   // Loading and error states
-  const isLoading = seasonsLoading || pondsLoading || feedInputsLoading || 
-                   growthSamplingsLoading || waterQualityInputsLoading;
-  const hasError = seasonsError || pondsError || feedInputsError || 
-                   growthSamplingsError || waterQualityInputsError;
+  const isLoading = historicalSeasonsLoading || currentSeasonPondsLoading || season1PondsLoading || season2PondsLoading;
+  const hasError = historicalSeasonsError || currentSeasonPondsError || season1PondsError || season2PondsError;
+  const isProcessing = compareCurrentLoading || compareHistoricalLoading;
+  const hasComparisonError = compareCurrentError || compareHistoricalError;
 
-  // Filter data based on selected parameters
-  const filterDataByPonds = (data, pondIds) => {
-    if (!pondIds || pondIds.length === 0) return data;
-    return data.filter(item => pondIds.includes(item.pondId));
-  };
-
-  const filterDataByDateRange = (data, startDate, endDate) => {
-    return data.filter(item => {
-      const itemDate = new Date(item.date);
-      return itemDate >= startDate && itemDate <= endDate;
-    });
-  };
-
-  // Calculate metrics
-  const calculateMetrics = () => {
-    const filteredFeedInputs = filterDataByDateRange(
-      filterDataByPonds(feedInputsData ? feedInputsData.data : [], selectedPonds),
-      startDate,
-      endDate
-    );
-    
-    const filteredGrowthSamplings = filterDataByDateRange(
-      filterDataByPonds(growthSamplingsData || [], selectedPonds),
-      startDate,
-      endDate
-    );
-    
-    const filteredWaterQualityInputs = filterDataByDateRange(
-      filterDataByPonds(waterQualityInputsData ? waterQualityInputsData.data : [], selectedPonds),
-      startDate,
-      endDate
-    );
-
-    const metrics = {};
-
-    // Total Feed Consumption
-    if (selectedMetrics.includes('Total Feed Consumption')) {
-      metrics.totalFeedConsumption = filteredFeedInputs.reduce((sum, entry) => sum + (entry.quantity || 0), 0);
+  // Handle current season comparison
+  const handleCompareCurrentSeason = async () => {
+    if (!selectedPondA || !selectedPondB || selectedMetrics.length === 0) {
+      return;
     }
 
-    // Average Daily Growth
-    if (selectedMetrics.includes('Average Daily Growth') && filteredGrowthSamplings.length > 0) {
-      const growthRates = filteredGrowthSamplings.map(entry => {
-        if (entry.totalCount > 0) {
-          return (entry.totalWeight * 1000) / entry.totalCount; // Avg weight in grams
-        }
-        return 0;
-      });
-      const avgGrowth = growthRates.reduce((sum, rate) => sum + rate, 0) / growthRates.length;
-      metrics.averageDailyGrowth = avgGrowth;
-    }
-
-    // Feed Conversion Ratio (FCR)
-    if (selectedMetrics.includes('Feed Conversion Ratio (FCR)') && filteredFeedInputs.length > 0) {
-      const totalFeed = filteredFeedInputs.reduce((sum, entry) => sum + (entry.quantity || 0), 0);
-      const totalWeightGain = filteredGrowthSamplings.reduce((sum, entry) => sum + (entry.totalWeight || 0), 0);
-      metrics.feedConversionRatio = totalWeightGain > 0 ? totalFeed / totalWeightGain : 0;
-    }
-
-    // Average Water Temperature
-    if (selectedMetrics.includes('Average Water Temperature') && filteredWaterQualityInputs.length > 0) {
-      const totalTemp = filteredWaterQualityInputs.reduce((sum, entry) => sum + (entry.temperature || 0), 0);
-      metrics.averageWaterTemperature = totalTemp / filteredWaterQualityInputs.length;
-    }
-
-    // Average Dissolved Oxygen
-    if (selectedMetrics.includes('Average Dissolved Oxygen') && filteredWaterQualityInputs.length > 0) {
-      const totalDO = filteredWaterQualityInputs.reduce((sum, entry) => sum + (entry.dissolvedOxygen || 0), 0);
-      metrics.averageDissolvedOxygen = totalDO / filteredWaterQualityInputs.length;
-    }
-
-    return metrics;
-  };
-
-  // Generate chart data for visualization
-  const generateChartData = () => {
-    const filteredFeedInputs = filterDataByDateRange(
-      filterDataByPonds(feedInputsData ? feedInputsData.data : [], selectedPonds),
-      startDate,
-      endDate
-    );
-    
-    const filteredGrowthSamplings = filterDataByDateRange(
-      filterDataByPonds(growthSamplingsData || [], selectedPonds),
-      startDate,
-      endDate
-    );
-    
-    const filteredWaterQualityInputs = filterDataByDateRange(
-      filterDataByPonds(waterQualityInputsData ? waterQualityInputsData.data : [], selectedPonds),
-      startDate,
-      endDate
-    );
-
-    // Group data by date for charts
-    const feedChartData = {};
-    filteredFeedInputs.forEach(entry => {
-      const date = new Date(entry.date).toISOString().split('T')[0];
-      if (!feedChartData[date]) {
-        feedChartData[date] = 0;
-      }
-      feedChartData[date] += entry.quantity || 0;
-    });
-
-    const growthChartData = {};
-    filteredGrowthSamplings.forEach(entry => {
-      const date = new Date(entry.date).toISOString().split('T')[0];
-      if (!growthChartData[date]) {
-        growthChartData[date] = [];
-      }
-      if (entry.totalCount > 0) {
-        growthChartData[date].push((entry.totalWeight * 1000) / entry.totalCount);
-      }
-    });
-
-    const waterQualityChartData = {};
-    filteredWaterQualityInputs.forEach(entry => {
-      const date = new Date(entry.date).toISOString().split('T')[0];
-      if (!waterQualityChartData[date]) {
-        waterQualityChartData[date] = { temp: [], do: [] };
-      }
-      waterQualityChartData[date].temp.push(entry.temperature || 0);
-      waterQualityChartData[date].do.push(entry.dissolvedOxygen || 0);
-    });
-
-    // Convert to array format for charts
-    const feedChartArray = Object.entries(feedChartData).map(([date, quantity]) => ({
-      date,
-      quantity
-    }));
-
-    const growthChartArray = Object.entries(growthChartData).map(([date, weights]) => {
-      const avgWeight = weights.reduce((sum, w) => sum + w, 0) / weights.length;
-      return {
-        date,
-        avgWeight: isNaN(avgWeight) ? 0 : avgWeight
-      };
-    });
-
-    const waterQualityChartArray = Object.entries(waterQualityChartData).map(([date, values]) => {
-      const avgTemp = values.temp.reduce((sum, t) => sum + t, 0) / values.temp.length;
-      const avgDO = values.do.reduce((sum, d) => sum + d, 0) / values.do.length;
-      return {
-        date,
-        avgTemp: isNaN(avgTemp) ? 0 : avgTemp,
-        avgDO: isNaN(avgDO) ? 0 : avgDO
-      };
-    });
-
-    return {
-      feedConsumption: feedChartArray,
-      growth: growthChartArray,
-      waterQuality: waterQualityChartArray
-    };
-  };
-
-  const handleGenerateReport = async () => {
-    setIsGeneratingReport(true);
     try {
-      // Calculate metrics
-      const metrics = calculateMetrics();
-      
-      // Generate chart data
-      const chartData = generateChartData();
-      
-      setReportData({
-        metrics,
-        chartData
+      const comparisonResult = await compareCurrentMutate({
+        pond_a_id: selectedPondA,
+        pond_b_id: selectedPondB,
+        start_date: startDate.toISOString().split('T')[0],
+        end_date: endDate.toISOString().split('T')[0],
+        metrics: selectedMetrics
       });
+      
+      if (comparisonResult.data) {
+        setComparisonData(comparisonResult.data.comparison_data);
+      }
     } catch (error) {
-      console.error('Error generating report:', error);
-    } finally {
-      setIsGeneratingReport(false);
+      console.error('Error comparing ponds:', error);
     }
   };
 
-  const handleExportData = () => {
-    // Implementation for exporting data would go here
-    console.log('Exporting data');
+  // Handle historical comparison
+  const handleCompareHistorical = async () => {
+    if (!selectedPondA_H || !selectedPondB_H || selectedMetrics.length === 0) {
+      return;
+    }
+
+    try {
+      const comparisonResult = await compareHistoricalMutate({
+        pond_a_id: selectedPondA_H,
+        pond_b_id: selectedPondB_H,
+        metrics: selectedMetrics
+      });
+      
+      if (comparisonResult.data) {
+        setComparisonData(comparisonResult.data.comparison_data);
+      }
+    } catch (error) {
+      console.error('Error comparing ponds:', error);
+    }
+  };
+
+  // Handle export data
+  const handleExportData = async () => {
+    try {
+      let exportParams = {
+        metrics: selectedMetrics,
+        format: 'csv'
+      };
+
+      if (mode === 'current') {
+        exportParams = {
+          ...exportParams,
+          pond_a_id: selectedPondA,
+          pond_b_id: selectedPondB,
+          mode: 'current',
+          start_date: startDate.toISOString().split('T')[0],
+          end_date: endDate.toISOString().split('T')[0]
+        };
+      } else {
+        exportParams = {
+          ...exportParams,
+          pond_a_id: selectedPondA_H,
+          pond_b_id: selectedPondB_H,
+          mode: 'historical'
+        };
+      }
+
+      await exportMutate(exportParams);
+    } catch (error) {
+      console.error('Error exporting data:', error);
+    }
+  };
+
+  // Format data for charts
+  const formatChartData = (metricData) => {
+    if (!metricData || !metricData.pond_a_data || !metricData.pond_b_data || !metricData.differences) {
+      return [];
+    }
+
+    // Create a map for easier lookup
+    const pondAMap = new Map(metricData.pond_a_data.map(item => [item.timestamp, item.value]));
+    const pondBMap = new Map(metricData.pond_b_data.map(item => [item.timestamp, item.value]));
+    const diffMap = new Map(metricData.differences.map(item => [item.timestamp, item.difference]));
+
+    // Get all unique dates
+    const allDates = new Set([
+      ...metricData.pond_a_data.map(item => new Date(item.timestamp).toISOString().split('T')[0]),
+      ...metricData.pond_b_data.map(item => new Date(item.timestamp).toISOString().split('T')[0])
+    ]);
+
+    // Format data for the chart
+    return Array.from(allDates).map(date => {
+      const timestamp = new Date(date).toISOString();
+      return {
+        date,
+        pondA: pondAMap.get(timestamp) || null,
+        pondB: pondBMap.get(timestamp) || null,
+        difference: diffMap.get(timestamp) || null
+      };
+    }).sort((a, b) => new Date(a.date) - new Date(b.date));
+  };
+
+  // Get pond name by ID
+  const getPondName = (pondId) => {
+    if (mode === 'current') {
+      if (!currentSeasonPondsData || !currentSeasonPondsData.ponds) return '';
+      const pond = currentSeasonPondsData.ponds.find(p => p.id === pondId);
+      return pond ? `${pond.name} (${pond.season?.name || 'Unknown Season'})` : '';
+    } else {
+      // For historical mode, we need to check both season's ponds
+      if (season1PondsData && season1PondsData.ponds) {
+        const pond = season1PondsData.ponds.find(p => p.id === pondId);
+        if (pond) return `${pond.name} (${pond.season?.name || 'Unknown Season'})`;
+      }
+      if (season2PondsData && season2PondsData.ponds) {
+        const pond = season2PondsData.ponds.find(p => p.id === pondId);
+        if (pond) return `${pond.name} (${pond.season?.name || 'Unknown Season'})`;
+      }
+      return '';
+    }
+  };
+
+  // Handle tab change
+  const handleTabChange = (event, newValue) => {
+    setActiveTab(newValue);
   };
 
   if (isLoading) {
@@ -300,16 +283,21 @@ const HistoricalInsightsPage = () => {
     return (
       <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
         <Alert severity="error">
-          Error loading data: {seasonsError || pondsError || feedInputsError || 
-                             growthSamplingsError || waterQualityInputsError}
+          Error loading data: {historicalSeasonsError?.message || currentSeasonPondsError?.message || season1PondsError?.message || season2PondsError?.message || 'Unknown error occurred'}
         </Alert>
       </Container>
     );
   }
 
-  // Use real data or fallback to mock data
-  const seasonOptions = seasonsData || [];
-  const pondOptions = pondsData ? pondsData.data : [];
+  if (hasComparisonError) {
+    return (
+      <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+        <Alert severity="error">
+          Error comparing ponds: {compareCurrentError?.message || compareHistoricalError?.message || 'Unknown error occurred'}
+        </Alert>
+      </Container>
+    );
+  }
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
@@ -317,114 +305,200 @@ const HistoricalInsightsPage = () => {
         <Typography variant="h4" component="h1" gutterBottom>
           Historical Insights
         </Typography>
-        <Button variant="contained" startIcon={<DownloadIcon />} onClick={handleExportData}>
-          Export Report
-        </Button>
+        {comparisonData && (
+          <Button variant="outlined" startIcon={<DownloadIcon />} onClick={handleExportData} disabled={exportLoading}>
+            {exportLoading ? 'Exporting...' : 'Export Data'}
+          </Button>
+        )}
       </Box>
       
       <Card elevation={3} sx={{ mb: 4 }}>
         <CardHeader
-          title="Analysis Parameters"
-          subheader="Select data for historical analysis"
+          title="Comparison Mode"
+          subheader="Select the type of comparison you want to perform"
+        />
+        <CardContent>
+          <FormControl component="fieldset">
+            <RadioGroup row value={mode} onChange={(e) => setMode(e.target.value)}>
+              <FormControlLabel value="current" control={<Radio />} label="Current Season Comparison" />
+              <FormControlLabel value="historical" control={<Radio />} label="Historical Comparison" />
+            </RadioGroup>
+          </FormControl>
+        </CardContent>
+      </Card>
+      
+      <Card elevation={3} sx={{ mb: 4 }}>
+        <CardHeader
+          title={mode === 'current' ? "Current Season Comparison" : "Historical Comparison"}
+          subheader={mode === 'current' ? "Compare ponds within the current season" : "Compare ponds across different seasons"}
         />
         <CardContent>
           <LocalizationProvider dateAdapter={AdapterDateFns}>
             <Grid container spacing={3}>
-              <Grid item xs={12} md={6}>
-                <DatePicker
-                  label="Start Date"
-                  value={startDate}
-                  onChange={(newValue) => setStartDate(newValue)}
-                  renderInput={(params) => <TextField {...params} fullWidth />}
-                />
-              </Grid>
-              
-              <Grid item xs={12} md={6}>
-                <DatePicker
-                  label="End Date"
-                  value={endDate}
-                  onChange={(newValue) => setEndDate(newValue)}
-                  renderInput={(params) => <TextField {...params} fullWidth />}
-                />
-              </Grid>
+              {mode === 'current' ? (
+                // Current Season Mode
+                <>
+                  <Grid item xs={12} md={6}>
+                    <DatePicker
+                      label="Start Date"
+                      value={startDate}
+                      onChange={(newValue) => setStartDate(newValue)}
+                      renderInput={(params) => <TextField {...params} fullWidth />}
+                    />
+                  </Grid>
+                  
+                  <Grid item xs={12} md={6}>
+                    <DatePicker
+                      label="End Date"
+                      value={endDate}
+                      onChange={(newValue) => setEndDate(newValue)}
+                      renderInput={(params) => <TextField {...params} fullWidth />}
+                    />
+                  </Grid>
+                  
+                  <Grid item xs={12} md={6}>
+                    <FormControl fullWidth>
+                      <InputLabel id="pond-a-select-label">Pond A</InputLabel>
+                      <Select
+                        labelId="pond-a-select-label"
+                        value={selectedPondA}
+                        onChange={(e) => setSelectedPondA(e.target.value)}
+                        input={<OutlinedInput label="Pond A" />}
+                      >
+                        {currentSeasonPondsData?.ponds?.map((pond) => (
+                          <MenuItem key={pond.id} value={pond.id}>
+                            {pond.name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  
+                  <Grid item xs={12} md={6}>
+                    <FormControl fullWidth>
+                      <InputLabel id="pond-b-select-label">Pond B</InputLabel>
+                      <Select
+                        labelId="pond-b-select-label"
+                        value={selectedPondB}
+                        onChange={(e) => setSelectedPondB(e.target.value)}
+                        input={<OutlinedInput label="Pond B" />}
+                      >
+                        {currentSeasonPondsData?.ponds?.map((pond) => (
+                          <MenuItem key={pond.id} value={pond.id}>
+                            {pond.name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                </>
+              ) : (
+                // Historical Mode
+                <>
+                  <Grid item xs={12} md={6}>
+                    <FormControl fullWidth>
+                      <InputLabel id="season-1-select-label">Season 1</InputLabel>
+                      <Select
+                        labelId="season-1-select-label"
+                        value={selectedSeason1}
+                        onChange={(e) => {
+                          setSelectedSeason1(e.target.value);
+                          setSelectedPondA_H(''); // Reset pond selection when season changes
+                        }}
+                        input={<OutlinedInput label="Season 1" />}
+                      >
+                        {historicalSeasonsData?.seasons?.map((season) => (
+                          <MenuItem key={season.id} value={season.id}>
+                            {season.name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  
+                  <Grid item xs={12} md={6}>
+                    <FormControl fullWidth>
+                      <InputLabel id="pond-a-historical-select-label">Pond A</InputLabel>
+                      <Select
+                        labelId="pond-a-historical-select-label"
+                        value={selectedPondA_H}
+                        onChange={(e) => setSelectedPondA_H(e.target.value)}
+                        input={<OutlinedInput label="Pond A" />}
+                        disabled={!selectedSeason1}
+                      >
+                        {season1PondsData?.ponds?.map((pond) => (
+                          <MenuItem key={pond.id} value={pond.id}>
+                            {pond.name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  
+                  <Grid item xs={12} md={6}>
+                    <FormControl fullWidth>
+                      <InputLabel id="season-2-select-label">Season 2</InputLabel>
+                      <Select
+                        labelId="season-2-select-label"
+                        value={selectedSeason2}
+                        onChange={(e) => {
+                          setSelectedSeason2(e.target.value);
+                          setSelectedPondB_H(''); // Reset pond selection when season changes
+                        }}
+                        input={<OutlinedInput label="Season 2" />}
+                      >
+                        {historicalSeasonsData?.seasons?.map((season) => (
+                          <MenuItem key={season.id} value={season.id}>
+                            {season.name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  
+                  <Grid item xs={12} md={6}>
+                    <FormControl fullWidth>
+                      <InputLabel id="pond-b-historical-select-label">Pond B</InputLabel>
+                      <Select
+                        labelId="pond-b-historical-select-label"
+                        value={selectedPondB_H}
+                        onChange={(e) => setSelectedPondB_H(e.target.value)}
+                        input={<OutlinedInput label="Pond B" />}
+                        disabled={!selectedSeason2}
+                      >
+                        {season2PondsData?.ponds?.map((pond) => (
+                          <MenuItem key={pond.id} value={pond.id}>
+                            {pond.name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                </>
+              )}
               
               <Grid item xs={12}>
                 <FormControl fullWidth>
-                  <InputLabel id="seasons-select-label">Seasons</InputLabel>
-                  <Select
-                    labelId="seasons-select-label"
-                    multiple
-                    value={selectedSeasons}
-                    onChange={(e) => setSelectedSeasons(e.target.value)}
-                    input={<OutlinedInput label="Seasons" />}
-                    renderValue={(selected) => (
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                        {selected.map((value) => {
-                          const season = seasonOptions.find(s => s._id === value || s.id === value);
-                          return <Chip key={value} label={season?.name} size="small" />;
-                        })}
-                      </Box>
-                    )}
-                  >
-                    {seasonOptions.map((season) => (
-                      <MenuItem key={season._id || season.id} value={season._id || season.id}>
-                        <Checkbox checked={selectedSeasons.indexOf(season._id || season.id) > -1} />
-                        <ListItemText primary={season.name} />
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-              
-              <Grid item xs={12}>
-                <FormControl fullWidth>
-                  <InputLabel id="ponds-select-label">Ponds</InputLabel>
-                  <Select
-                    labelId="ponds-select-label"
-                    multiple
-                    value={selectedPonds}
-                    onChange={(e) => setSelectedPonds(e.target.value)}
-                    input={<OutlinedInput label="Ponds" />}
-                    renderValue={(selected) => (
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                        {selected.map((value) => {
-                          const pond = pondOptions.find(p => p._id === value || p.id === value);
-                          return <Chip key={value} label={pond?.name} size="small" />;
-                        })}
-                      </Box>
-                    )}
-                  >
-                    {pondOptions.map((pond) => (
-                      <MenuItem key={pond._id || pond.id} value={pond._id || pond.id}>
-                        <Checkbox checked={selectedPonds.indexOf(pond._id || pond.id) > -1} />
-                        <ListItemText primary={pond.name} />
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-              
-              <Grid item xs={12}>
-                <FormControl fullWidth>
-                  <InputLabel id="metrics-select-label">Metrics</InputLabel>
+                  <InputLabel id="metrics-select-label">Metrics to Compare</InputLabel>
                   <Select
                     labelId="metrics-select-label"
                     multiple
                     value={selectedMetrics}
                     onChange={(e) => setSelectedMetrics(e.target.value)}
-                    input={<OutlinedInput label="Metrics" />}
+                    input={<OutlinedInput label="Metrics to Compare" />}
                     renderValue={(selected) => (
                       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                        {selected.map((value) => (
-                          <Chip key={value} label={value} size="small" />
-                        ))}
+                        {selected.map((value) => {
+                          const metric = metricOptions.find(m => m.id === value);
+                          return <Chip key={value} label={metric?.name || value} size="small" />;
+                        })}
                       </Box>
                     )}
                   >
                     {metricOptions.map((metric) => (
-                      <MenuItem key={metric} value={metric}>
-                        <Checkbox checked={selectedMetrics.indexOf(metric) > -1} />
-                        <ListItemText primary={metric} />
+                      <MenuItem key={metric.id} value={metric.id}>
+                        <Checkbox checked={selectedMetrics.indexOf(metric.id) > -1} />
+                        <ListItemText primary={metric.name} />
                       </MenuItem>
                     ))}
                   </Select>
@@ -435,12 +509,17 @@ const HistoricalInsightsPage = () => {
                 <Button 
                   variant="contained" 
                   startIcon={<InsightsIcon />} 
-                  onClick={handleGenerateReport} 
+                  onClick={mode === 'current' ? handleCompareCurrentSeason : handleCompareHistorical}
                   size="large"
                   fullWidth
-                  disabled={isGeneratingReport || selectedMetrics.length === 0}
+                  disabled={
+                    isProcessing || 
+                    (mode === 'current' && (!selectedPondA || !selectedPondB || selectedPondA === selectedPondB)) ||
+                    (mode === 'historical' && (!selectedPondA_H || !selectedPondB_H || selectedPondA_H === selectedPondB_H)) ||
+                    selectedMetrics.length === 0
+                  }
                 >
-                  {isGeneratingReport ? 'Generating Report...' : 'Generate Historical Report'}
+                  {isProcessing ? 'Comparing Ponds...' : 'Compare Ponds'}
                 </Button>
               </Grid>
             </Grid>
@@ -450,168 +529,168 @@ const HistoricalInsightsPage = () => {
       
       <Card elevation={3}>
         <CardHeader
-          title="Analysis Results"
-          subheader="Historical trends and comparisons"
+          title="Comparison Results"
+          subheader="Pond performance comparison"
         />
         <CardContent>
-          {reportData ? (
+          {comparisonData ? (
             <Box>
-              <Typography variant="h6" gutterBottom>
-                Key Metrics
-              </Typography>
-              <Grid container spacing={2} sx={{ mb: 4 }}>
-                {selectedMetrics.includes('Total Feed Consumption') && (
-                  <Grid item xs={12} sm={6} md={4}>
-                    <Card variant="outlined">
-                      <CardContent>
-                        <Typography variant="body2" color="text.secondary">
-                          Total Feed Consumption
-                        </Typography>
-                        <Typography variant="h5" component="div">
-                          {reportData.metrics.totalFeedConsumption?.toFixed(2) || '0.00'} kg
-                        </Typography>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                )}
-                
-                {selectedMetrics.includes('Average Daily Growth') && (
-                  <Grid item xs={12} sm={6} md={4}>
-                    <Card variant="outlined">
-                      <CardContent>
-                        <Typography variant="body2" color="text.secondary">
-                          Average Daily Growth
-                        </Typography>
-                        <Typography variant="h5" component="div">
-                          {reportData.metrics.averageDailyGrowth?.toFixed(2) || '0.00'} g/day
-                        </Typography>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                )}
-                
-                {selectedMetrics.includes('Feed Conversion Ratio (FCR)') && (
-                  <Grid item xs={12} sm={6} md={4}>
-                    <Card variant="outlined">
-                      <CardContent>
-                        <Typography variant="body2" color="text.secondary">
-                          Feed Conversion Ratio (FCR)
-                        </Typography>
-                        <Typography variant="h5" component="div">
-                          {reportData.metrics.feedConversionRatio?.toFixed(2) || '0.00'} :1
-                        </Typography>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                )}
-                
-                {selectedMetrics.includes('Average Water Temperature') && (
-                  <Grid item xs={12} sm={6} md={4}>
-                    <Card variant="outlined">
-                      <CardContent>
-                        <Typography variant="body2" color="text.secondary">
-                          Average Water Temperature
-                        </Typography>
-                        <Typography variant="h5" component="div">
-                          {reportData.metrics.averageWaterTemperature?.toFixed(1) || '0.0'} °C
-                        </Typography>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                )}
-                
-                {selectedMetrics.includes('Average Dissolved Oxygen') && (
-                  <Grid item xs={12} sm={6} md={4}>
-                    <Card variant="outlined">
-                      <CardContent>
-                        <Typography variant="body2" color="text.secondary">
-                          Average Dissolved Oxygen
-                        </Typography>
-                        <Typography variant="h5" component="div">
-                          {reportData.metrics.averageDissolvedOxygen?.toFixed(2) || '0.00'} mg/L
-                        </Typography>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                )}
-              </Grid>
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="h6" gutterBottom>
+                  {mode === 'current' 
+                    ? `Comparing: ${getPondName(selectedPondA)} vs ${getPondName(selectedPondB)}`
+                    : `Comparing: ${getPondName(selectedPondA_H)} vs ${getPondName(selectedPondB_H)}`}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {mode === 'current' 
+                    ? `Period: ${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`
+                    : `Season 1: ${comparisonData.pond_a.season?.name || 'N/A'} | Season 2: ${comparisonData.pond_b.season?.name || 'N/A'}`}
+                </Typography>
+              </Box>
               
-              <Typography variant="h6" gutterBottom sx={{ mt: 3 }}>
-                Trends Visualization
-              </Typography>
+              <Tabs value={activeTab} onChange={handleTabChange} variant="scrollable" scrollButtons="auto">
+                {selectedMetrics.map((metricId) => {
+                  const metric = metricOptions.find(m => m.id === metricId);
+                  return <Tab key={metricId} label={metric?.name || metricId} />;
+                })}
+              </Tabs>
               
-              {selectedMetrics.includes('Total Feed Consumption') && reportData.chartData.feedConsumption.length > 0 && (
-                <Box sx={{ height: 300, mb: 4 }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={reportData.chartData.feedConsumption}
-                      margin={{ top: 5, right: 30, left: 20, bottom: 50 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Bar dataKey="quantity" name="Feed Consumption (kg)" fill="#007BFF" />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </Box>
-              )}
-              
-              {selectedMetrics.includes('Average Daily Growth') && reportData.chartData.growth.length > 0 && (
-                <Box sx={{ height: 300, mb: 4 }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart
-                      data={reportData.chartData.growth}
-                      margin={{ top: 5, right: 30, left: 20, bottom: 50 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Line type="monotone" dataKey="avgWeight" name="Average Weight (g)" stroke="#28A745" activeDot={{ r: 8 }} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </Box>
-              )}
-              
-              {selectedMetrics.includes('Average Water Temperature') && reportData.chartData.waterQuality.length > 0 && (
-                <Box sx={{ height: 300, mb: 4 }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart
-                      data={reportData.chartData.waterQuality}
-                      margin={{ top: 5, right: 30, left: 20, bottom: 50 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="date" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Line type="monotone" dataKey="avgTemp" name="Avg Temperature (°C)" stroke="#FD7E14" activeDot={{ r: 8 }} />
-                      {selectedMetrics.includes('Average Dissolved Oxygen') && (
-                        <Line type="monotone" dataKey="avgDO" name="Avg Dissolved Oxygen (mg/L)" stroke="#007BFF" />
+              <Box sx={{ mt: 3 }}>
+                {selectedMetrics.map((metricId, index) => {
+                  const metric = metricOptions.find(m => m.id === metricId);
+                  const metricData = comparisonData.metrics[metricId];
+                  const chartData = formatChartData(metricData);
+                  
+                  return (
+                    <Box key={metricId} hidden={activeTab !== index}>
+                      {activeTab === index && (
+                        <Paper elevation={0} sx={{ p: 2 }}>
+                          <Typography variant="h6" gutterBottom>
+                            {metric?.name || metricId} Comparison
+                          </Typography>
+                          
+                          {chartData.length > 0 ? (
+                            <Box sx={{ height: 400 }}>
+                              <ResponsiveContainer width="100%" height="100%">
+                                <ComposedChart
+                                  data={chartData}
+                                  margin={{ top: 20, right: 30, left: 20, bottom: 50 }}
+                                >
+                                  <CartesianGrid strokeDasharray="3 3" />
+                                  <XAxis 
+                                    dataKey="date" 
+                                    angle={-45} 
+                                    textAnchor="end" 
+                                    height={60}
+                                    tick={{ fontSize: 12 }}
+                                  />
+                                  <YAxis />
+                                  <Tooltip 
+                                    formatter={(value) => [Number(value).toFixed(2), '']}
+                                    labelFormatter={(label) => `Date: ${label}`}
+                                  />
+                                  <Legend />
+                                  <Line 
+                                    type="monotone" 
+                                    dataKey="pondA" 
+                                    name={mode === 'current' 
+                                      ? getPondName(selectedPondA) 
+                                      : getPondName(selectedPondA_H)} 
+                                    stroke="#1f77b4" 
+                                    strokeWidth={2}
+                                    dot={{ r: 2 }}
+                                    activeDot={{ r: 6 }}
+                                  />
+                                  <Line 
+                                    type="monotone" 
+                                    dataKey="pondB" 
+                                    name={mode === 'current' 
+                                      ? getPondName(selectedPondB) 
+                                      : getPondName(selectedPondB_H)} 
+                                    stroke="#ff7f0e" 
+                                    strokeWidth={2}
+                                    dot={{ r: 2 }}
+                                    activeDot={{ r: 6 }}
+                                  />
+                                  <Area 
+                                    type="monotone" 
+                                    dataKey="difference" 
+                                    name="Difference" 
+                                    fill="#d62728" 
+                                    stroke="#d62728" 
+                                    fillOpacity={0.2}
+                                    strokeWidth={1}
+                                  />
+                                </ComposedChart>
+                              </ResponsiveContainer>
+                            </Box>
+                          ) : (
+                            <Box sx={{ textAlign: 'center', py: 4 }}>
+                              <Typography>No data available for this metric</Typography>
+                            </Box>
+                          )}
+                          
+                          {/* Summary statistics */}
+                          {metricData && (
+                            <Box sx={{ mt: 3 }}>
+                              <Grid container spacing={2}>
+                                <Grid item xs={12} sm={4}>
+                                  <Card variant="outlined">
+                                    <CardContent>
+                                      <Typography variant="body2" color="text.secondary">
+                                        Data Points (Pond A)
+                                      </Typography>
+                                      <Typography variant="h6">
+                                        {metricData.pond_a_data?.length || 0}
+                                      </Typography>
+                                    </CardContent>
+                                  </Card>
+                                </Grid>
+                                <Grid item xs={12} sm={4}>
+                                  <Card variant="outlined">
+                                    <CardContent>
+                                      <Typography variant="body2" color="text.secondary">
+                                        Data Points (Pond B)
+                                      </Typography>
+                                      <Typography variant="h6">
+                                        {metricData.pond_b_data?.length || 0}
+                                      </Typography>
+                                    </CardContent>
+                                  </Card>
+                                </Grid>
+                                <Grid item xs={12} sm={4}>
+                                  <Card variant="outlined">
+                                    <CardContent>
+                                      <Typography variant="body2" color="text.secondary">
+                                        Average Difference
+                                      </Typography>
+                                      <Typography variant="h6">
+                                        {metricData.differences && metricData.differences.length > 0 
+                                          ? (metricData.differences.reduce((sum, d) => sum + d.difference, 0) / metricData.differences.length).toFixed(2)
+                                          : 'N/A'}
+                                      </Typography>
+                                    </CardContent>
+                                  </Card>
+                                </Grid>
+                              </Grid>
+                            </Box>
+                          )}
+                        </Paper>
                       )}
-                    </LineChart>
-                  </ResponsiveContainer>
-                </Box>
-              )}
+                    </Box>
+                  );
+                })}
+              </Box>
             </Box>
           ) : (
-            <Box>
-              <Typography variant="body1" paragraph>
-                The historical analysis report will appear here once you generate it. 
-                This report will include charts, graphs, and tables summarizing the 
-                historical data based on your selections.
+            <Box sx={{ textAlign: 'center', py: 4 }}>
+              <InsightsIcon sx={{ fontSize: 60, color: 'primary.main', opacity: 0.3, mb: 2 }} />
+              <Typography variant="h6" gutterBottom>
+                Compare Pond Performance
               </Typography>
-              <Typography variant="body1" paragraph>
-                Key insights will be highlighted to help you identify trends, 
-                compare performance across different periods, and make data-driven 
-                decisions for your shrimp farm operations.
+              <Typography variant="body1" color="text.secondary">
+                Select the comparison mode, choose ponds, select metrics, and click "Compare Ponds" to see detailed performance comparisons.
               </Typography>
-              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
-                <InsightsIcon sx={{ fontSize: 60, color: 'primary.main', opacity: 0.3 }} />
-              </Box>
             </Box>
           )}
         </CardContent>
