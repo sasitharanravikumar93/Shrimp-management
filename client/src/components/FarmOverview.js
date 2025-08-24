@@ -224,7 +224,7 @@ const FarmOverview = () => {
     return (
       <Container maxWidth={false} sx={{ mt: 2, mb: 4 }}>
         <Alert severity="error">
-          Error loading dashboard data: {allPondsError}
+          Error loading dashboard data: {allPondsError.message}
         </Alert>
       </Container>
     );

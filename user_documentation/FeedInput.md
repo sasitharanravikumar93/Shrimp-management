@@ -1,23 +1,28 @@
 # Feed Input
 
 ## Purpose
-This page allows you to record daily feed input for your shrimp ponds.
+This functionality allows you to record daily feed input for your shrimp ponds. This feature is integrated into the Pond Management page.
 
 ## Navigation
-Access this page via the sidebar navigation under 'Data Entry' -> 'Feed Input'.
+Access this feature by navigating to a specific pond via the Admin Page or Dashboard, then selecting the "Feed" tab in the Data View.
 
 ## Key Features
 *   Record feed type, quantity, and time.
 *   Associate feed entries with specific ponds.
-*   Smart defaults for streamlined data entry.
+*   View historical feed data in chart format.
+*   Feed calculator to help determine appropriate feed quantities.
 
 ## How to Use
-1.  Select the date and time of the feed entry.
-2.  Choose the pond to which the feed was given.
-3.  Enter the type of feed used.
-4.  Specify the quantity of feed in the appropriate units.
-5.  Click 'Submit' to save the entry.
+1.  Navigate to the pond you want to record feed data for.
+2.  Ensure you're in the "Data View" (not Calendar View).
+3.  Select the "Feed" tab.
+4.  In the "Record Feed Input" section:
+    *   Select the date and time of the feed entry.
+    *   Choose the feed type from the dropdown (based on inventory).
+    *   Enter the quantity of feed in kg.
+5.  Click 'Add Feed Entry' to save the entry.
 
 ## Tips and Notes
 *   Ensure accurate time and pond selection for correct data association.
-*   The system may pre-fill some fields based on common usage or previous entries.
+*   The system may provide feed recommendations based on current biomass.
+*   Historical feed data is displayed in the "Feed History" section with both chart and table views.

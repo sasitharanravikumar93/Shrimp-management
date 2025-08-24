@@ -2,12 +2,23 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const { getConfig } = require('./config');
+const {
+  rateLimiter,
+  sanitizeInput,
+  securityHeaders,
+  securityLogger
+} = require('./middleware/security');
 
 // Get validated configuration
 const config = getConfig();
 
 const app = express();
 const PORT = config.server.port;
+
+// Security middleware (applied early)
+app.use(securityHeaders);
+app.use(securityLogger);
+app.use(rateLimiter);
 
 // CORS Configuration
 const corsOptions = {
@@ -21,16 +32,17 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' })); // For parsing application/json
 app.use(express.urlencoded({ extended: true, limit: '10mb' })); // For parsing form data
+app.use(sanitizeInput); // Sanitize all inputs
 
 // MongoDB connection
 mongoose.connect(config.database.uri, config.database.options)
-.then(() => {
-  console.log('Connected to MongoDB');
-})
-.catch((err) => {
-  console.error('Error connecting to MongoDB:', err.message);
-  process.exit(1); // Exit if DB connection fails
-});
+  .then(() => {
+    console.log('Connected to MongoDB');
+  })
+  .catch((err) => {
+    console.error('Error connecting to MongoDB:', err.message);
+    process.exit(1); // Exit if DB connection fails
+  });
 
 // Routes
 app.use('/api/seasons', require('./routes/seasons'));

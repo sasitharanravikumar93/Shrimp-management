@@ -387,7 +387,7 @@ const AdminPage = () => {
 
   // Use real data or fallback to mock data
   const seasons = seasonsData || [];
-  const ponds = pondsData ? pondsData.data : [];
+  const ponds = pondsData || [];
 
   // Loading and error states
   const isLoading = seasonsLoading || pondsLoading;

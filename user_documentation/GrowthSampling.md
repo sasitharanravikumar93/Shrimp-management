@@ -1,24 +1,28 @@
 # Growth Sampling
 
 ## Purpose
-This page is used to record growth sampling data for your shrimp ponds, typically done weekly. This data is crucial for tracking shrimp growth and projecting future yields.
+This functionality is used to record growth sampling data for your shrimp ponds, typically done weekly. This data is crucial for tracking shrimp growth and projecting future yields. This feature is integrated into the Pond Management page.
 
 ## Navigation
-Access this page via the sidebar navigation under 'Data Entry' -> 'Growth Sampling'.
+Access this feature by navigating to a specific pond via the Admin Page or Dashboard, then selecting the "Growth Sampling" tab in the Data View.
 
 ## Key Features
 *   Record sampling date and time.
-*   Enter multiple sample weights and counts for a single pond.
+*   Enter total weight and count of sampled shrimp.
 *   Associate growth entries with specific ponds and seasons.
+*   View historical growth data in chart format.
 
 ## How to Use
-1.  Select the date and time of the growth sampling.
-2.  Choose the pond from which the samples were taken.
-3.  Enter the total weight of the sampled shrimp.
-4.  Enter the total count of the sampled shrimp.
-5.  (Optional) Add additional sample entries if multiple samples were taken from the same pond at the same time.
-6.  Click 'Submit' to save the entry.
+1.  Navigate to the pond you want to record growth sampling data for.
+2.  Ensure you're in the "Data View" (not Calendar View).
+3.  Select the "Growth Sampling" tab.
+4.  In the "Record Growth Sampling" section:
+    *   Select the date and time of the growth sampling.
+    *   Enter the total weight of the sampled shrimp (kg).
+    *   Enter the total count of the sampled shrimp.
+5.  Click 'Add Growth Sampling Entry' to save the entry.
 
 ## Tips and Notes
 *   Accurate sampling is vital for reliable growth projections.
 *   Ensure the correct pond and season are selected for each entry.
+*   Historical growth data is displayed in the "Growth Sampling History" section with both chart and table views.

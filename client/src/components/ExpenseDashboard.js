@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Typography, Grid, Paper, Button, Box, TableContainer, Table, TableHead, TableRow, TableCell, TableBody } from '@mui/material';
+import { Typography, Grid, Paper, Button, Box, TableContainer, Table, TableHead, TableRow, TableCell, TableBody, CircularProgress } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import { useApiData, useApiMutation } from '../hooks/useApi';
 import { getExpenseSummary, getExpenses, createExpense, updateExpense } from '../services/api';
@@ -43,6 +43,10 @@ const ExpenseDashboard = () => {
   };
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+
+  if (summaryLoading || expensesLoading) {
+    return <CircularProgress />;
+  }
 
   return (
     <Grid container spacing={3}>

@@ -2,18 +2,19 @@ const express = require('express');
 const router = express.Router();
 const pondController = require('../controllers/pondController');
 const { cacheMiddleware, clearCache } = require('../middleware/cache');
+const { pondValidation } = require('../middleware/validation');
 
 // POST /api/ponds - Create a new pond
-router.post('/', pondController.createPond, (req, res, next) => {
+router.post('/', pondValidation.create, pondController.createPond, (req, res, next) => {
   // Clear cache for all ponds endpoints
   clearCache('/api/ponds');
   clearCache('/api/ponds/');
-  
+
   // Also clear cache for the specific season if provided
   if (req.body && req.body.seasonId) {
     clearCache(`/api/ponds/season/${req.body.seasonId}`);
   }
-  
+
   next();
 });
 
@@ -27,18 +28,18 @@ router.get('/:id/events', pondController.getPondEvents);
 router.get('/:id/logs/all', pondController.getFullCycleLogs);
 
 // PUT /api/ponds/:id - Update a pond by ID
-router.put('/:id', pondController.updatePond, (req, res, next) => {
+router.put('/:id', pondValidation.update, pondController.updatePond, (req, res, next) => {
   // Clear cache for all ponds endpoints
   clearCache('/api/ponds');
   clearCache('/api/ponds/');
-  
+
   // Try to get the existing pond to clear cache for its season
   require('../models/Pond').findById(req.params.id)
     .then(existingPond => {
       if (existingPond) {
         clearCache(`/api/ponds/season/${existingPond.seasonId}`);
       }
-      
+
       // If seasonId is being updated, also clear cache for the new season
       if (req.body && req.body.seasonId && existingPond && req.body.seasonId !== existingPond.seasonId.toString()) {
         clearCache(`/api/ponds/season/${req.body.seasonId}`);
@@ -57,7 +58,7 @@ router.delete('/:id', pondController.deletePond, (req, res, next) => {
   // Clear cache for all ponds endpoints
   clearCache('/api/ponds');
   clearCache('/api/ponds/');
-  
+
   // Try to get the existing pond to clear cache for its season
   require('../models/Pond').findById(req.params.id)
     .then(existingPond => {
@@ -74,6 +75,6 @@ router.delete('/:id', pondController.deletePond, (req, res, next) => {
 });
 
 // GET /api/ponds/season/:seasonId - Get ponds by season ID
-router.get('/season/:seasonId', cacheMiddleware, pondController.getPondsBySeasonId);
+router.get('/season/:seasonId', pondValidation.getBySeasonId, cacheMiddleware, pondController.getPondsBySeasonId);
 
 module.exports = router;

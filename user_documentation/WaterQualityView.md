@@ -7,26 +7,29 @@ This page provides a historical overview of water quality parameters recorded fo
 Access this page via the sidebar navigation under 'Reports' -> 'Water Quality View'.
 
 ## Key Features
-*   **Historical Data Display:** View a list or table of all recorded water quality entries.
-*   **Filtering Options:** Filter data by date range, pond, and specific water quality parameters.
-*   **Search Functionality:** Search for specific water quality entries.
-*   **Data Export (if available):** Option to export the displayed data for further analysis.
+*   **Historical Data Display:** View a table of all recorded water quality entries.
+*   **Filtering Options:** Filter data by date range, pond, specific water quality parameters, and search terms.
+*   **Data Export:** Option to export the displayed data for further analysis.
 
 ## How to Use
 
 ### 1. Viewing Water Quality Data
-*   Upon navigating to the Water Quality View page, you will see a table displaying recent water quality entries.
-*   The table typically shows details such as date, time, pond, and values for various parameters (e.g., pH, DO, Temperature).
+*   Upon navigating to the Water Quality View page, you will see a table displaying water quality entries.
+*   The table shows details such as date, time, pond, and values for various parameters (pH, DO, Temperature, Salinity, Ammonia, Nitrite, Alkalinity).
 
 ### 2. Filtering Data
 *   **By Date Range:** Use the date pickers to select a start and end date to view entries within that period.
 *   **By Pond:** Select a specific pond from the dropdown to see only its water quality data.
-*   **By Parameter:** (If available) Filter by a specific water quality parameter to analyze its trends.
-*   **By Season:** Use the global season selector (usually in the sidebar) to filter all data by the active season.
+*   **By Parameter:** Select a specific water quality parameter to focus on that metric.
+*   **By Search Terms:** Use the search bar to find entries containing specific text.
 
-### 3. Searching for Entries
-*   Use the search bar to find specific entries based on keywords (e.g., pond name, parameter values).
+### 3. Applying Filters
+*   After setting your filter criteria, click the "Apply Filters" button to update the displayed data.
+
+### 4. Exporting Data
+*   Click the "Export Data" button to download the currently displayed data.
 
 ## Tips and Notes
 *   Regularly review water quality data to ensure optimal conditions for shrimp health.
 *   Look for trends or sudden changes in parameters that might indicate a problem.
+*   Export data for further analysis in spreadsheet applications.
