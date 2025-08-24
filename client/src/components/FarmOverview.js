@@ -366,11 +366,7 @@ const FarmOverview = () => {
           ))}
         </Grid>
         
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
-          <Button variant="outlined" startIcon={<CalendarIcon />}>
-            Schedule Feeding for All Active Ponds
-          </Button>
-        </Box>
+        
       </Box>
       
       

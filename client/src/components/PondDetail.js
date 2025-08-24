@@ -1,125 +1,182 @@
-import React from 'react';
-import { Typography, Box, Card, CardContent, Grid, Button, CircularProgress, Alert, Container } from '@mui/material';
+import React, { useState } from 'react';
+import { Typography, Box, Card, CardContent, Grid, Button, Container, Tabs, Tab, Chip } from '@mui/material';
 import { 
   Insights as InsightsIcon,
   Warning as WarningIcon,
   TrendingUp as TrendingUpIcon,
-  CalendarToday as CalendarIcon
+  CalendarToday as CalendarIcon,
+  Widgets as WidgetsIcon, // Biomass
+  Scale as ScaleIcon, // ABW
+  SyncAlt as SyncAltIcon, // FCR
+  HealthAndSafety as HealthAndSafetyIcon, // Survival
+  Event as EventIcon, // DOC
+  Speed as SpeedIcon, // Health Score
+  Archive as ArchiveIcon, // Total Harvest
+  CheckCircle as CheckCircleIcon, // Final
+  DonutLarge as DonutLargeIcon, // Yield
+  Info as InfoIcon
 } from '@mui/icons-material';
 import PredictiveInsight from './PredictiveInsight';
-import { useApiData } from '../hooks/useApi';
-import { getPondById } from '../services/api';
+import FeedLog from './FeedLog';
+import WaterQualityLog from './WaterQualityLog';
+import GrowthSamplingLog from './GrowthSamplingLog';
+
+// --- MOCK DATA FOR DYNAMIC KPIS ---
+const activeKpis = [
+    { title: 'Current Biomass', value: '4,500 kg', icon: <WidgetsIcon fontSize="large" color="primary"/> },
+    { title: 'Avg. Body Weight', value: '16.8 g', icon: <ScaleIcon fontSize="large" color="primary"/> },
+    { title: 'FCR', value: '1.25', icon: <SyncAltIcon fontSize="large" color="primary"/> },
+    { title: 'Survival Rate', value: '92%', icon: <HealthAndSafetyIcon fontSize="large" color="primary"/> },
+    { title: 'Days of Culture', value: '75', icon: <EventIcon fontSize="large" color="primary"/> },
+    { title: 'Health Score', value: '95/100', icon: <SpeedIcon fontSize="large" color="primary"/> },
+];
+
+const partialHarvestKpis = [
+    { title: 'Remaining Biomass', value: '2,100 kg', icon: <WidgetsIcon fontSize="large" color="warning"/> },
+    { title: 'Harvested Weight', value: '2,400 kg', icon: <ArchiveIcon fontSize="large" color="warning"/> },
+    { title: 'Avg. Body Weight', value: '16.9 g', icon: <ScaleIcon fontSize="large" color="warning"/> },
+    { title: 'Updated FCR', value: '1.28', icon: <SyncAltIcon fontSize="large" color="warning"/> },
+    { title: 'Updated Survival', value: '91%', icon: <HealthAndSafetyIcon fontSize="large" color="warning"/> },
+    { title: 'Days of Culture', value: '75', icon: <EventIcon fontSize="large" color="warning"/> },
+];
+
+const finalReportKpis = [
+    { title: 'Total Harvested Weight', value: '4,450 kg', icon: <ArchiveIcon fontSize="large" color="secondary"/> },
+    { title: 'Final FCR', value: '1.31', icon: <CheckCircleIcon fontSize="large" color="secondary"/> },
+    { title: 'Final ABW', value: '18.2 g', icon: <ScaleIcon fontSize="large" color="secondary"/> },
+    { title: 'Overall Survival', value: '89%', icon: <HealthAndSafetyIcon fontSize="large" color="secondary"/> },
+    { title: 'Total Days of Culture', value: '82', icon: <EventIcon fontSize="large" color="secondary"/> },
+    { title: 'Yield (kg/ha)', value: '8,900', icon: <DonutLargeIcon fontSize="large" color="secondary"/> },
+];
 
 const PondDetail = ({ pondId }) => {
-  const { data: pondData, loading: pondLoading, error: pondError } = useApiData(
-    () => getPondById(pondId),
-    [pondId],
-    `pond-${pondId}`
-  );
+  const [tabIndex, setTabIndex] = useState(0);
 
-  console.log('PondDetail - pondId:', pondId);
-  console.log('PondDetail - pondLoading:', pondLoading);
-  console.log('PondDetail - pondError:', pondError);
-  console.log('PondDetail - pondData:', pondData);
+  // --- SIMULATE BACKEND DATA ---
+  // 1. Set the pond's true status
+  const pond = { status: 'Active' }; // Options: 'Active', 'Completed', 'Inactive', 'Planning'
 
-  if (pondLoading) {
-    return (
-      <Box display="flex" justifyContent="center" mt={5}>
-        <CircularProgress />
-      </Box>
-    );
+  // 2. Add events to simulate harvests
+  const events = [
+    // { type: 'partial_harvest', data: { weight: 2400 } }
+  ];
+
+  const handleTabChange = (event, newValue) => {
+    setTabIndex(newValue);
+  };
+  
+  const pondName = "Pond A-1"; // Static data
+
+  // --- DERIVE THE CORRECT VIEW STATE ---
+  let viewState = 'Active'; // Default
+  let kpiCards = activeKpis;
+  let statusChip = <Chip label="Active" color="success" variant="outlined" />;
+
+  const hasPartialHarvest = events.some(e => e.type === 'partial_harvest');
+
+  if (pond.status === 'Active') {
+    if (hasPartialHarvest) {
+      viewState = 'PartiallyHarvested';
+      kpiCards = partialHarvestKpis;
+      statusChip = <Chip label="Active (Partial Harvest)" color="warning" variant="outlined" />;
+    } else {
+      viewState = 'Active';
+      kpiCards = activeKpis;
+      statusChip = <Chip label="Active" color="success" variant="outlined" />;
+    }
+  } else if (pond.status === 'Completed') {
+    viewState = 'FinalReport';
+    kpiCards = finalReportKpis;
+    statusChip = <Chip label="Completed" color="secondary" variant="outlined" />;
+  } else {
+    viewState = 'Inactive';
+    kpiCards = []; // No KPIs for inactive/planning ponds
+    statusChip = <Chip label={pond.status} color="default" variant="outlined" />;
   }
-
-  if (pondError) {
-    return (
-      <Alert severity="error" sx={{ mt: 2 }}>
-        Error loading pond details: {pondError.message}
-      </Alert>
-    );
-  }
-
-  // Ensure pondData exists before proceeding
-  if (!pondData) {
-    return (
-      <Alert severity="info" sx={{ mt: 2 }}>
-        No pond data found for ID: {pondId}
-      </Alert>
-    );
-  }
-
-  const pond = pondData;
 
   return (
     <Container maxWidth="lg" sx={{ mt: 2, mb: 4 }}>
-      <Typography variant="h4" component="h1" gutterBottom>
-        Pond: {pond.name.en || pond.name} - Detailed View
-      </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2}}>
+        <Typography variant="h4" component="h1">
+          {pondName} - Detailed View
+        </Typography>
+        {statusChip}
+      </Box>
 
-      {/* Pond Vitals Section */}
-      <Card elevation={3} sx={{ mb: 4 }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>Pond Vitals</Typography>
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={4}>
-              <Typography variant="body1">Size: {pond.size} m²</Typography>
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Typography variant="body1">Capacity: {pond.capacity}</Typography>
-            </Grid>
-            {/* Add more pond-specific vitals here */}
-          </Grid>
-        </CardContent>
-      </Card>
+      {/* KPI Cards Section */}
+      {kpiCards.length > 0 && (
+        <Grid container spacing={2} sx={{ mb: 4 }}>
+          {kpiCards.map((kpi, index) => (
+              <Grid item xs={12} sm={6} md={4} lg={2} key={index}>
+                  <Card elevation={3} sx={{ height: '100%' }}>
+                      <CardContent sx={{ textAlign: 'center', display: 'flex', flexDirection: 'column', justifyContent: 'center', height: '100%' }}>
+                          {kpi.icon}
+                          <Typography variant="h6" sx={{ mt: 1 }}>{kpi.value}</Typography>
+                          <Typography variant="body2" color="text.secondary" sx={{ minHeight: '3em'}}>{kpi.title}</Typography>
+                      </CardContent>
+                  </Card>
+              </Grid>
+          ))}
+        </Grid>
+      )}
 
-      {/* AI Insights Section */}
-      <Card elevation={3}>
-        <CardContent>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-            <InsightsIcon sx={{ fontSize: 30, mr: 1, color: 'primary.main' }} />
-            <Typography variant="h6" component="h2">
-              AI Insights & Recommendations
-            </Typography>
+      {(viewState === 'Active' || viewState === 'PartiallyHarvested') && (
+        <>
+          {/* Pond Performance Logs */}
+          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+            <Tabs value={tabIndex} onChange={handleTabChange} aria-label="Pond Performance Logs">
+              <Tab label="Feed" />
+              <Tab label="Water Quality" />
+              <Tab label="Growth Sampling" />
+            </Tabs>
           </Box>
-          <Typography variant="body1" paragraph>
-            Based on current data trends for {pond.name.en || pond.name}, here are our recommendations:
-          </Typography>
-          <Grid container spacing={2}>
-            <Grid item xs={12} md={4}>
-              <PredictiveInsight
-                title="Water Quality Alert"
-                insight="Low dissolved oxygen levels detected. Recommend immediate aeration."
-                confidence={85}
-                icon={<WarningIcon />}
-                color="warning"
-              />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <PredictiveInsight
-                title="Growth Optimization"
-                insight="Consider adjusting feeding frequency to optimize growth rate."
-                confidence={78}
-                icon={<TrendingUpIcon />}
-                color="info"
-              />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <PredictiveInsight
-                title="Harvest Projection"
-                insight="Projected to reach harvest size in X days based on current growth rate."
-                confidence={92}
-                projectedDate="(Date)"
-                icon={<CalendarIcon />}
-                color="success"
-              />
-            </Grid>
-          </Grid>
-          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-            <Button variant="outlined">
-              View Detailed Analysis
-            </Button>
-          </Box>
-        </CardContent>
-      </Card>
+          
+          {tabIndex === 0 && <FeedLog />}
+          {tabIndex === 1 && <WaterQualityLog />}
+          {tabIndex === 2 && <GrowthSamplingLog />}
+
+          {/* AI Insights Section */}
+          <Card elevation={3} sx={{ mt: 4 }}>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                <InsightsIcon sx={{ fontSize: 30, mr: 1, color: 'primary.main' }} />
+                <Typography variant="h6" component="h2">
+                  AI Insights & Recommendations
+                </Typography>
+              </Box>
+              <Box sx={{ textAlign: 'center', py: 4 }}>
+                <Typography variant="h6" color="text.secondary" gutterBottom>
+                  Coming Soon
+                </Typography>
+                <Typography variant="body1" color="text.secondary">
+                  Advanced analytics and predictive recommendations will be available here in a future update.
+                </Typography>
+              </Box>
+            </CardContent>
+          </Card>
+        </>
+      )}
+
+      {viewState === 'FinalReport' && (
+        <Card elevation={3} sx={{ mt: 4, textAlign: 'center' }}>
+            <CardContent>
+                <Typography variant="h6">Cycle Complete</Typography>
+                <Typography variant="body1" color="text.secondary">This data represents the final report for the completed cycle.</Typography>
+                <Button variant="contained" sx={{ mt: 2 }}>View Full Cycle Logs</Button>
+            </CardContent>
+        </Card>
+      )}
+
+      {viewState === 'Inactive' && (
+         <Card elevation={3} sx={{ mt: 4, textAlign: 'center' }}>
+            <CardContent sx={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2}}>
+                <InfoIcon fontSize='large' color='action' />
+                <Typography variant="h6">Pond Not Active</Typography>
+                <Typography variant="body1" color="text.secondary">This pond is currently in 'Planning' or 'Inactive' status. No operational data to display.</Typography>
+            </CardContent>
+        </Card>
+      )}
+
     </Container>
   );
 };
