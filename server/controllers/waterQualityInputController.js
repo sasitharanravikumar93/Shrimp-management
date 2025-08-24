@@ -449,3 +449,122 @@ exports.getWaterQualityInputsBySeasonId = async (req, res) => {
     logger.error(`Error fetching water quality inputs for season ID: ${req.params.seasonId}`, { error: error.message, stack: error.stack });
   }
 };
+
+exports.getFilteredWaterQualityInputs = async (req, res) => {
+  logger.info('Getting filtered water quality inputs', { query: req.query });
+  try {
+    const { startDate, endDate, pondId, parameter } = req.query;
+
+    if (!startDate || !endDate) {
+      return res.status(400).json({ message: 'Start date and end date are required' });
+    }
+
+    let query = {
+      date: {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate)
+      }
+    };
+
+    if (pondId) {
+      query.pondId = pondId;
+    }
+
+    const waterQualityInputs = await WaterQualityInput.find(query)
+      .populate('pondId', 'name')
+      .populate('seasonId', 'name');
+
+    let filteredData = waterQualityInputs;
+
+    if (parameter) {
+      // Filter by parameter if specified
+      filteredData = waterQualityInputs.map(input => {
+        const obj = input.toObject();
+        const filteredObj = { ...obj };
+        // Keep only the requested parameter and common fields
+        for (const key in filteredObj) {
+          if (key !== parameter && key !== 'date' && key !== 'time' && key !== 'pondId' && key !== 'seasonId' && key !== '_id' && key !== '__v' && key !== 'createdAt' && key !== 'updatedAt') {
+            delete filteredObj[key];
+          }
+        }
+        return filteredObj;
+      });
+    }
+
+    res.json(filteredData);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error fetching filtered water quality inputs' });
+  }
+};
+
+const { stringify } = require('csv-stringify');
+
+exports.exportWaterQualityData = async (req, res) => {
+  logger.info('Exporting water quality data to CSV', { query: req.query });
+  try {
+    const { startDate, endDate, pondId, parameter } = req.query;
+
+    if (!startDate || !endDate) {
+      return res.status(400).json({ message: 'Start date and end date are required for export' });
+    }
+
+    let query = {
+      date: {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate)
+      }
+    };
+
+    if (pondId) {
+      query.pondId = pondId;
+    }
+
+    const waterQualityInputs = await WaterQualityInput.find(query)
+      .populate('pondId', 'name')
+      .populate('seasonId', 'name')
+      .sort({ date: 1, time: 1 });
+
+    const data = waterQualityInputs.map(input => ({
+      Date: input.date.toISOString().split('T')[0],
+      Time: input.time,
+      Pond: input.pondId ? input.pondId.name.en || input.pondId.name : '',
+      pH: input.pH,
+      DissolvedOxygen: input.dissolvedOxygen,
+      Temperature: input.temperature,
+      Salinity: input.salinity,
+      Ammonia: input.ammonia || '',
+      Nitrite: input.nitrite || '',
+      Alkalinity: input.alkalinity || '',
+      Season: input.seasonId ? input.seasonId.name.en || input.seasonId.name : '',
+    }));
+
+    const columns = [
+      { key: 'Date', header: 'Date' },
+      { key: 'Time', header: 'Time' },
+      { key: 'Pond', header: 'Pond' },
+      { key: 'pH', header: 'pH' },
+      { key: 'DissolvedOxygen', header: 'Dissolved Oxygen' },
+      { key: 'Temperature', header: 'Temperature' },
+      { key: 'Salinity', header: 'Salinity' },
+      { key: 'Ammonia', header: 'Ammonia' },
+      { key: 'Nitrite', header: 'Nitrite' },
+      { key: 'Alkalinity', header: 'Alkalinity' },
+      { key: 'Season', header: 'Season' },
+    ];
+
+    stringify(data, { header: true, columns: columns }, (err, output) => {
+      if (err) {
+        logger.error('Error stringifying CSV', { error: err.message, stack: err.stack });
+        return res.status(500).json({ message: 'Error generating CSV' });
+      }
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', 'attachment; filename="water_quality_data.csv"');
+      res.status(200).send(output);
+    });
+
+  } catch (error) {
+    logger.error('Error exporting water quality data', { error: error.message, stack: error.stack });
+    res.status(500).json({ message: 'Error exporting water quality data' });
+  }
+};

@@ -28,5 +28,7 @@ router.get('/date-range', waterQualityInputController.getWaterQualityInputsByDat
 
 // GET /api/water-quality-inputs/season/:seasonId - Get water quality inputs by season ID
 router.get('/season/:seasonId', waterQualityInputController.getWaterQualityInputsBySeasonId);
+router.get('/filtered', waterQualityInputController.getFilteredWaterQualityInputs);
+router.get('/export', waterQualityInputController.exportWaterQualityData);
 
 module.exports = router;
