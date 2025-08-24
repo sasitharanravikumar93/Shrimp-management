@@ -22,6 +22,9 @@ router.get('/', cacheMiddleware, pondController.getAllPonds);
 
 // GET /api/ponds/:id - Get a pond by ID
 router.get('/:id', pondController.getPondById);
+router.get('/:id/kpis', pondController.getPondKpis);
+router.get('/:id/events', pondController.getPondEvents);
+router.get('/:id/logs/all', pondController.getFullCycleLogs);
 
 // PUT /api/ponds/:id - Update a pond by ID
 router.put('/:id', pondController.updatePond, (req, res, next) => {

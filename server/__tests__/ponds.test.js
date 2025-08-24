@@ -1,6 +1,10 @@
 const request = require('supertest');
 const app = require('../server');
 const Pond = require('../models/Pond');
+const Event = require('../models/Event');
+const FeedInput = require('../models/FeedInput');
+const WaterQualityInput = require('../models/WaterQualityInput');
+const GrowthSampling = require('../models/GrowthSampling');
 
 // Mock the Pond model's static methods and prototype methods
 jest.mock('../models/Pond', () => {
@@ -15,6 +19,11 @@ jest.mock('../models/Pond', () => {
   return mockPond;
 });
 
+jest.mock('../models/Event');
+jest.mock('../models/FeedInput');
+jest.mock('../models/WaterQualityInput');
+jest.mock('../models/GrowthSampling');
+
 describe('Pond API', () => {
   afterEach(() => {
     jest.clearAllMocks();
@@ -24,8 +33,8 @@ describe('Pond API', () => {
     it('should create a new pond successfully', async () => {
       const newPondData = {
         name: 'Test Pond',
-        location: 'Farm A',
         size: 100,
+        capacity: 1000,
         seasonId: 'seasonId123',
       };
       const createdPond = { _id: 'pondId123', ...newPondData };
@@ -52,15 +61,15 @@ describe('Pond API', () => {
         .send(invalidPondData);
 
       expect(res.statusCode).toEqual(400);
-      expect(res.body).toHaveProperty('message', 'Name, location, size, and seasonId are required');
+      expect(res.body).toHaveProperty('message', 'Name, size, capacity, and season ID are required');
       expect(Pond).not.toHaveBeenCalled();
     });
 
     it('should return 400 if pond name already exists for the season', async () => {
       const duplicatePondData = {
         name: 'Existing Pond',
-        location: 'Farm B',
         size: 150,
+        capacity: 1500,
         seasonId: 'seasonId123',
       };
 
@@ -73,7 +82,7 @@ describe('Pond API', () => {
         .send(duplicatePondData);
 
       expect(res.statusCode).toEqual(400);
-      expect(res.body).toHaveProperty('message', 'Pond name already exists for this season');
+      expect(res.body).toHaveProperty('message', 'Pond name already exists in this season');
       expect(Pond).toHaveBeenCalledTimes(1);
       expect(Pond.mock.results[0].value.save).toHaveBeenCalledTimes(1);
     });
@@ -81,8 +90,8 @@ describe('Pond API', () => {
     it('should return 500 for other server errors', async () => {
       const validPondData = {
         name: 'Error Pond',
-        location: 'Farm C',
         size: 200,
+        capacity: 2000,
         seasonId: 'seasonId123',
       };
 
@@ -175,7 +184,7 @@ describe('Pond API', () => {
   describe('PUT /api/ponds/:id', () => {
     it('should update a pond successfully', async () => {
       const pondId = 'pondId123';
-      const updatedData = { name: 'Updated Pond', location: 'Farm X', size: 120, seasonId: 's1' };
+      const updatedData = { name: 'Updated Pond', size: 120, capacity: 1200, seasonId: 's1' };
       const updatedPond = { _id: pondId, ...updatedData };
 
       Pond.findByIdAndUpdate.mockResolvedValue(updatedPond);
@@ -203,7 +212,7 @@ describe('Pond API', () => {
         .send(invalidUpdateData);
 
       expect(res.statusCode).toEqual(400);
-      expect(res.body).toHaveProperty('message', 'Name, location, size, and seasonId are required');
+      expect(res.body).toHaveProperty('message', 'Name must be a string or an object with language keys (e.g., { "en": "Pond A", "ta": "குளம் ஏ" })');
       expect(Pond.findByIdAndUpdate).not.toHaveBeenCalled();
     });
 
@@ -212,7 +221,7 @@ describe('Pond API', () => {
 
       const res = await request(app)
         .put('/api/ponds/nonExistentId')
-        .send({ name: 'New Name', location: 'New Loc', size: 100, seasonId: 's1' });
+        .send({ name: 'New Name', size: 100, capacity: 1000, seasonId: 's1' });
 
       expect(res.statusCode).toEqual(404);
       expect(res.body).toHaveProperty('message', 'Pond not found');
@@ -223,8 +232,8 @@ describe('Pond API', () => {
       const pondId = 'pondId123';
       const duplicateNameData = {
         name: 'Existing Pond',
-        location: 'Farm B',
         size: 150,
+        capacity: 1500,
         seasonId: 'seasonId123',
       };
 
@@ -235,7 +244,7 @@ describe('Pond API', () => {
         .send(duplicateNameData);
 
       expect(res.statusCode).toEqual(400);
-      expect(res.body).toHaveProperty('message', 'Pond name already exists for this season');
+      expect(res.body).toHaveProperty('message', 'Pond name already exists in this season');
       expect(Pond.findByIdAndUpdate).toHaveBeenCalledTimes(1);
     });
 
@@ -244,7 +253,7 @@ describe('Pond API', () => {
 
       const res = await request(app)
         .put('/api/ponds/invalidIdFormat')
-        .send({ name: 'New Name', location: 'New Loc', size: 100, seasonId: 's1' });
+        .send({ name: 'New Name', size: 100, capacity: 1000, seasonId: 's1' });
 
       expect(res.statusCode).toEqual(400);
       expect(res.body).toHaveProperty('message', 'Invalid pond ID');
@@ -256,7 +265,7 @@ describe('Pond API', () => {
 
       const res = await request(app)
         .put('/api/ponds/someId')
-        .send({ name: 'New Name', location: 'New Loc', size: 100, seasonId: 's1' });
+        .send({ name: 'New Name', size: 100, capacity: 1000, seasonId: 's1' });
 
       expect(res.statusCode).toEqual(500);
       expect(res.body).toHaveProperty('message', 'Error updating pond');
@@ -349,4 +358,38 @@ describe('Pond API', () => {
       expect(Pond.find).toHaveBeenCalledTimes(1);
     });
   });
+
+  describe('GET /api/ponds/:id/kpis', () => {
+    it('should return pond KPIs for a given pond ID', async () => {
+      const pondId = 'pondId123';
+      Pond.findById.mockResolvedValue({ _id: pondId, name: 'Test Pond' });
+
+      const res = await request(app).get(`/api/ponds/${pondId}/kpis`);
+
+      expect(res.statusCode).toEqual(200);
+      expect(res.body).toHaveProperty('pondId', pondId);
+      expect(res.body).toHaveProperty('totalFeedConsumed', 500);
+      expect(res.body).toHaveProperty('averageGrowthRate', 2.5);
+      expect(res.body).toHaveProperty('currentBiomass', 1000);
+    });
+
+    it('should return 404 if pond is not found', async () => {
+      Pond.findById.mockResolvedValue(null);
+
+      const res = await request(app).get('/api/ponds/nonExistentId/kpis');
+
+      expect(res.statusCode).toEqual(404);
+      expect(res.body).toHaveProperty('message', 'Pond not found');
+    });
+
+    it('should return 500 for server errors', async () => {
+      Pond.findById.mockRejectedValue(new Error('Database error'));
+
+      const res = await request(app).get('/api/ponds/someId/kpis');
+
+      expect(res.statusCode).toEqual(500);
+      expect(res.body).toHaveProperty('message', 'Error fetching pond KPIs');
+    });
+  });
 });
+

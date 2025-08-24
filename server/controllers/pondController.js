@@ -364,6 +364,77 @@ exports.deletePond = async (req, res) => {
 };
 
 // Get ponds by season ID
+exports.getPondKpis = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const pond = await Pond.findById(id);
+    if (!pond) {
+      return res.status(404).json({ message: 'Pond not found' });
+    }
+
+    // TODO: Replace with actual calculations based on FeedInput, WaterQualityInput, GrowthSampling
+    const totalFeedConsumed = 500; // kg
+    const averageGrowthRate = 2.5; // grams/week
+    const currentBiomass = 1000; // kg
+
+    res.json({
+      pondId: id,
+      totalFeedConsumed,
+      averageGrowthRate,
+      currentBiomass,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error fetching pond KPIs' });
+  }
+};
+
+const Event = require('../models/Event');
+
+exports.getPondEvents = async (req, res) => {
+  const { id } = req.params; // This is the pondId
+
+  try {
+    const events = await Event.find({ pondId: id }).sort({ date: -1 });
+    res.json(events);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error fetching pond events' });
+  }
+};
+
+const FeedInput = require('../models/FeedInput');
+const WaterQualityInput = require('../models/WaterQualityInput');
+const GrowthSampling = require('../models/GrowthSampling');
+
+exports.getFullCycleLogs = async (req, res) => {
+  const { id } = req.params; // This is the pondId
+
+  try {
+    const pond = await Pond.findById(id);
+    if (!pond) {
+      return res.status(404).json({ message: 'Pond not found' });
+    }
+
+    const feedInputs = await FeedInput.find({ pondId: id }).sort({ date: 1 });
+    const waterQualityInputs = await WaterQualityInput.find({ pondId: id }).sort({ date: 1 });
+    const growthSamplings = await GrowthSampling.find({ pondId: id }).sort({ date: 1 });
+    const events = await Event.find({ pondId: id }).sort({ date: 1 });
+
+    res.json({
+      pond: pond,
+      feedInputs,
+      waterQualityInputs,
+      growthSamplings,
+      events,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error fetching full cycle logs' });
+  }
+};
+
 exports.getPondsBySeasonId = async (req, res) => {
   logger.info(`Getting ponds for season ID: ${req.params.seasonId}`);
   try {
