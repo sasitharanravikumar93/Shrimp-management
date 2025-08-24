@@ -50,12 +50,14 @@ import { useSeason } from '../context/SeasonContext';
 import LanguageSwitcher from './LanguageSwitcher';
 import { useApiData } from '../hooks/useApi';
 import { getSeasons } from '../services/api';
+import { useTranslation } from 'react-i18next';
 
 // Collapsible sidebar width constants
 const drawerWidth = 240;
 const collapsedDrawerWidth = 70;
 
 const Layout = ({ children, toggleDarkMode, darkMode }) => {
+  const { t, i18n } = useTranslation();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -117,21 +119,21 @@ const Layout = ({ children, toggleDarkMode, darkMode }) => {
 
   // Main navigation items
   const mainMenuItems = [
-    { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
+    { text: t('dashboard'), icon: <DashboardIcon />, path: '/' },
     { 
-      text: 'Pond Management', 
+      text: t('pond_management'), 
       icon: <PondIcon />, 
       path: '/pond'
     },
-    { text: 'Admin', icon: <AdminIcon />, path: '/admin' },
-    { text: 'Nursery', icon: <NurseryIcon />, path: '/nursery' },
-    { text: 'Inventory Management', icon: <InventoryIcon />, path: '/inventory-management' },
-    { text: 'Historical Insights', icon: <HistoryIcon />, path: '/historical-insights' },
+    { text: t('admin'), icon: <AdminIcon />, path: '/admin' },
+    { text: t('nursery_management'), icon: <NurseryIcon />, path: '/nursery' },
+    { text: t('inventory_management'), icon: <InventoryIcon />, path: '/inventory-management' },
+    { text: t('historical_insights'), icon: <HistoryIcon />, path: '/historical-insights' },
   ];
 
   // Bottom menu items
   const bottomMenuItems = [
-    { text: 'User Account', icon: <AccountIcon />, action: handleMenuOpen },
+    { text: t('user_account'), icon: <AccountIcon />, action: handleMenuOpen },
   ];
 
   const drawer = (
@@ -153,7 +155,7 @@ const Layout = ({ children, toggleDarkMode, darkMode }) => {
           </Avatar>
           {!isSidebarCollapsed && (
             <Typography variant="h6" noWrap component="div">
-              ShrimpFarm
+              {t('shrimp_farm')}
             </Typography>
           )}
         </Box>
@@ -173,7 +175,7 @@ const Layout = ({ children, toggleDarkMode, darkMode }) => {
                 setSelectedSeason(season);
               }
             }}
-            placeholder="Select season..."
+            placeholder={t('select_season')}
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -190,13 +192,13 @@ const Layout = ({ children, toggleDarkMode, darkMode }) => {
             }}
           >
             {seasonsLoading ? (
-              <MenuItem disabled>Loading seasons...</MenuItem>
+              <MenuItem disabled>{t('loading_seasons')}</MenuItem>
             ) : seasonsError ? (
-              <MenuItem disabled>Error loading seasons</MenuItem>
+              <MenuItem disabled>{t('error_loading_seasons')}</MenuItem>
             ) : (
               seasons && seasons.map((season) => (
                 <MenuItem key={season._id} value={season._id}>
-                  {season.name}
+                  {typeof season.name === 'object' ? (season.name[i18n.language] || season.name.en) : season.name}
                 </MenuItem>
               ))
             )}
@@ -348,11 +350,11 @@ const Layout = ({ children, toggleDarkMode, darkMode }) => {
             </IconButton>
           )}
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            Shrimp Farm Management System
+            {t('app_title')}
           </Typography>
           
           {/* Notifications */}
-          <Tooltip title="Notifications">
+          <Tooltip title={t('notifications')}>
             <IconButton color="inherit">
               <Badge badgeContent={2} color="error">
                 <NotificationsIcon />
@@ -361,7 +363,7 @@ const Layout = ({ children, toggleDarkMode, darkMode }) => {
           </Tooltip>
           
           {/* Generate Report Button */}
-          <Tooltip title="Generate Report">
+          <Tooltip title={t('generate_report')}>
             <IconButton 
               color="inherit" 
               onClick={handleReportMenuOpen}
@@ -372,7 +374,7 @@ const Layout = ({ children, toggleDarkMode, darkMode }) => {
           </Tooltip>
           
           {/* User Profile */}
-          <Tooltip title="User Account">
+          <Tooltip title={t('user_account')}>
             <IconButton color="inherit" onClick={handleMenuOpen}>
               <AccountIcon />
             </IconButton>
@@ -443,21 +445,21 @@ const Layout = ({ children, toggleDarkMode, darkMode }) => {
           <ListItemIcon>
             <AccountIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Profile</ListItemText>
+          <ListItemText>{t('profile')}</ListItemText>
         </MenuItem>
         <MenuItem onClick={toggleDarkMode}>
           <ListItemIcon>
             {darkMode ? <LightModeIcon fontSize="small" /> : <DarkModeIcon fontSize="small" />}
           </ListItemIcon>
           <ListItemText>
-            {darkMode ? 'Light Mode' : 'Dark Mode'}
+            {darkMode ? t('light_mode') : t('dark_mode')}
           </ListItemText>
         </MenuItem>
         <MenuItem onClick={handleMenuClose}>
           <ListItemIcon>
             <SettingsIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Settings</ListItemText>
+          <ListItemText>{t('settings')}</ListItemText>
         </MenuItem>
         <Divider />
         <MenuItem>
@@ -473,7 +475,7 @@ const Layout = ({ children, toggleDarkMode, darkMode }) => {
           <ListItemIcon>
             <LogoutIcon fontSize="small" />
           </ListItemIcon>
-          <ListItemText>Logout</ListItemText>
+          <ListItemText>{t('logout')}</ListItemText>
         </MenuItem>
       </Menu>
       
@@ -485,13 +487,13 @@ const Layout = ({ children, toggleDarkMode, darkMode }) => {
         onClick={handleMenuClose}
       >
         <MenuItem onClick={handleMenuClose}>
-          <ListItemText>Weekly Report</ListItemText>
+          <ListItemText>{t('weekly_report')}</ListItemText>
         </MenuItem>
         <MenuItem onClick={handleMenuClose}>
-          <ListItemText>Monthly Report</ListItemText>
+          <ListItemText>{t('monthly_report')}</ListItemText>
         </MenuItem>
         <MenuItem onClick={handleMenuClose}>
-          <ListItemText>Custom Report</ListItemText>
+          <ListItemText>{t('custom_report')}</ListItemText>
         </MenuItem>
       </Menu>
     </Box>

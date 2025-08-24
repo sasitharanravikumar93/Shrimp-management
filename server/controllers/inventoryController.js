@@ -142,7 +142,9 @@ exports.getAllInventoryItems = async (req, res) => {
       return { ...item.toObject(), quantityBought: item.quantityBought };
     });
 
-    res.json(itemsWithQuantity);
+    const translatedItems = translateDocuments(itemsWithQuantity, language);
+
+    res.json(translatedItems);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching inventory items', error: error.message });
     logger.error('Error fetching inventory items', { error: error.message, stack: error.stack });
