@@ -28,5 +28,7 @@ router.get('/date-range', feedInputController.getFeedInputsByDateRange);
 
 // GET /api/feed-inputs/season/:seasonId - Get feed inputs by season ID
 router.get('/season/:seasonId', feedInputController.getFeedInputsBySeasonId);
+router.get('/filtered', feedInputController.getFilteredFeedInputs);
+router.get('/export', feedInputController.exportFeedData);
 
 module.exports = router;

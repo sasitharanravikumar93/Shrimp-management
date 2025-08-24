@@ -456,3 +456,99 @@ exports.getFeedInputsBySeasonId = async (req, res) => {
     logger.error(`Error fetching feed inputs for season ID: ${req.params.seasonId}`, { error: error.message, stack: error.stack });
   }
 };
+
+exports.getFilteredFeedInputs = async (req, res) => {
+  logger.info('Getting filtered feed inputs', { query: req.query });
+  try {
+    const { startDate, endDate, pondId } = req.query;
+
+    if (!startDate || !endDate) {
+      return res.status(400).json({ message: 'Start date and end date are required' });
+    }
+
+    let query = {
+      date: {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate)
+      }
+    };
+
+    if (pondId) {
+      query.pondId = pondId;
+    }
+
+    const feedInputs = await FeedInput.find(query)
+      .populate('pondId', 'name')
+      .populate('seasonId', 'name')
+      .populate('inventoryItemId', 'itemName itemType unit');
+
+    res.json(feedInputs);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error fetching filtered feed inputs' });
+  }
+};
+
+const { stringify } = require('csv-stringify');
+
+exports.exportFeedData = async (req, res) => {
+  logger.info('Exporting feed data to CSV', { query: req.query });
+  try {
+    const { startDate, endDate, pondId } = req.query;
+
+    if (!startDate || !endDate) {
+      return res.status(400).json({ message: 'Start date and end date are required for export' });
+    }
+
+    let query = {
+      date: {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate)
+      }
+    };
+
+    if (pondId) {
+      query.pondId = pondId;
+    }
+
+    const feedInputs = await FeedInput.find(query)
+      .populate('pondId', 'name')
+      .populate('seasonId', 'name')
+      .populate('inventoryItemId', 'itemName itemType unit')
+      .sort({ date: 1, time: 1 });
+
+    const data = feedInputs.map(input => ({
+      Date: input.date.toISOString().split('T')[0],
+      Time: input.time,
+      Pond: input.pondId ? input.pondId.name.en || input.pondId.name : '',
+      FeedItem: input.inventoryItemId ? input.inventoryItemId.itemName : '',
+      Quantity: input.quantity,
+      Unit: input.inventoryItemId ? input.inventoryItemId.unit : '',
+      Season: input.seasonId ? input.seasonId.name.en || input.seasonId.name : '',
+    }));
+
+    const columns = [
+      { key: 'Date', header: 'Date' },
+      { key: 'Time', header: 'Time' },
+      { key: 'Pond', header: 'Pond' },
+      { key: 'FeedItem', header: 'Feed Item' },
+      { key: 'Quantity', header: 'Quantity' },
+      { key: 'Unit', header: 'Unit' },
+      { key: 'Season', header: 'Season' },
+    ];
+
+    stringify(data, { header: true, columns: columns }, (err, output) => {
+      if (err) {
+        logger.error('Error stringifying CSV', { error: err.message, stack: err.stack });
+        return res.status(500).json({ message: 'Error generating CSV' });
+      }
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', 'attachment; filename="feed_data.csv"');
+      res.status(200).send(output);
+    });
+
+  } catch (error) {
+    logger.error('Error exporting feed data', { error: error.message, stack: error.stack });
+    res.status(500).json({ message: 'Error exporting feed data' });
+  }
+};
