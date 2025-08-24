@@ -1,24 +1,29 @@
 const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
-const dotenv = require('dotenv');
+const { getConfig } = require('./config');
 
-// Load environment variables
-dotenv.config();
+// Get validated configuration
+const config = getConfig();
 
 const app = express();
-const PORT = process.env.PORT || 5001; // Default port if not specified in .env
+const PORT = config.server.port;
+
+// CORS Configuration
+const corsOptions = {
+  origin: config.security.corsOrigin,
+  credentials: config.security.corsCredentials,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
 
 // Middleware
-app.use(cors());
-app.use(express.json()); // For parsing application/json
+app.use(cors(corsOptions));
+app.use(express.json({ limit: '10mb' })); // For parsing application/json
+app.use(express.urlencoded({ extended: true, limit: '10mb' })); // For parsing form data
 
 // MongoDB connection
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/shrimp_farm_db';
-mongoose.connect(MONGO_URI, {
-  // useNewUrlParser: true, // These options are no longer needed with Mongoose 6+
-  // useUnifiedTopology: true,
-})
+mongoose.connect(config.database.uri, config.database.options)
 .then(() => {
   console.log('Connected to MongoDB');
 })
@@ -40,6 +45,7 @@ app.use('/api/settings', require('./routes/settings')); // Settings route for us
 app.use('/api/historical-insights', require('./routes/historicalInsights')); // Historical insights routes
 app.use('/api/employees', require('./routes/employees'));
 app.use('/api/expenses', require('./routes/expenses'));
+app.use('/api/farm', require('./routes/farm'));
 // Add more route imports here
 
 // Basic route for testing
