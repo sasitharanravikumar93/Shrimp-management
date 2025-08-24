@@ -65,6 +65,7 @@ const calculateCurrentQuantity = async (inventoryItemId) => {
 // Create a new inventory item
 exports.createInventoryItem = async (req, res) => {
   logger.info('Creating a new inventory item', { body: req.body });
+  logger.info(`Received itemName: ${JSON.stringify(req.body.itemName)}`);
   try {
     const { itemName, itemType, supplier, purchaseDate, unit, costPerUnit, quantityBought, seasonId } = req.body;
 
@@ -74,14 +75,14 @@ exports.createInventoryItem = async (req, res) => {
     }
     
     // Convert simple string to multilingual map if needed
-    let processedItemName = itemName;
+    let processedItemName;
     if (typeof itemName === 'string') {
       processedItemName = { en: itemName };
-    } else if (typeof itemName !== 'object' || Array.isArray(itemName)) {
-      return res.status(400).json({ message: 'Item name must be a string or an object with language keys (e.g., { "en": "Item A", "ta": "உருப்படி ஏ" }) ' });
+    } else if (typeof itemName === 'object' && !Array.isArray(itemName) && Object.keys(itemName).length > 0) {
+      processedItemName = itemName;
+    } else {
+      return res.status(400).json({ message: 'Item name must be a non-empty string or a non-empty object with language keys (e.g., { "en": "Item A", "ta": "உருப்படி ஏ" })' });
     }
-
-    console.log('processedItemName', processedItemName);
 
     const inventoryItem = new InventoryItem({
       itemName: processedItemName, itemType, supplier, purchaseDate, unit, costPerUnit, quantityBought, seasonId
@@ -183,10 +184,10 @@ exports.updateInventoryItem = async (req, res) => {
     if (itemName !== undefined) {
       if (typeof itemName === 'string') {
         updateData.itemName = { en: itemName };
-      } else if (typeof itemName !== 'object' || Array.isArray(itemName)) {
-        return res.status(400).json({ message: 'Item name must be a string or an object with language keys (e.g., { "en": "Item A", "ta": "உருப்படி ஏ" }) ' });
-      } else {
+      } else if (typeof itemName === 'object' && !Array.isArray(itemName) && Object.keys(itemName).length > 0) {
         updateData.itemName = itemName;
+      } else {
+        return res.status(400).json({ message: 'Item name must be a non-empty string or a non-empty object with language keys (e.g., { "en": "Item A", "ta": "உருப்படி ஏ" })' });
       }
     }
     if (itemType !== undefined) updateData.itemType = itemType;

@@ -167,6 +167,22 @@ export const createEvent = (eventData) => apiCall('/events', 'POST', eventData);
 export const updateEvent = (id, eventData) => apiCall(`/events/${id}`, 'PUT', eventData);
 export const deleteEvent = (id) => apiCall(`/events/${id}`, 'DELETE');
 
+// Employee API calls
+export const getEmployees = () => apiCall('/employees');
+export const createEmployee = (employeeData) => apiCall('/employees', 'POST', employeeData);
+export const updateEmployee = (id, employeeData) => apiCall(`/employees/${id}`, 'PATCH', employeeData);
+export const deleteEmployee = (id) => apiCall(`/employees/${id}`, 'DELETE');
+
+// Expense API calls
+export const getExpenses = (filters = {}) => {
+  const params = new URLSearchParams(filters);
+  return apiCall(`/expenses?${params.toString()}`);
+};
+export const getExpenseSummary = (seasonId) => apiCall(`/expenses/summary?seasonId=${seasonId}`);
+export const createExpense = (expenseData) => apiCall('/expenses', 'POST', expenseData);
+export const updateExpense = (id, expenseData) => apiCall(`/expenses/${id}`, 'PATCH', expenseData);
+export const deleteExpense = (id) => apiCall(`/expenses/${id}`, 'DELETE');
+
 // Historical Insights API calls
 export const getHistoricalSeasons = () => apiCall('/historical-insights/seasons');
 export const getHistoricalPondsForCurrentSeason = () => apiCall('/historical-insights/ponds/current');

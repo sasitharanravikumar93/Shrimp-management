@@ -112,16 +112,13 @@ export const useApiData = (apiFunction, dependencies = [], cacheKey = null, retr
       setLoading(true);
       setError(null);
       const result = await apiFunction();
-      
-      // Cache the result if cacheKey is provided
-      if (cacheKey) {
-        apiCache.set(cacheKey, {
-          data: result,
-          timestamp: Date.now()
-        });
+      if (Array.isArray(result)) {
+        setData(result);
+      } else if (result && Array.isArray(result.data)) {
+        setData(result.data);
+      } else {
+        setData([]); // Set to empty array if the result is not an array
       }
-      
-      setData(result);
       return result;
     } catch (err) {
       // Retry logic

@@ -43,7 +43,8 @@ import {
   Brightness4 as DarkModeIcon,
   Brightness7 as LightModeIcon,
   Language as LanguageIcon,
-  Inventory as InventoryIcon
+  Inventory as InventoryIcon,
+  AccountBalanceWallet as AccountBalanceWalletIcon
 } from '@mui/icons-material';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useSeason } from '../context/SeasonContext';
@@ -129,6 +130,7 @@ const Layout = ({ children, toggleDarkMode, darkMode }) => {
     { text: t('nursery_management'), icon: <NurseryIcon />, path: '/nursery' },
     { text: t('inventory_management'), icon: <InventoryIcon />, path: '/inventory-management' },
     { text: t('historical_insights'), icon: <HistoryIcon />, path: '/historical-insights' },
+    { text: t('expense_management'), icon: <AccountBalanceWalletIcon />, path: '/expense-management' },
   ];
 
   // Bottom menu items
@@ -196,7 +198,7 @@ const Layout = ({ children, toggleDarkMode, darkMode }) => {
             ) : seasonsError ? (
               <MenuItem disabled>{t('error_loading_seasons')}</MenuItem>
             ) : (
-              seasons && seasons.map((season) => (
+              Array.isArray(seasons) && seasons.map((season) => (
                 <MenuItem key={season._id} value={season._id}>
                   {typeof season.name === 'object' ? (season.name[i18n.language] || season.name.en) : season.name}
                 </MenuItem>

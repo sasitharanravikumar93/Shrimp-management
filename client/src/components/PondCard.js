@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Card,
   CardContent,
@@ -8,6 +9,8 @@ import {
 } from '@mui/material';
 
 const PondCard = ({ pond, onClick, selected }) => {
+  const { t } = useTranslation();
+  
   return (
     <Card 
       onClick={onClick} 
@@ -20,8 +23,8 @@ const PondCard = ({ pond, onClick, selected }) => {
       <CardContent>
         <Typography variant="h6">{pond.name}</Typography>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
-          <Chip label={`Size: ${pond.size} m²`} size="small" />
-          <Chip label={`Capacity: ${pond.capacity}`} size="small" />
+          <Chip label={`${t('size')}: ${pond.size} m²`} size="small" />
+          <Chip label={`${t('capacity')}: ${pond.capacity}`} size="small" />
         </Box>
       </CardContent>
     </Card>

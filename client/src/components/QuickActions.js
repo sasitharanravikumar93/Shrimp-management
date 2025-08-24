@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { 
   Card, 
   CardContent, 
@@ -19,46 +20,48 @@ import {
 import { motion } from 'framer-motion';
 
 const QuickActions = ({ onActionClick }) => {
+  const { t } = useTranslation();
+  
   const actions = [
     {
       id: 1,
-      title: 'Schedule Feeding',
-      description: 'Add a new feeding event',
+      title: t('schedule_feeding'),
+      description: t('add_feeding_event'),
       icon: <FeedIcon />,
       color: 'primary'
     },
     {
       id: 2,
-      title: 'Water Quality Check',
-      description: 'Log water parameters',
+      title: t('water_quality_check'),
+      description: t('log_water_parameters'),
       icon: <WaterIcon />,
       color: 'info'
     },
     {
       id: 3,
-      title: 'Growth Sampling',
-      description: 'Record shrimp growth data',
+      title: t('growth_sampling_action'),
+      description: t('record_shrimp_growth'),
       icon: <GrowthIcon />,
       color: 'success'
     },
     {
       id: 4,
-      title: 'Maintenance Task',
-      description: 'Schedule equipment maintenance',
+      title: t('maintenance_task'),
+      description: t('schedule_equipment_maintenance'),
       icon: <MaintenanceIcon />,
       color: 'warning'
     },
     {
       id: 5,
-      title: 'View Calendar',
-      description: 'Check upcoming events',
+      title: t('view_calendar'),
+      description: t('check_upcoming_events'),
       icon: <CalendarIcon />,
       color: 'secondary'
     },
     {
       id: 6,
-      title: 'Send Notification',
-      description: 'Alert team about issues',
+      title: t('send_notification'),
+      description: t('alert_team'),
       icon: <NotificationIcon />,
       color: 'error'
     }
@@ -73,7 +76,7 @@ const QuickActions = ({ onActionClick }) => {
       <Card variant="outlined">
         <CardContent>
           <Typography variant="h6" component="h3" gutterBottom>
-            Quick Actions
+            {t('quick_actions')}
           </Typography>
           
           <Grid container spacing={2}>

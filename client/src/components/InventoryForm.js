@@ -147,7 +147,7 @@ const InventoryForm = ({ open, onClose, item, onSave }) => {
               <Grid item xs={12}>
                 <TextField
                   fullWidth
-                  label={t('item_name')}
+                  label={t('itemName')}
                   name="itemName"
                   value={formData.itemName}
                   onChange={handleChange}

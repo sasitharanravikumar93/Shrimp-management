@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { 
   Card, 
   CardContent, 
@@ -22,6 +23,8 @@ const DataTrend = ({
   unit = '',
   trend = 'neutral'
 }) => {
+  const { t } = useTranslation();
+  
   // Calculate trend based on first and last data points
   const calculateTrend = () => {
     if (!data || data.length < 2) return 'neutral';
@@ -68,8 +71,8 @@ const DataTrend = ({
             <Chip 
               icon={getTrendIcon()} 
               label={
-                currentTrend === 'up' ? 'Increasing' : 
-                currentTrend === 'down' ? 'Decreasing' : 'Stable'
+                currentTrend === 'up' ? t('increasing') : 
+                currentTrend === 'down' ? t('decreasing') : t('stable')
               } 
               color={getTrendColor()} 
               size="small"

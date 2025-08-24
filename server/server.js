@@ -38,6 +38,8 @@ app.use('/api/events', require('./routes/events'));
 app.use('/api/inventory-items', require('./routes/inventoryRoutes')); // New inventory routes
 app.use('/api/settings', require('./routes/settings')); // Settings route for user preferences
 app.use('/api/historical-insights', require('./routes/historicalInsights')); // Historical insights routes
+app.use('/api/employees', require('./routes/employees'));
+app.use('/api/expenses', require('./routes/expenses'));
 // Add more route imports here
 
 // Basic route for testing

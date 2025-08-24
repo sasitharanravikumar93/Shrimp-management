@@ -56,8 +56,11 @@ import {
   ComposedChart,
   Area
 } from 'recharts';
+import { useTranslation } from 'react-i18next';
 
 const HistoricalInsightsPage = () => {
+  const { t } = useTranslation();
+  
   // Mode selection: 'current' or 'historical'
   const [mode, setMode] = useState('current');
   
@@ -80,12 +83,12 @@ const HistoricalInsightsPage = () => {
 
   // Metrics options for pond comparison
   const metricOptions = [
-    { id: 'temperature', name: 'Water Temperature' },
-    { id: 'ph', name: 'pH Level' },
-    { id: 'dissolved_oxygen', name: 'Dissolved Oxygen' },
-    { id: 'ammonia', name: 'Ammonia Level' },
-    { id: 'feed_consumption', name: 'Feed Consumption' },
-    { id: 'average_weight', name: 'Average Shrimp Weight' }
+    { id: 'temperature', name: t('water_temperature') },
+    { id: 'ph', name: t('ph_level') },
+    { id: 'dissolved_oxygen', name: t('dissolved_oxygen') },
+    { id: 'ammonia', name: t('ammonia_level') },
+    { id: 'feed_consumption', name: t('feed_consumption') },
+    { id: 'average_weight', name: t('average_shrimp_weight') }
   ];
 
   // Fetch seasons for historical mode
@@ -254,14 +257,14 @@ const HistoricalInsightsPage = () => {
       // Format data for the chart (day-based)
       return Array.from(allDays).map(day => {
         return {
-          day: `Day ${day}`,
+          day: `${t('day')} ${day}`,
           pondA: pondADayMap.has(day) ? pondADayMap.get(day) : null,
           pondB: pondBDayMap.has(day) ? pondBDayMap.get(day) : null,
           difference: diffMap.get(day) || null
         };
       }).sort((a, b) => {
-        const dayA = parseInt(a.day.replace('Day ', ''));
-        const dayB = parseInt(b.day.replace('Day ', ''));
+        const dayA = parseInt(a.day.replace(`${t('day')} `, ''));
+        const dayB = parseInt(b.day.replace(`${t('day')} `, ''));
         return dayA - dayB;
       });
     } else {
@@ -347,25 +350,25 @@ const HistoricalInsightsPage = () => {
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Typography variant="h4" component="h1" gutterBottom>
-          Historical Insights
+          {t('historical_insights')}
         </Typography>
         {comparisonData && (
           <Button variant="outlined" startIcon={<DownloadIcon />} onClick={handleExportData} disabled={exportLoading}>
-            {exportLoading ? 'Exporting...' : 'Export Data'}
+            {exportLoading ? `${t('exporting')}...` : t('export_data')}
           </Button>
         )}
       </Box>
       
       <Card elevation={3} sx={{ mb: 4 }}>
         <CardHeader
-          title="Comparison Mode"
-          subheader="Select the type of comparison you want to perform"
+          title={t('comparison_mode')}
+          subheader={t('select_the_type_of_comparison')}
         />
         <CardContent>
           <FormControl component="fieldset">
             <RadioGroup row value={mode} onChange={(e) => setMode(e.target.value)}>
-              <FormControlLabel value="current" control={<Radio />} label="Current Season Comparison" />
-              <FormControlLabel value="historical" control={<Radio />} label="Historical Comparison" />
+              <FormControlLabel value="current" control={<Radio />} label={t('current_season_comparison')} />
+              <FormControlLabel value="historical" control={<Radio />} label={t('historical_comparison')} />
             </RadioGroup>
           </FormControl>
         </CardContent>
@@ -373,8 +376,8 @@ const HistoricalInsightsPage = () => {
       
       <Card elevation={3} sx={{ mb: 4 }}>
         <CardHeader
-          title={mode === 'current' ? "Current Season Comparison" : "Historical Comparison"}
-          subheader={mode === 'current' ? "Compare ponds within the current season" : "Compare ponds across different seasons"}
+          title={mode === 'current' ? t('current_season_comparison') : t('historical_comparison')}
+          subheader={mode === 'current' ? t('current_season_comparison_desc') : t('historical_comparison_desc')}
         />
         <CardContent>
           <LocalizationProvider dateAdapter={AdapterDateFns}>
@@ -384,7 +387,7 @@ const HistoricalInsightsPage = () => {
                 <>
                   <Grid item xs={12} md={6}>
                     <DatePicker
-                      label="Start Date"
+                      label={t('start_date')}
                       value={startDate}
                       onChange={(newValue) => setStartDate(newValue)}
                       renderInput={(params) => <TextField {...params} fullWidth />}
@@ -393,7 +396,7 @@ const HistoricalInsightsPage = () => {
                   
                   <Grid item xs={12} md={6}>
                     <DatePicker
-                      label="End Date"
+                      label={t('end_date')}
                       value={endDate}
                       onChange={(newValue) => setEndDate(newValue)}
                       renderInput={(params) => <TextField {...params} fullWidth />}
@@ -402,12 +405,12 @@ const HistoricalInsightsPage = () => {
                   
                   <Grid item xs={12} md={6}>
                     <FormControl fullWidth>
-                      <InputLabel id="pond-a-select-label">Pond A</InputLabel>
+                      <InputLabel id="pond-a-select-label">{t('pond_a')}</InputLabel>
                       <Select
                         labelId="pond-a-select-label"
                         value={selectedPondA}
                         onChange={(e) => setSelectedPondA(e.target.value)}
-                        input={<OutlinedInput label="Pond A" />}
+                        input={<OutlinedInput label={t('pond_a')} />}
                       >
                         {currentSeasonPondsData?.ponds?.map((pond) => (
                           <MenuItem key={pond.id} value={pond.id}>
@@ -420,12 +423,12 @@ const HistoricalInsightsPage = () => {
                   
                   <Grid item xs={12} md={6}>
                     <FormControl fullWidth>
-                      <InputLabel id="pond-b-select-label">Pond B</InputLabel>
+                      <InputLabel id="pond-b-select-label">{t('pond_b')}</InputLabel>
                       <Select
                         labelId="pond-b-select-label"
                         value={selectedPondB}
                         onChange={(e) => setSelectedPondB(e.target.value)}
-                        input={<OutlinedInput label="Pond B" />}
+                        input={<OutlinedInput label={t('pond_b')} />}
                       >
                         {currentSeasonPondsData?.ponds?.map((pond) => (
                           <MenuItem key={pond.id} value={pond.id}>
@@ -441,7 +444,7 @@ const HistoricalInsightsPage = () => {
                 <>
                   <Grid item xs={12} md={6}>
                     <FormControl fullWidth>
-                      <InputLabel id="season-1-select-label">Season 1</InputLabel>
+                      <InputLabel id="season-1-select-label">{t('season_1')}</InputLabel>
                       <Select
                         labelId="season-1-select-label"
                         value={selectedSeason1}
@@ -449,7 +452,7 @@ const HistoricalInsightsPage = () => {
                           setSelectedSeason1(e.target.value);
                           setSelectedPondA_H(''); // Reset pond selection when season changes
                         }}
-                        input={<OutlinedInput label="Season 1" />}
+                        input={<OutlinedInput label={t('season_1')} />}
                       >
                         {historicalSeasonsData?.seasons?.map((season) => (
                           <MenuItem key={season.id} value={season.id}>
@@ -462,12 +465,12 @@ const HistoricalInsightsPage = () => {
                   
                   <Grid item xs={12} md={6}>
                     <FormControl fullWidth>
-                      <InputLabel id="pond-a-historical-select-label">Pond A</InputLabel>
+                      <InputLabel id="pond-a-historical-select-label">{t('pond_a')}</InputLabel>
                       <Select
                         labelId="pond-a-historical-select-label"
                         value={selectedPondA_H}
                         onChange={(e) => setSelectedPondA_H(e.target.value)}
-                        input={<OutlinedInput label="Pond A" />}
+                        input={<OutlinedInput label={t('pond_a')} />}
                         disabled={!selectedSeason1}
                       >
                         {season1PondsData?.ponds?.map((pond) => (
@@ -481,7 +484,7 @@ const HistoricalInsightsPage = () => {
                   
                   <Grid item xs={12} md={6}>
                     <FormControl fullWidth>
-                      <InputLabel id="season-2-select-label">Season 2</InputLabel>
+                      <InputLabel id="season-2-select-label">{t('season_2')}</InputLabel>
                       <Select
                         labelId="season-2-select-label"
                         value={selectedSeason2}
@@ -489,7 +492,7 @@ const HistoricalInsightsPage = () => {
                           setSelectedSeason2(e.target.value);
                           setSelectedPondB_H(''); // Reset pond selection when season changes
                         }}
-                        input={<OutlinedInput label="Season 2" />}
+                        input={<OutlinedInput label={t('season_2')} />}
                       >
                         {historicalSeasonsData?.seasons?.map((season) => (
                           <MenuItem key={season.id} value={season.id}>
@@ -502,12 +505,12 @@ const HistoricalInsightsPage = () => {
                   
                   <Grid item xs={12} md={6}>
                     <FormControl fullWidth>
-                      <InputLabel id="pond-b-historical-select-label">Pond B</InputLabel>
+                      <InputLabel id="pond-b-historical-select-label">{t('pond_b')}</InputLabel>
                       <Select
                         labelId="pond-b-historical-select-label"
                         value={selectedPondB_H}
                         onChange={(e) => setSelectedPondB_H(e.target.value)}
-                        input={<OutlinedInput label="Pond B" />}
+                        input={<OutlinedInput label={t('pond_b')} />}
                         disabled={!selectedSeason2}
                       >
                         {season2PondsData?.ponds?.map((pond) => (
@@ -523,13 +526,13 @@ const HistoricalInsightsPage = () => {
               
               <Grid item xs={12}>
                 <FormControl fullWidth>
-                  <InputLabel id="metrics-select-label">Metrics to Compare</InputLabel>
+                  <InputLabel id="metrics-select-label">{t('metrics_to_compare')}</InputLabel>
                   <Select
                     labelId="metrics-select-label"
                     multiple
                     value={selectedMetrics}
                     onChange={(e) => setSelectedMetrics(e.target.value)}
-                    input={<OutlinedInput label="Metrics to Compare" />}
+                    input={<OutlinedInput label={t('metrics_to_compare')} />}
                     renderValue={(selected) => (
                       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
                         {selected.map((value) => {
@@ -563,7 +566,7 @@ const HistoricalInsightsPage = () => {
                     selectedMetrics.length === 0
                   }
                 >
-                  {isProcessing ? 'Comparing Ponds...' : 'Compare Ponds'}
+                  {isProcessing ? `${t('comparing')}...` : t('compare_ponds')}
                 </Button>
               </Grid>
             </Grid>
@@ -573,8 +576,8 @@ const HistoricalInsightsPage = () => {
       
       <Card elevation={3}>
         <CardHeader
-          title="Comparison Results"
-          subheader="Pond performance comparison"
+          title={t('comparison_results')}
+          subheader={t('pond_performance_comparison')}
         />
         <CardContent>
           {comparisonData ? (
@@ -582,13 +585,13 @@ const HistoricalInsightsPage = () => {
               <Box sx={{ mb: 3 }}>
                 <Typography variant="h6" gutterBottom>
                   {mode === 'current' 
-                    ? `Comparing: ${getPondName(selectedPondA)} vs ${getPondName(selectedPondB)}`
-                    : `Comparing: ${getPondName(selectedPondA_H)} vs ${getPondName(selectedPondB_H)}`}
+                    ? `${t('comparing')}: ${getPondName(selectedPondA)} vs ${getPondName(selectedPondB)}`
+                    : `${t('comparing')}: ${getPondName(selectedPondA_H)} vs ${getPondName(selectedPondB_H)}`}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   {mode === 'current' 
-                    ? `Period: ${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`
-                    : `Season 1: ${comparisonData.pond_a.season?.name || 'N/A'} | Season 2: ${comparisonData.pond_b.season?.name || 'N/A'}`}
+                    ? `${t('period')}: ${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`
+                    : `${t('season_1')}: ${comparisonData.pond_a.season?.name || 'N/A'} | ${t('season_2')}: ${comparisonData.pond_b.season?.name || 'N/A'}`}
                 </Typography>
               </Box>
               
@@ -610,7 +613,7 @@ const HistoricalInsightsPage = () => {
                       {activeTab === index && (
                         <Paper elevation={0} sx={{ p: 2 }}>
                           <Typography variant="h6" gutterBottom>
-                            {metric?.name || metricId} Comparison
+                            {metric?.name || metricId} {t('comparison')}
                           </Typography>
                           
                           {chartData.length > 0 ? (
@@ -631,7 +634,7 @@ const HistoricalInsightsPage = () => {
                                   <YAxis />
                                   <Tooltip 
                                     formatter={(value) => [Number(value).toFixed(2), '']}
-                                    labelFormatter={(label) => mode === 'historical' ? `Day: ${label}` : `Date: ${label}`}
+                                    labelFormatter={(label) => mode === 'historical' ? `${t('day')}: ${label}` : `${t('date')}: ${label}`}
                                   />
                                   <Legend />
                                   <Line 
@@ -659,7 +662,7 @@ const HistoricalInsightsPage = () => {
                                   <Area 
                                     type="monotone" 
                                     dataKey="difference" 
-                                    name="Difference" 
+                                    name={t('difference')} 
                                     fill="#d62728" 
                                     stroke="#d62728" 
                                     fillOpacity={0.2}
@@ -670,7 +673,7 @@ const HistoricalInsightsPage = () => {
                             </Box>
                           ) : (
                             <Box sx={{ textAlign: 'center', py: 4 }}>
-                              <Typography>No data available for this metric</Typography>
+                              <Typography>{t('no_data_available_for_this_metric')}</Typography>
                             </Box>
                           )}
                           
@@ -682,7 +685,7 @@ const HistoricalInsightsPage = () => {
                                   <Card variant="outlined">
                                     <CardContent>
                                       <Typography variant="body2" color="text.secondary">
-                                        Data Points (Pond A)
+                                        {t('data_points_pond_a')}
                                       </Typography>
                                       <Typography variant="h6">
                                         {metricData.pond_a_data?.length || 0}
@@ -694,7 +697,7 @@ const HistoricalInsightsPage = () => {
                                   <Card variant="outlined">
                                     <CardContent>
                                       <Typography variant="body2" color="text.secondary">
-                                        Data Points (Pond B)
+                                        {t('data_points_pond_b')}
                                       </Typography>
                                       <Typography variant="h6">
                                         {metricData.pond_b_data?.length || 0}
@@ -706,7 +709,7 @@ const HistoricalInsightsPage = () => {
                                   <Card variant="outlined">
                                     <CardContent>
                                       <Typography variant="body2" color="text.secondary">
-                                        Average Difference
+                                        {t('average_difference')}
                                       </Typography>
                                       <Typography variant="h6">
                                         {metricData.differences && metricData.differences.length > 0 
@@ -730,10 +733,10 @@ const HistoricalInsightsPage = () => {
             <Box sx={{ textAlign: 'center', py: 4 }}>
               <InsightsIcon sx={{ fontSize: 60, color: 'primary.main', opacity: 0.3, mb: 2 }} />
               <Typography variant="h6" gutterBottom>
-                Compare Pond Performance
+                {t('compare_pond_performance')}
               </Typography>
               <Typography variant="body1" color="text.secondary">
-                Select the comparison mode, choose ponds, select metrics, and click "Compare Ponds" to see detailed performance comparisons.
+                {t('select_comparison_mode')}
               </Typography>
             </Box>
           )}

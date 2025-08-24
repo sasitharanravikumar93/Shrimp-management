@@ -211,7 +211,7 @@ const InventoryManagementPage = () => {
             <ToggleButton value="all">{t('all')}</ToggleButton>
             {itemTypes.map(type => (
               <ToggleButton key={type} value={type.toLowerCase()}>
-                {t(type)}
+                {t(type.toLowerCase())}
               </ToggleButton>
             ))}
           </ToggleButtonGroup>

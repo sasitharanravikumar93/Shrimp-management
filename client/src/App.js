@@ -18,6 +18,7 @@ const NurseryManagementPage = lazy(() => import('./pages/NurseryManagementPage')
 const NurseryBatchDetailPage = lazy(() => import('./pages/NurseryBatchDetailPage'));
 const InventoryManagementPage = lazy(() => import('./pages/InventoryManagementPage'));
 const HistoricalInsightsPage = lazy(() => import('./pages/HistoricalInsightsPage'));
+const ExpenseManagementPage = lazy(() => import('./pages/ExpenseManagementPage'));
 
 // Loading component for suspense
 const LoadingComponent = () => (
@@ -73,6 +74,7 @@ function App() {
                       <Route path="/nursery/batch/:id" element={<NurseryBatchDetailPage />} />
                       <Route path="/inventory-management" element={<InventoryManagementPage />} />
                       <Route path="/historical-insights" element={<HistoricalInsightsPage />} />
+                      <Route path="/expense-management" element={<ExpenseManagementPage />} />
                     </Routes>
                   </Suspense>
                 </AnimatePresence>

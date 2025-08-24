@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { 
   Typography, 
@@ -65,6 +66,7 @@ import DataTrend from './DataTrend';
 import QuickActions from './QuickActions';
 
 const FarmOverview = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [filter, setFilter] = useState('all');
   const [timeRange, setTimeRange] = useState('week');
@@ -133,52 +135,52 @@ const FarmOverview = () => {
     
     return [
       { 
-        title: 'Total Ponds', 
+        title: t('total_ponds'), 
         value: totalPonds, 
         change: 0, 
         icon: <PondIcon />, 
         color: '#007BFF' 
       },
       { 
-        title: 'Active Ponds', 
+        title: t('active_ponds'), 
         value: activePonds, 
         change: 0, 
         icon: <AgricultureIcon />, 
         color: '#28A745' 
       },
       { 
-        title: 'Avg. Growth Rate', 
+        title: t('avg_growth_rate'), 
         value: 1.2, 
-        suffix: 'g/day', 
+        suffix: t('g_per_day'), 
         change: 0.1, 
-        changeText: '+0.1 from last week', 
+        changeText: t('plus_point_one_from_last_week'), 
         icon: <GrowthIcon />, 
         color: '#FD7E14' 
       },
       { 
-        title: 'Feed Efficiency', 
+        title: t('feed_efficiency'), 
         value: 1.4, 
-        suffix: ':1', 
+        suffix: t('colon_one'), 
         change: -0.1, 
-        changeText: '-0.1 from last week', 
+        changeText: t('minus_point_one_from_last_week'), 
         icon: <RestaurantIcon />, 
         color: '#007BFF' 
       },
       { 
-        title: 'Water Quality', 
+        title: t('water_quality'), 
         value: 85, 
-        suffix: '%', 
+        suffix: t('percentage'), 
         change: 5, 
-        changeText: '+5% from last week', 
+        changeText: t('plus_five_percent_from_last_week'), 
         icon: <WaterIcon />, 
         color: '#28A745' 
       },
       { 
-        title: 'Feed Consumption', 
+        title: t('feed_consumption'), 
         value: 1250, 
-        suffix: 'kg', 
+        suffix: t('kg'), 
         change: 12, 
-        changeText: '+12% from last week', 
+        changeText: t('plus_twelve_percent_from_last_week'), 
         icon: <RestaurantIcon />, 
         color: '#FD7E14' 
       }
@@ -234,7 +236,7 @@ const FarmOverview = () => {
       {showAlert && (
         <AlertBanner 
           severity="warning"
-          message="Water quality alert in 2 ponds. Please check Pond B and Pond E immediately."
+          message={t('water_quality_alert')}
           dismissible
           onClose={() => setShowAlert(false)}
         />
@@ -244,10 +246,10 @@ const FarmOverview = () => {
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Box>
           <Typography variant="h4" component="h1" gutterBottom>
-            Farm Dashboard
+            {t('farm_dashboard')}
           </Typography>
           <Typography variant="body1" color="text.secondary">
-            Welcome back! Here's what's happening with your shrimp farm today.
+            {t('welcome_back')}
           </Typography>
         </Box>
         <Button 
@@ -255,7 +257,7 @@ const FarmOverview = () => {
           startIcon={<InsightsIcon />}
           size="large"
         >
-          Generate Report
+          {t('generate_report')}
         </Button>
       </Box>
       
@@ -264,7 +266,7 @@ const FarmOverview = () => {
         {summaryData.map((item, index) => (
           <Grid item xs={12} sm={6} md={4} lg={2} key={index}>
             <KPICard 
-              title={item.title}
+              title={t(item.title)}
               value={item.value}
               icon={item.icon}
               color={item.color}
@@ -281,7 +283,7 @@ const FarmOverview = () => {
         {/* Water Quality Chart */}
         <Grid item xs={12} md={6}>
           <DataTrend
-            title="Water Quality Trend"
+            title={t('water_quality_trend')}
             data={[
               { pond: 'Pond A', pH: 7.2, do: 5.5, temp: 28.5 },
               { pond: 'Pond B', pH: 6.8, do: 4.2, temp: 29.0 },
@@ -305,7 +307,7 @@ const FarmOverview = () => {
         {/* Feed Consumption Chart */}
         <Grid item xs={12} md={6}>
           <DataTrend
-            title="Feed Consumption Trend"
+            title={t('feed_consumption_trend')}
             data={[
               { date: 'Mon', amount: 120 },
               { date: 'Tue', amount: 140 },
@@ -327,7 +329,7 @@ const FarmOverview = () => {
       <Box sx={{ mb: 4 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <Typography variant="h6" gutterBottom>
-            Pond Overview
+            {t('pond_overview')}
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <ToggleButtonGroup
@@ -337,16 +339,16 @@ const FarmOverview = () => {
               onChange={handleFilterChange}
               sx={{ height: 36 }}
             >
-              <ToggleButton value="all">All Ponds</ToggleButton>
-              <ToggleButton value="active">Active</ToggleButton>
-              <ToggleButton value="inactive">Inactive</ToggleButton>
+              <ToggleButton value="all">{t('all_ponds')}</ToggleButton>
+              <ToggleButton value="active">{t('active')}</ToggleButton>
+              <ToggleButton value="inactive">{t('inactive')}</ToggleButton>
             </ToggleButtonGroup>
             <Button 
               variant="outlined" 
               startIcon={<FilterIcon />}
               size="small"
             >
-              More Filters
+              {t('more_filters')}
             </Button>
           </Box>
         </Box>
