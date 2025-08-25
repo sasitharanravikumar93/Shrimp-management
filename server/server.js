@@ -8,6 +8,23 @@ const {
   securityHeaders,
   securityLogger
 } = require('./middleware/security');
+const {
+  checkBlockedIPs,
+  threatDetection,
+  logSuccessfulRequest
+} = require('./middleware/advancedSecurity');
+const {
+  httpMetricsMiddleware,
+  errorMetricsMiddleware
+} = require('./middleware/metricsMiddleware');
+const {
+  requestLoggingMiddleware
+} = require('./middleware/loggingMiddleware');
+const {
+  globalErrorHandler,
+  notFoundHandler,
+  requestIdMiddleware
+} = require('./utils/errorHandler');
 
 // Get validated configuration
 const config = getConfig();
@@ -17,8 +34,14 @@ const PORT = config.server.port;
 
 // Security middleware (applied early)
 app.use(securityHeaders);
+app.use(requestIdMiddleware); // Add request ID for tracking
+app.use(requestLoggingMiddleware); // Comprehensive request logging
+app.use(httpMetricsMiddleware); // Collect HTTP metrics
+app.use(checkBlockedIPs); // Block known bad IPs
+app.use(threatDetection); // Advanced threat detection
 app.use(securityLogger);
 app.use(rateLimiter);
+app.use(logSuccessfulRequest); // Log successful requests
 
 // CORS Configuration
 const corsOptions = {
@@ -45,6 +68,8 @@ mongoose.connect(config.database.uri, config.database.options)
   });
 
 // Routes
+app.use('/api/auth', require('./routes/auth')); // Authentication routes
+app.use('/api/security', require('./routes/security')); // Security monitoring routes
 app.use('/api/seasons', require('./routes/seasons'));
 app.use('/api/ponds', require('./routes/ponds'));
 app.use('/api/feed-inputs', require('./routes/feedInputs'));
@@ -58,6 +83,8 @@ app.use('/api/historical-insights', require('./routes/historicalInsights')); // 
 app.use('/api/employees', require('./routes/employees'));
 app.use('/api/expenses', require('./routes/expenses'));
 app.use('/api/farm', require('./routes/farm'));
+app.use('/api/health', require('./routes/health')); // Comprehensive health monitoring
+app.use('/api/metrics', require('./routes/metrics')); // Application metrics
 // Add more route imports here
 
 // Basic route for testing
@@ -65,16 +92,24 @@ app.get('/', (req, res) => {
   res.json({ message: 'Shrimp Farm Management API' });
 });
 
-// Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+// Legacy health check endpoint for backward compatibility
+app.get('/api/health/legacy', (req, res) => {
+  res.json({
+    status: 'OK',
+    timestamp: new Date().toISOString(),
+    environment: config.server.env,
+    version: process.env.npm_package_version || '1.0.0'
+  });
 });
 
-// Error handling middleware (should be last)
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: 'Something went wrong!' });
-});
+// 404 handler for unmatched routes (should be before global error handler)
+app.use(notFoundHandler);
+
+// Error metrics middleware (should be before global error handler)
+app.use(errorMetricsMiddleware);
+
+// Global error handling middleware (should be last)
+app.use(globalErrorHandler);
 
 const server = app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
