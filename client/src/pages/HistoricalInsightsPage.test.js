@@ -1,5 +1,6 @@
-import React from 'react';
 import { render } from '@testing-library/react';
+import React from 'react';
+
 import HistoricalInsightsPage from './HistoricalInsightsPage';
 
 // Create a simple test to check for syntax errors

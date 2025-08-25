@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+
 import { processSyncQueue, getSyncQueueItems } from '../utils/offlineSync';
 
 // Create context
@@ -56,27 +57,29 @@ export const OfflineSyncProvider = ({ children }) => {
       // This is a placeholder for the actual API call function
       // In a real implementation, you would pass the actual API call function
       const apiCall = async (endpoint, method, data) => {
-        const url = `${process.env.REACT_APP_API_URL || 'http://localhost:5001'}${endpoint}`;
-        
+        const url = `${
+          process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001/api'
+        }${endpoint}`;
+
         const options = {
           method,
           headers: {
-            'Content-Type': 'application/json',
-          },
+            'Content-Type': 'application/json'
+          }
         };
-        
+
         if (data) {
           options.body = JSON.stringify(data);
         }
-        
+
         return await fetch(url, options);
       };
 
       const result = await processSyncQueue(apiCall);
-      
+
       if (result.success) {
         console.log(`Sync completed: ${result.processed} processed, ${result.failed} failed`);
-        
+
         // Refresh queue items
         const items = await getSyncQueueItems();
         setSyncQueue(items);
@@ -102,9 +105,9 @@ export const OfflineSyncProvider = ({ children }) => {
       identifier,
       timestamp: new Date().toISOString()
     };
-    
+
     setSyncQueue(prev => [...prev, newItem]);
-    
+
     // In a real implementation, you would also call:
     // await addToSyncQueue(endpoint, method, data, identifier);
   };
@@ -118,21 +121,17 @@ export const OfflineSyncProvider = ({ children }) => {
     addToQueue
   };
 
-  return (
-    <OfflineSyncContext.Provider value={value}>
-      {children}
-    </OfflineSyncContext.Provider>
-  );
+  return <OfflineSyncContext.Provider value={value}>{children}</OfflineSyncContext.Provider>;
 };
 
 // Hook to use the context
 export const useOfflineSync = () => {
   const context = useContext(OfflineSyncContext);
-  
+
   if (!context) {
     throw new Error('useOfflineSync must be used within an OfflineSyncProvider');
   }
-  
+
   return context;
 };
 

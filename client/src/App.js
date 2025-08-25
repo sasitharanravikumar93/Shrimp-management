@@ -1,12 +1,17 @@
+import { CssBaseline, CircularProgress, Box } from '@mui/material';
+import { ThemeProvider } from '@mui/material/styles';
+import { AnimatePresence, LazyMotion, domAnimation } from 'framer-motion';
 import React, { useState, useEffect, Suspense, lazy } from 'react';
+import { I18nextProvider } from 'react-i18next';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { CssBaseline, ThemeProvider, CircularProgress, Box } from '@mui/material';
-import { AnimatePresence } from 'framer-motion';
-import { LazyMotion, domAnimation } from 'framer-motion';
-import theme, { darkTheme } from './theme.ts';
-import Layout from './components/Layout';
-import { SeasonProvider } from './context/SeasonContext';
+
+import ErrorBoundary from './components/features/shared/error-handling/ErrorBoundary';
+import Layout from './components/features/shared/layout/Layout';
 import { OfflineSyncProvider } from './context/OfflineSyncContext';
+import { SeasonProvider } from './context/SeasonContext';
+import i18n from './i18n';
+import theme, { darkTheme } from './theme.ts';
+import { RTLProvider, useRTL, createRTLTheme } from './utils/rtlUtils';
 
 // Lazy load pages for code splitting
 const DashboardPage = lazy(() => import('./pages/DashboardPage'));
@@ -27,8 +32,10 @@ const LoadingComponent = () => (
   </Box>
 );
 
-function App() {
+// App content component with RTL support
+function AppContent() {
   const [darkMode, setDarkMode] = useState(false);
+  const { isRTL } = useRTL();
 
   // Check for saved theme preference or default to light mode
   useEffect(() => {
@@ -38,12 +45,16 @@ function App() {
     }
   }, []);
 
+  // Create RTL-aware theme
+  const currentTheme = React.useMemo(() => {
+    const baseTheme = darkMode ? darkTheme : theme;
+    return createRTLTheme(baseTheme, isRTL);
+  }, [darkMode, isRTL]);
+
   // Apply theme to document
   useEffect(() => {
-    document.body.style.backgroundColor = darkMode 
-      ? darkTheme.palette.background.default 
-      : theme.palette.background.default;
-  }, [darkMode]);
+    document.body.style.backgroundColor = currentTheme.palette.background.default;
+  }, [currentTheme]);
 
   const toggleDarkMode = () => {
     const newMode = !darkMode;
@@ -53,28 +64,28 @@ function App() {
 
   return (
     <LazyMotion features={domAnimation}>
-      <ThemeProvider theme={darkMode ? darkTheme : theme}>
+      <ThemeProvider theme={currentTheme}>
         <CssBaseline />
         <Router>
           <SeasonProvider>
             <OfflineSyncProvider>
               <Layout toggleDarkMode={toggleDarkMode} darkMode={darkMode}>
-                <AnimatePresence mode="wait">
+                <AnimatePresence mode='wait'>
                   <Suspense fallback={<LoadingComponent />}>
                     <Routes>
-                      <Route path="/" element={<DashboardPage />} />
-                      <Route path="/dashboard/:pondId" element={<DashboardPage />} />
-                      <Route path="/dashboard" element={<DashboardPage />} />
-                      <Route path="/admin" element={<AdminPage />} />
-                      <Route path="/pond" element={<PondManagementPage />} />
-                      <Route path="/pond/:pondId" element={<PondManagementPage />} />
-                      <Route path="/feed-view" element={<FeedViewPage />} />
-                      <Route path="/water-quality-view" element={<WaterQualityViewPage />} />
-                      <Route path="/nursery" element={<NurseryManagementPage />} />
-                      <Route path="/nursery/batch/:id" element={<NurseryBatchDetailPage />} />
-                      <Route path="/inventory-management" element={<InventoryManagementPage />} />
-                      <Route path="/historical-insights" element={<HistoricalInsightsPage />} />
-                      <Route path="/expense-management" element={<ExpenseManagementPage />} />
+                      <Route path='/' element={<DashboardPage />} />
+                      <Route path='/dashboard/:pondId' element={<DashboardPage />} />
+                      <Route path='/dashboard' element={<DashboardPage />} />
+                      <Route path='/admin' element={<AdminPage />} />
+                      <Route path='/pond' element={<PondManagementPage />} />
+                      <Route path='/pond/:pondId' element={<PondManagementPage />} />
+                      <Route path='/feed-view' element={<FeedViewPage />} />
+                      <Route path='/water-quality-view' element={<WaterQualityViewPage />} />
+                      <Route path='/nursery' element={<NurseryManagementPage />} />
+                      <Route path='/nursery/batch/:id' element={<NurseryBatchDetailPage />} />
+                      <Route path='/inventory-management' element={<InventoryManagementPage />} />
+                      <Route path='/historical-insights' element={<HistoricalInsightsPage />} />
+                      <Route path='/expense-management' element={<ExpenseManagementPage />} />
                     </Routes>
                   </Suspense>
                 </AnimatePresence>
@@ -84,6 +95,19 @@ function App() {
         </Router>
       </ThemeProvider>
     </LazyMotion>
+  );
+}
+
+// Main App component with all providers
+function App() {
+  return (
+    <ErrorBoundary>
+      <I18nextProvider i18n={i18n}>
+        <RTLProvider>
+          <AppContent />
+        </RTLProvider>
+      </I18nextProvider>
+    </ErrorBoundary>
   );
 }
 

@@ -1,9 +1,11 @@
-import React from 'react';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
-import WaterQualityViewPage from './WaterQualityViewPage';
+
 import * as api from '../services/api';
+
+import WaterQualityViewPage from './WaterQualityViewPage';
 
 // Mock the API calls
 jest.mock('../services/api');
@@ -20,7 +22,7 @@ jest.mock('date-fns', () => ({
 
 // Mock MUI date pickers
 jest.mock('@mui/x-date-pickers/LocalizationProvider', () => {
-  return ({ children }) => <div data-testid="localization-provider">{children}</div>;
+  return ({ children }) => <div data-testid='localization-provider'>{children}</div>;
 });
 
 jest.mock('@mui/x-date-pickers/DatePicker', () => {
@@ -31,7 +33,7 @@ jest.mock('@mui/x-date-pickers/DatePicker', () => {
       <div data-testid={`date-picker-${label}`}>
         <label>{label}</label>
         {React.cloneElement(inputProps, {
-          onChange: (e) => onChange(new Date(e.target.value)),
+          onChange: e => onChange(new Date(e.target.value)),
           value: value ? value.toISOString().split('T')[0] : ''
         })}
       </div>
@@ -45,9 +47,7 @@ const theme = createTheme();
 // Wrapper component to provide theme and router
 const WithProviders = ({ children }) => (
   <ThemeProvider theme={theme}>
-    <BrowserRouter>
-      {children}
-    </BrowserRouter>
+    <BrowserRouter>{children}</BrowserRouter>
   </ThemeProvider>
 );
 
@@ -88,7 +88,7 @@ describe('WaterQualityViewPage', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Mock API functions
     api.getWaterQualityInputs = jest.fn().mockResolvedValue(mockWaterQualityEntries);
     api.getPonds = jest.fn().mockResolvedValue(mockPonds);
@@ -103,7 +103,7 @@ describe('WaterQualityViewPage', () => {
 
     // Check that the page title is rendered
     expect(screen.getByText('Water Quality History')).toBeInTheDocument();
-    
+
     // Check that the export button is rendered
     expect(screen.getByText('Export Data')).toBeInTheDocument();
   });
@@ -127,12 +127,12 @@ describe('WaterQualityViewPage', () => {
     expect(screen.getByText('Pond')).toBeInTheDocument();
     expect(screen.getByText('Parameter')).toBeInTheDocument();
     expect(screen.getByLabelText('Search')).toBeInTheDocument();
-    
+
     // Check that pond options are rendered
     expect(screen.getByText('All Ponds')).toBeInTheDocument();
     expect(screen.getByText('Pond A')).toBeInTheDocument();
     expect(screen.getByText('Pond B')).toBeInTheDocument();
-    
+
     // Check that parameter options are rendered
     expect(screen.getByText('All Parameters')).toBeInTheDocument();
     expect(screen.getByText('pH')).toBeInTheDocument();
@@ -176,7 +176,7 @@ describe('WaterQualityViewPage', () => {
     // Mock API to simulate loading
     api.getWaterQualityInputs = jest.fn(() => new Promise(() => {})); // Never resolves
     api.getPonds = jest.fn(() => new Promise(() => {})); // Never resolves
-    
+
     render(
       <WithProviders>
         <WaterQualityViewPage />
@@ -189,9 +189,11 @@ describe('WaterQualityViewPage', () => {
 
   it('shows error state when API calls fail', async () => {
     // Mock API to simulate error
-    api.getWaterQualityInputs = jest.fn().mockRejectedValue(new Error('Failed to fetch water quality entries'));
+    api.getWaterQualityInputs = jest
+      .fn()
+      .mockRejectedValue(new Error('Failed to fetch water quality entries'));
     api.getPonds = jest.fn().mockResolvedValue(mockPonds);
-    
+
     render(
       <WithProviders>
         <WaterQualityViewPage />
@@ -202,7 +204,7 @@ describe('WaterQualityViewPage', () => {
     await waitFor(() => {
       expect(screen.getByText(/Error loading data/)).toBeInTheDocument();
     });
-    
+
     // Should show error message
     expect(screen.getByText(/Failed to fetch water quality entries/)).toBeInTheDocument();
   });
