@@ -327,7 +327,7 @@ exports.createUser = asyncHandler(async (req, res) => {
         lastName,
         role: role || 'viewer',
         language: language || 'en',
-        permissions: permissions || User.getDefaultPermissions(role || 'viewer') \n
+        permissions: permissions || User.getDefaultPermissions(role || 'viewer')
     });
 
     await user.save();

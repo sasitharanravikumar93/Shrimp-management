@@ -1,7 +1,7 @@
 import i18n from 'i18next';
-import { initReactI18next } from 'react-i18next';
-import HttpBackend from 'i18next-http-backend';
 import LanguageDetector from 'i18next-browser-languagedetector';
+import HttpBackend from 'i18next-http-backend';
+import { initReactI18next } from 'react-i18next';
 
 // Initialize i18n
 i18n
@@ -15,28 +15,37 @@ i18n
   .init({
     // Fallback language
     fallbackLng: 'en',
-    
+
     // Languages we support
-    supportedLngs: ['en', 'hi', 'ta', 'kn', 'te'],
-    
+    supportedLngs: ['en', 'es', 'ar', 'hi', 'kn', 'ta', 'te', 'th', 'vi'],
+
     // Debug mode
     debug: false,
-    
+
     // Namespace configuration
-    ns: ['translation'],
-    defaultNS: 'translation',
-    
+    ns: ['common'],
+    defaultNS: 'common',
+
     // Backend configuration for loading translations
     backend: {
       // Path to load translations from
-      loadPath: '/locales/{{lng}}/{{ns}}.json',
+      loadPath: '/locales/{{lng}}/{{ns}}.json'
     },
-    
+
     // Language detector configuration
     detection: {
       // Order and from where user language should be detected
-      order: ['querystring', 'cookie', 'localStorage', 'sessionStorage', 'navigator', 'htmlTag', 'path', 'subdomain'],
-      
+      order: [
+        'querystring',
+        'cookie',
+        'localStorage',
+        'sessionStorage',
+        'navigator',
+        'htmlTag',
+        'path',
+        'subdomain'
+      ],
+
       // Keys or params to lookup language from
       lookupQuerystring: 'lng',
       lookupCookie: 'i18next',
@@ -44,23 +53,23 @@ i18n
       lookupSessionStorage: 'i18nextLng',
       lookupFromPathIndex: 0,
       lookupFromSubdomainIndex: 0,
-      
+
       // Cache user language on
       caches: ['localStorage', 'cookie'],
       excludeCacheFor: ['cimode'], // Languages to not persist (cookie, localStorage)
-      
+
       // Optional set cookie options, reference: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
       cookieOptions: { path: '/', sameSite: 'strict' }
     },
-    
+
     // React configuration
     react: {
-      useSuspense: false, // Set to true if you want to use Suspense
+      useSuspense: false // Set to true if you want to use Suspense
     },
-    
+
     // Interpolation configuration
     interpolation: {
-      escapeValue: false, // Not needed for React as it escapes by default
+      escapeValue: false // Not needed for React as it escapes by default
     }
   });
 

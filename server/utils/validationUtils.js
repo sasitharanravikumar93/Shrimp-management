@@ -249,4 +249,3 @@ module.exports = {
     validateGPSCoordinates,
     sanitizeQuery
 };
-"
