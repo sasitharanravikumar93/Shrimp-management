@@ -31,7 +31,7 @@ export const saveOfflineData = async (key, data) => {
  * Get offline data by key
  * @param {string} key - Key of the data to retrieve
  */
-export const getOfflineData = async (key) => {
+export const getOfflineData = async key => {
   try {
     return await offlineStore.getItem(key);
   } catch (error) {
@@ -44,7 +44,7 @@ export const getOfflineData = async (key) => {
  * Remove offline data by key
  * @param {string} key - Key of the data to remove
  */
-export const removeOfflineData = async (key) => {
+export const removeOfflineData = async key => {
   try {
     await offlineStore.removeItem(key);
     return true;
@@ -71,7 +71,7 @@ export const addToSyncQueue = async (endpoint, method, data, identifier) => {
       identifier,
       timestamp: new Date().toISOString()
     };
-    
+
     await syncQueue.setItem(queueItem.id.toString(), queueItem);
     return queueItem.id;
   } catch (error) {
@@ -84,29 +84,29 @@ export const addToSyncQueue = async (endpoint, method, data, identifier) => {
  * Process sync queue when online
  * @param {Function} apiCall - Function to make API calls
  */
-export const processSyncQueue = async (apiCall) => {
+export const processSyncQueue = async apiCall => {
   try {
     const keys = await syncQueue.keys();
-    
+
     if (keys.length === 0) {
       console.log('Sync queue is empty');
       return { success: true, processed: 0, failed: 0 };
     }
-    
+
     console.log(`Processing ${keys.length} items in sync queue`);
-    
+
     let processed = 0;
     let failed = 0;
-    
+
     for (const key of keys) {
       try {
         const item = await syncQueue.getItem(key);
-        
+
         if (!item) continue;
-        
+
         // Make API call
         const response = await apiCall(item.endpoint, item.method, item.data);
-        
+
         if (response.ok) {
           // Remove from queue on success
           await syncQueue.removeItem(key);
@@ -122,7 +122,7 @@ export const processSyncQueue = async (apiCall) => {
         console.error(`Error processing sync item ${key}:`, error);
       }
     }
-    
+
     return { success: true, processed, failed };
   } catch (error) {
     console.error('Error processing sync queue:', error);
@@ -137,12 +137,12 @@ export const getSyncQueueItems = async () => {
   try {
     const keys = await syncQueue.keys();
     const items = [];
-    
+
     for (const key of keys) {
       const item = await syncQueue.getItem(key);
       if (item) items.push(item);
     }
-    
+
     return items;
   } catch (error) {
     console.error('Error getting sync queue items:', error);
