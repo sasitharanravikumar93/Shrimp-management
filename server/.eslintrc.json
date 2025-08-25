@@ -1,0 +1,88 @@
+{
+  \"env\": {
+    \"node\": true,
+    \"es2021\": true,
+    \"jest\": true
+},
+  \"extends\": [
+    \"eslint:recommended\"
+],
+  \"parserOptions\": {
+    \"ecmaVersion\": 12,
+    \"sourceType\": \"module\"
+},
+  \"rules\": {
+// Code Style Rules
+    \"indent\": [\"error\", 2],
+    \"linebreak-style\": [\"error\", \"unix\"],
+    \"quotes\": [\"error\", \"single\"],
+    \"semi\": [\"error\", \"always\"],
+// Spacing and Formatting
+    \"space-before-blocks\": \"error\",
+    \"space-in-parens\": [\"error\", \"never\"],
+    \"space-infix-ops\": \"error\",
+    \"comma-spacing\": [\"error\", { \"before\": false, \"after\": true }],
+    \"key-spacing\": [\"error\", { \"beforeColon\": false, \"afterColon\": true }],
+    \"brace-style\": [\"error\", \"1tbs\", { \"allowSingleLine\": true }],
+// Function and Variable Rules
+    \"prefer-const\": \"error\",
+    \"no-var\": \"error\",
+    \"prefer-arrow-callback\": \"error\",
+    \"arrow-spacing\": \"error\",
+    \"no-unused-vars\": [\"error\", { \"argsIgnorePattern\": \"^_\" }],
+// Error Prevention
+    \"no-console\": \"warn\",
+    \"no-debugger\": \"error\",
+    \"no-unreachable\": \"error\",
+    \"no-duplicate-imports\": \"error\",
+// Best Practices
+    \"eqeqeq\": [\"error\", \"always\"],
+    \"curly\": \"error\",
+    \"dot-notation\": \"error\",
+    \"no-eval\": \"error\",
+    \"no-implied-eval\": \"error\",
+    \"no-new-func\": \"error\",
+    \"no-return-assign\": \"error\",
+    \"no-self-compare\": \"error\",
+    \"no-throw-literal\": \"error\",
+    \"radix\": \"error\",
+// Async/Await Rules
+    \"require-await\": \"error\",
+    \"no-async-promise-executor\": \"error\",
+    \"no-await-in-loop\": \"warn\",
+// Node.js Specific
+    \"no-process-exit\": \"error\",
+    \"no-path-concat\": \"error\",
+// Documentation
+    \"valid-jsdoc\": [\"error\", {
+      \"requireReturn\": false,
+      \"requireReturnDescription\": false,
+      \"preferType\": {
+        \"Boolean\": \"boolean\",
+        \"Number\": \"number\",
+        \"String\": \"string\",
+        \"Object\": \"object\"
+}
+}
+],
+    \"require-jsdoc\": [\"error\", {
+      \"require\": {
+        \"FunctionDeclaration\": true,
+        \"MethodDefinition\": true,
+        \"ClassDeclaration\": true,
+        \"ArrowFunctionExpression\": false,
+        \"FunctionExpression\": false
+}
+}
+]
+},
+  \"overrides\": [{
+      \"files\": [\"**/*.test.js\", \"**/__tests__/**/*.js\"],
+      \"rules\": {
+        \"no-console\": \"off\",
+        \"require-jsdoc\": \"off\"
+}
+}
+]
+}
+"

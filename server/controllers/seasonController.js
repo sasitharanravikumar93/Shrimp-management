@@ -2,14 +2,31 @@ const mongoose = require('mongoose');
 const logger = require('../logger');
 const Season = require('../models/Season');
 const User = require('../models/User');
+const {
+  asyncHandler,
+  sendSuccessResponse,
+  sendErrorResponse,
+  NotFoundError,
+  ValidationError,
+  ConflictError
+} = require('../utils/errorHandler');
 
-// Helper function to get the appropriate language for a user
+/**
+ * Helper function to get the appropriate language for a user
+ * Priority: User profile > Accept-Language header > Default (en)
+ * @param {Object} req - Express request object
+ * @param {Object} req.user - Authenticated user object
+ * @param {string} req.user.language - User's preferred language
+ * @param {Object} req.headers - Request headers
+ * @param {string} req.headers['accept-language'] - Browser's accepted languages
+ * @returns {string} Language code (en, hi, ta, kn, te)
+ */
 const getLanguageForUser = (req) => {
   // Priority 1: User's language preference from their profile
   if (req.user && req.user.language) {
     return req.user.language;
   }
-  
+
   // Priority 2: Accept-Language header
   if (req.headers['accept-language']) {
     const acceptedLanguages = req.headers['accept-language'].split(',').map(lang => lang.trim().split(';')[0]);
@@ -19,18 +36,24 @@ const getLanguageForUser = (req) => {
       }
     }
   }
-  
+
   // Priority 3: Default language
   return 'en';
 };
 
-// Helper function to translate a document with multilingual fields
+/**
+ * Helper function to translate a document with multilingual fields
+ * Converts multilingual Map/Object fields to single language strings
+ * @param {Object|mongoose.Document} doc - Document to translate
+ * @param {string} language - Target language code
+ * @returns {Object} Translated document with string fields instead of Maps
+ */
 const translateDocument = (doc, language) => {
   if (!doc) return doc;
-  
+
   // Convert Mongoose document to plain object if needed
   const plainDoc = doc.toObject ? doc.toObject() : doc;
-  
+
   // Process name field if it's a Map
   if (plainDoc.name && typeof plainDoc.name === 'object' && !(plainDoc.name instanceof Date)) {
     if (plainDoc.name.get) {
@@ -45,90 +68,120 @@ const translateDocument = (doc, language) => {
       plainDoc.name = '';
     }
   }
-  
+
   return plainDoc;
 };
 
-// Helper function to translate an array of documents
+/**
+ * Helper function to translate an array of documents
+ * @param {Array<Object|mongoose.Document>} docs - Array of documents to translate
+ * @param {string} language - Target language code
+ * @returns {Array<Object>} Array of translated documents
+ */
 const translateDocuments = (docs, language) => {
   return docs.map(doc => translateDocument(doc, language));
 };
 
-// Create a new season
-exports.createSeason = async (req, res) => {
+/**
+ * Create a new season
+ * @async
+ * @function createSeason
+ * @param {Object} req - Express request object
+ * @param {Object} req.body - Request body
+ * @param {string|Object} req.body.name - Season name (string or multilingual object)
+ * @param {Date} req.body.startDate - Season start date
+ * @param {Date} req.body.endDate - Season end date
+ * @param {string} [req.body.status='active'] - Season status
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>} JSON response with created season or error
+ * @description Creates a new season with multilingual name support and validation
+ */
+exports.createSeason = asyncHandler(async (req, res) => {
   logger.info('Creating a new season', { body: req.body });
-  try {
-    const { name, startDate, endDate, status } = req.body;
-    
-    // Basic validation
-    if (!name || !startDate || !endDate) {
-      return res.status(400).json({ message: 'Name, start date, and end date are required' });
-    }
-    
-    // Convert simple string to multilingual map if needed
-    let processedName = name;
-    if (typeof name === 'string') {
-      processedName = { en: name };
-    } else if (typeof name !== 'object' || Array.isArray(name)) {
-      return res.status(400).json({ message: 'Name must be a string or an object with language keys (e.g., { "en": "Season A", "ta": "பருவம் ஏ" })' });
-    }
-    
-    const season = new Season({ name: processedName, startDate, endDate, status });
-    await season.save();
-    
-    res.status(201).json(season);
-  } catch (error) {
-    if (error.code === 11000) { // Duplicate key error
-      return res.status(400).json({ message: 'Season name already exists' });
-    }
-    if (error.message.includes('End date must be after start date')) {
-      return res.status(400).json({ message: error.message });
-    }
-    res.status(500).json({ message: 'Error creating season', error: error.message });
-    logger.error('Error creating season', { error: error.message, stack: error.stack });
-  }
-};
 
-// Get all seasons
-exports.getAllSeasons = async (req, res) => {
+  const { name, startDate, endDate, status } = req.body;
+
+  // Convert simple string to multilingual map if needed
+  let processedName = name;
+  if (typeof name === 'string') {
+    processedName = { en: name };
+  } else if (typeof name !== 'object' || Array.isArray(name)) {
+    throw new ValidationError('Name must be a string or an object with language keys');
+  }
+
+  const season = new Season({ name: processedName, startDate, endDate, status });
+  await season.save();
+
+  sendSuccessResponse(res, season, 'Season created successfully', 201);
+});
+
+/**
+ * Get all seasons
+ * @async
+ * @function getAllSeasons
+ * @param {Object} req - Express request object
+ * @param {Object} req.user - Authenticated user object
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>} JSON response with all seasons or error
+ * @description Retrieves all seasons sorted by start date (newest first) with language translation
+ */
+exports.getAllSeasons = asyncHandler(async (req, res) => {
   logger.info('Getting all seasons');
-  try {
-    const language = getLanguageForUser(req);
-    const seasons = await Season.find().sort({ startDate: -1 }); // Sort by start date, newest first
-    const translatedSeasons = translateDocuments(seasons, language);
-    res.json(translatedSeasons);
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching seasons', error: error.message });
-    logger.error('Error fetching seasons', { error: error.message, stack: error.stack });
-  }
-};
 
-// Get a season by ID
-exports.getSeasonById = async (req, res) => {
+  const language = getLanguageForUser(req);
+  const seasons = await Season.find().sort({ startDate: -1 });
+  const translatedSeasons = translateDocuments(seasons, language);
+
+  sendSuccessResponse(res, translatedSeasons, 'Seasons retrieved successfully');
+});
+
+/**
+ * Get a season by ID
+ * @async
+ * @function getSeasonById
+ * @param {Object} req - Express request object
+ * @param {Object} req.params - Route parameters
+ * @param {string} req.params.id - Season ID
+ * @param {Object} req.user - Authenticated user object
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>} JSON response with season data or error
+ * @description Retrieves a single season by ID with language translation
+ */
+exports.getSeasonById = asyncHandler(async (req, res) => {
   logger.info(`Getting season by ID: ${req.params.id}`);
-  try {
-    const language = getLanguageForUser(req);
-    const season = await Season.findById(req.params.id);
-    if (!season) {
-      return res.status(404).json({ message: 'Season not found' });
-    }
-    const translatedSeason = translateDocument(season, language);
-    res.json(translatedSeason);
-  } catch (error) {
-    if (error.name === 'CastError') {
-      return res.status(400).json({ message: 'Invalid season ID' });
-    }
-    res.status(500).json({ message: 'Error fetching season', error: error.message });
-    logger.error(`Error fetching season with ID: ${req.params.id}`, { error: error.message, stack: error.stack });
-  }
-};
 
-// Update a season by ID
+  const language = getLanguageForUser(req);
+  const season = await Season.findById(req.params.id);
+
+  if (!season) {
+    throw new NotFoundError('Season');
+  }
+
+  const translatedSeason = translateDocument(season, language);
+  sendSuccessResponse(res, translatedSeason, 'Season retrieved successfully');
+});
+
+/**
+ * Update a season by ID
+ * @async
+ * @function updateSeason
+ * @param {Object} req - Express request object
+ * @param {Object} req.params - Route parameters
+ * @param {string} req.params.id - Season ID
+ * @param {Object} req.body - Request body with update data
+ * @param {string|Object} [req.body.name] - Updated season name
+ * @param {Date} [req.body.startDate] - Updated start date
+ * @param {Date} [req.body.endDate] - Updated end date
+ * @param {string} [req.body.status] - Updated season status
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>} JSON response with updated season or error
+ * @description Updates season with validation for date ranges and multilingual names
+ */
 exports.updateSeason = async (req, res) => {
   logger.info(`Updating season by ID: ${req.params.id}`, { body: req.body });
   try {
     const { name, startDate, endDate, status } = req.body;
-    
+
     // Prepare update object with only provided fields
     const updateData = {};
     if (name !== undefined) {
@@ -144,17 +197,17 @@ exports.updateSeason = async (req, res) => {
     if (startDate !== undefined) updateData.startDate = startDate;
     if (endDate !== undefined) updateData.endDate = endDate;
     if (status !== undefined) updateData.status = status;
-    
+
     const season = await Season.findByIdAndUpdate(
       req.params.id,
       updateData,
       { new: true, runValidators: true } // Return updated document and run validators
     );
-    
+
     if (!season) {
       return res.status(404).json({ message: 'Season not found' });
     }
-    
+
     res.json(season);
   } catch (error) {
     if (error.code === 11000) { // Duplicate key error
@@ -171,17 +224,27 @@ exports.updateSeason = async (req, res) => {
   }
 };
 
-// Delete a season by ID
+/**
+ * Delete a season by ID
+ * @async
+ * @function deleteSeason
+ * @param {Object} req - Express request object
+ * @param {Object} req.params - Route parameters
+ * @param {string} req.params.id - Season ID
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>} JSON response with success message or error
+ * @description Deletes a season after validating the ID format
+ */
 exports.deleteSeason = async (req, res) => {
   logger.info(`Deleting season by ID: ${req.params.id}`);
   try {
     const seasonId = new mongoose.Types.ObjectId(req.params.id);
     const season = await Season.findByIdAndDelete(seasonId);
-    
+
     if (!season) {
       return res.status(404).json({ message: 'Season not found' });
     }
-    
+
     res.json({ message: 'Season deleted successfully' });
   } catch (error) {
     if (error.name === 'CastError') {

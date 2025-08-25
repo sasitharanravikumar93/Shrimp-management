@@ -1,0 +1,12 @@
+node_modules/
+dist/
+build/
+coverage/
+*.min.js
+test-results/
+__tests__/
+*.test.js
+jest.setup.js
+test-setup.js
+test-data-factory.js
+"

@@ -5,18 +5,39 @@ const Season = require('../models/Season');
 const InventoryItem = require('../models/InventoryItem'); // New import
 const inventoryController = require('./inventoryController'); // New import
 const Event = require('../models/Event'); // New import
+const {
+  asyncHandler,
+  sendSuccessResponse,
+  ValidationError,
+  NotFoundError
+} = require('../utils/errorHandler');
 
-// Create a new feed input
+/**
+ * Create a new feed input
+ * @async
+ * @function createFeedInput
+ * @param {Object} req - Express request object
+ * @param {Object} req.body - Request body
+ * @param {Date} req.body.date - Feed input date
+ * @param {string} req.body.time - Feed input time (HH:MM format)
+ * @param {string} req.body.pondId - Associated pond ID
+ * @param {string} req.body.inventoryItemId - Feed inventory item ID
+ * @param {number} req.body.quantity - Feed quantity
+ * @param {string} req.body.seasonId - Associated season ID
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>} JSON response with created feed input or error
+ * @description Creates a new feed input with validation for pond, season, inventory item, and stocking events
+ */
 exports.createFeedInput = async (req, res) => {
   logger.info('Creating a new feed input', { body: req.body });
   try {
     const { date, time, pondId, inventoryItemId, quantity, seasonId } = req.body;
-    
+
     // Basic validation
     if (!date || !time || !pondId || !inventoryItemId || quantity === undefined || !seasonId) {
       return res.status(400).json({ message: 'Date, time, pond ID, inventory item ID, quantity, and season ID are required' });
     }
-    
+
     // Check if pond exists
     const pond = await Pond.findById(pondId);
     if (!pond) {
@@ -49,7 +70,7 @@ exports.createFeedInput = async (req, res) => {
     if (inventoryItem.itemType !== 'Feed') {
       return res.status(400).json({ message: 'Selected inventory item is not a feed type' });
     }
-    
+
     const feedInput = new FeedInput({ date, time, pondId, inventoryItemId, quantity, seasonId });
     await feedInput.save();
 
@@ -64,9 +85,9 @@ exports.createFeedInput = async (req, res) => {
         relatedDocumentModel: 'FeedInput'
       }
     }, { // Mock res object for internal call
-      status: () => ({ json: () => {} })
+      status: () => ({ json: () => { } })
     });
-    
+
     res.status(201).json(feedInput);
   } catch (error) {
     res.status(500).json({ message: 'Error creating feed input', error: error.message });
@@ -74,27 +95,37 @@ exports.createFeedInput = async (req, res) => {
   }
 };
 
-// Create multiple feed inputs in batch
+/**
+ * Create multiple feed inputs in batch
+ * @async
+ * @function createFeedInputsBatch
+ * @param {Object} req - Express request object
+ * @param {Object} req.body - Request body
+ * @param {Array<Object>} req.body.feedInputs - Array of feed input objects
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>} JSON response with batch operation results
+ * @description Processes multiple feed inputs with conflict resolution and inventory updates
+ */
 exports.createFeedInputsBatch = async (req, res) => {
   logger.info('Creating feed inputs in batch', { body: req.body });
   try {
     const { feedInputs } = req.body;
-    
+
     // Basic validation
     if (!Array.isArray(feedInputs) || feedInputs.length === 0) {
       return res.status(400).json({ message: 'Feed inputs must be a non-empty array' });
     }
-    
+
     const results = {
       success: [],
       errors: []
     };
-    
+
     // Process each feed input in the batch
     for (const feedInputData of feedInputs) {
       try {
         const { date, time, pondId, inventoryItemId, quantity, seasonId, updatedAt } = feedInputData;
-        
+
         // Basic validation for each item
         if (!date || !time || !pondId || !inventoryItemId || quantity === undefined || !seasonId) {
           results.errors.push({
@@ -103,7 +134,7 @@ exports.createFeedInputsBatch = async (req, res) => {
           });
           continue;
         }
-        
+
         // Check if pond exists
         const pond = await Pond.findById(pondId);
         if (!pond) {
@@ -156,17 +187,17 @@ exports.createFeedInputsBatch = async (req, res) => {
           });
           continue;
         }
-        
+
         // For conflict resolution, check if a record with the same identifiers already exists
         // and if the incoming updatedAt is older than the existing one
         if (updatedAt) {
-          const existingFeedInput = await FeedInput.findOne({ 
-            pondId, 
-            inventoryItemId, 
+          const existingFeedInput = await FeedInput.findOne({
+            pondId,
+            inventoryItemId,
             date: new Date(date),
             time
           });
-          
+
           if (existingFeedInput && existingFeedInput.updatedAt > new Date(updatedAt)) {
             // Server version is newer, skip this record
             results.errors.push({
@@ -176,11 +207,11 @@ exports.createFeedInputsBatch = async (req, res) => {
             continue;
           }
         }
-        
+
         // Create or update the feed input
         const feedInput = new FeedInput({ date, time, pondId, inventoryItemId, quantity, seasonId });
         await feedInput.save();
-        
+
         // Deduct quantity from inventory
         await inventoryController.createInventoryAdjustment({
           body: {
@@ -192,9 +223,9 @@ exports.createFeedInputsBatch = async (req, res) => {
             relatedDocumentModel: 'FeedInput'
           }
         }, { // Mock res object for internal call
-          status: () => ({ json: () => {} })
+          status: () => ({ json: () => { } })
         });
-        
+
         results.success.push(feedInput);
       } catch (error) {
         results.errors.push({
@@ -203,7 +234,7 @@ exports.createFeedInputsBatch = async (req, res) => {
         });
       }
     }
-    
+
     res.status(201).json({
       message: `Processed ${feedInputs.length} feed inputs: ${results.success.length} succeeded, ${results.errors.length} failed`,
       results
@@ -219,20 +250,20 @@ exports.getAllFeedInputs = async (req, res) => {
   logger.info('Getting all feed inputs', { query: req.query });
   try {
     const { seasonId } = req.query;
-    
+
     // Pagination parameters
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 25;
     const skip = (page - 1) * limit;
-    
+
     let query = {};
     if (seasonId) {
       query.seasonId = seasonId;
     }
-    
+
     // Get total count for pagination metadata
     const total = await FeedInput.countDocuments(query);
-    
+
     const feedInputs = await FeedInput.find(query)
       .populate('pondId', 'name')
       .populate('seasonId', 'name')
@@ -240,7 +271,7 @@ exports.getAllFeedInputs = async (req, res) => {
       .skip(skip)
       .limit(limit)
       .sort({ date: -1, time: -1 }); // Sort by date and time, newest first
-    
+
     res.json({
       data: feedInputs,
       pagination: {
@@ -277,18 +308,34 @@ exports.getFeedInputById = async (req, res) => {
   }
 };
 
-// Update a feed input by ID
-// Update a feed input by ID
+/**
+ * Update a feed input by ID
+ * @async
+ * @function updateFeedInput
+ * @param {Object} req - Express request object
+ * @param {Object} req.params - Route parameters
+ * @param {string} req.params.id - Feed input ID
+ * @param {Object} req.body - Request body with update data
+ * @param {Date} req.body.date - Updated feed input date
+ * @param {string} req.body.time - Updated feed input time
+ * @param {string} req.body.pondId - Updated pond ID
+ * @param {string} req.body.inventoryItemId - Updated inventory item ID
+ * @param {number} req.body.quantity - Updated feed quantity
+ * @param {string} req.body.seasonId - Updated season ID
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>} JSON response with updated feed input or error
+ * @description Updates feed input with validation for pond, season, and inventory item
+ */
 exports.updateFeedInput = async (req, res) => {
   logger.info(`Updating feed input by ID: ${req.params.id}`, { body: req.body });
   try {
     const { date, time, pondId, inventoryItemId, quantity, seasonId } = req.body;
-    
+
     // Basic validation
     if (!date || !time || !pondId || !inventoryItemId || quantity === undefined || !seasonId) {
       return res.status(400).json({ message: 'Date, time, pond ID, inventory item ID, quantity, and season ID are required' });
     }
-    
+
     // Check if pond exists
     const pond = await Pond.findById(pondId);
     if (!pond) {
@@ -309,17 +356,17 @@ exports.updateFeedInput = async (req, res) => {
     if (inventoryItem.itemType !== 'Feed') {
       return res.status(400).json({ message: 'Selected inventory item is not a feed type' });
     }
-    
+
     const feedInput = await FeedInput.findByIdAndUpdate(
       req.params.id,
       { date, time, pondId, inventoryItemId, quantity, seasonId },
       { new: true, runValidators: true }
     );
-    
+
     if (!feedInput) {
       return res.status(404).json({ message: 'Feed input not found' });
     }
-    
+
     res.json(feedInput);
   } catch (error) {
     if (error.name === 'CastError') {
@@ -330,12 +377,22 @@ exports.updateFeedInput = async (req, res) => {
   }
 };
 
-// Delete a feed input by ID
+/**
+ * Delete a feed input by ID
+ * @async
+ * @function deleteFeedInput
+ * @param {Object} req - Express request object
+ * @param {Object} req.params - Route parameters
+ * @param {string} req.params.id - Feed input ID
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>} JSON response with success message or error
+ * @description Deletes feed input and reverses inventory adjustment
+ */
 exports.deleteFeedInput = async (req, res) => {
   logger.info(`Deleting feed input by ID: ${req.params.id}`);
   try {
     const feedInput = await FeedInput.findById(req.params.id); // Find first to get details for reversal
-    
+
     if (!feedInput) {
       return res.status(404).json({ message: 'Feed input not found' });
     }
@@ -353,9 +410,9 @@ exports.deleteFeedInput = async (req, res) => {
         relatedDocumentModel: 'FeedInput'
       }
     }, { // Mock res object for internal call
-      status: () => ({ json: () => {} })
+      status: () => ({ json: () => { } })
     });
-    
+
     res.json({ message: 'Feed input deleted successfully' });
   } catch (error) {
     if (error.name === 'CastError') {
@@ -366,19 +423,31 @@ exports.deleteFeedInput = async (req, res) => {
   }
 };
 
-// Get feed inputs by pond ID
+/**
+ * Get feed inputs by pond ID
+ * @async
+ * @function getFeedInputsByPondId
+ * @param {Object} req - Express request object
+ * @param {Object} req.params - Route parameters
+ * @param {string} req.params.pondId - Pond ID
+ * @param {Object} req.query - Query parameters
+ * @param {string} [req.query.seasonId] - Optional season filter
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>} JSON response with feed inputs for the pond or error
+ * @description Retrieves all feed inputs for a specific pond with optional season filtering
+ */
 exports.getFeedInputsByPondId = async (req, res) => {
   logger.info(`Getting feed inputs for pond ID: ${req.params.pondId}`, { query: req.query });
   try {
     const { pondId } = req.params;
     const { seasonId } = req.query; // Get seasonId from query
-    
+
     // Check if pond exists
     const pond = await Pond.findById(pondId);
     if (!pond) {
       return res.status(404).json({ message: 'Pond not found' });
     }
-    
+
     let query = { pondId };
     if (seasonId) {
       query.seasonId = seasonId;
@@ -398,16 +467,28 @@ exports.getFeedInputsByPondId = async (req, res) => {
   }
 };
 
-// Get feed inputs by date range
+/**
+ * Get feed inputs by date range
+ * @async
+ * @function getFeedInputsByDateRange
+ * @param {Object} req - Express request object
+ * @param {Object} req.query - Query parameters
+ * @param {Date} req.query.startDate - Start date for range
+ * @param {Date} req.query.endDate - End date for range
+ * @param {string} [req.query.seasonId] - Optional season filter
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>} JSON response with feed inputs in date range or error
+ * @description Retrieves feed inputs within specified date range with optional season filtering
+ */
 exports.getFeedInputsByDateRange = async (req, res) => {
   logger.info('Getting feed inputs by date range', { query: req.query });
   try {
     const { startDate, endDate, seasonId } = req.query;
-    
+
     if (!startDate || !endDate) {
       return res.status(400).json({ message: 'Start date and end date are required as query parameters' });
     }
-    
+
     let query = {
       date: {
         $gte: new Date(startDate),
@@ -418,12 +499,12 @@ exports.getFeedInputsByDateRange = async (req, res) => {
     if (seasonId) {
       query.seasonId = seasonId;
     }
-    
+
     const feedInputs = await FeedInput.find(query)
       .populate('pondId', 'name')
       .populate('seasonId', 'name')
       .populate('inventoryItemId', 'itemName itemType unit'); // Populate inventory item details
-    
+
     res.json(feedInputs);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching feed inputs by date range', error: error.message });
@@ -431,18 +512,28 @@ exports.getFeedInputsByDateRange = async (req, res) => {
   }
 };
 
-// Get feed inputs by season ID
+/**
+ * Get feed inputs by season ID
+ * @async
+ * @function getFeedInputsBySeasonId
+ * @param {Object} req - Express request object
+ * @param {Object} req.params - Route parameters
+ * @param {string} req.params.seasonId - Season ID
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>} JSON response with feed inputs for the season or error
+ * @description Retrieves all feed inputs for a specific season with populated references
+ */
 exports.getFeedInputsBySeasonId = async (req, res) => {
   logger.info(`Getting feed inputs for season ID: ${req.params.seasonId}`);
   try {
     const { seasonId } = req.params;
-    
+
     // Check if season exists
     const season = await Season.findById(seasonId);
     if (!season) {
       return res.status(404).json({ message: 'Season not found' });
     }
-    
+
     const feedInputs = await FeedInput.find({ seasonId })
       .populate('pondId', 'name')
       .populate('seasonId', 'name')
@@ -457,37 +548,92 @@ exports.getFeedInputsBySeasonId = async (req, res) => {
   }
 };
 
-exports.getFilteredFeedInputs = async (req, res) => {
-  logger.info('Getting filtered feed inputs', { query: req.query });
-  try {
-    const { startDate, endDate, pondId } = req.query;
+/**
+ * Get filtered feed inputs with multiple criteria
+ * @async
+ * @function getFilteredFeedInputs
+ * @param {Object} req - Express request object
+ * @param {Object} req.query - Query parameters with filters
+ * @param {Date} req.query.startDate - Start date (required)
+ * @param {Date} req.query.endDate - End date (required)
+ * @param {string} [req.query.pondId] - Pond filter
+ * @param {string} [req.query.seasonId] - Season filter
+ * @param {string} [req.query.inventoryItemId] - Inventory item filter
+ * @param {number} [req.query.minQuantity] - Minimum quantity filter
+ * @param {number} [req.query.maxQuantity] - Maximum quantity filter
+ * @param {Object} req.user - Authenticated user object
+ * @param {Object} res - Express response object
+ * @returns {Promise<void>} JSON response with filtered feed inputs or error
+ * @description Advanced filtering of feed inputs with multiple criteria and validation
+ */
+exports.getFilteredFeedInputs = asyncHandler(async (req, res) => {
+  const { startDate, endDate, pondId, seasonId, inventoryItemId, minQuantity, maxQuantity } = req.query;
 
-    if (!startDate || !endDate) {
-      return res.status(400).json({ message: 'Start date and end date are required' });
-    }
+  logger.info('Getting filtered feed inputs', { query: req.query, userId: req.user?.id });
 
-    let query = {
-      date: {
-        $gte: new Date(startDate),
-        $lte: new Date(endDate)
-      }
-    };
-
-    if (pondId) {
-      query.pondId = pondId;
-    }
-
-    const feedInputs = await FeedInput.find(query)
-      .populate('pondId', 'name')
-      .populate('seasonId', 'name')
-      .populate('inventoryItemId', 'itemName itemType unit');
-
-    res.json(feedInputs);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Error fetching filtered feed inputs' });
+  // Validate required parameters
+  if (!startDate || !endDate) {
+    throw new ValidationError('Start date and end date are required');
   }
-};
+
+  // Build query object
+  let query = {
+    date: {
+      $gte: new Date(startDate),
+      $lte: new Date(endDate)
+    }
+  };
+
+  // Add optional filters
+  if (pondId) {
+    query.pondId = pondId;
+  }
+
+  if (seasonId) {
+    query.seasonId = seasonId;
+  }
+
+  if (inventoryItemId) {
+    query.inventoryItemId = inventoryItemId;
+  }
+
+  if (minQuantity || maxQuantity) {
+    query.quantity = {};
+    if (minQuantity) {
+      query.quantity.$gte = parseFloat(minQuantity);
+    }
+    if (maxQuantity) {
+      query.quantity.$lte = parseFloat(maxQuantity);
+    }
+  }
+
+  const feedInputs = await FeedInput.find(query)
+    .populate('pondId', 'name')
+    .populate('seasonId', 'name')
+    .populate('inventoryItemId', 'itemName itemType unit')
+    .sort({ date: -1, time: -1 });
+
+  // Calculate summary statistics
+  const totalQuantity = feedInputs.reduce((sum, input) => sum + input.quantity, 0);
+  const uniquePonds = [...new Set(feedInputs.map(input => input.pondId?._id?.toString()))].length;
+  const uniqueFeedTypes = [...new Set(feedInputs.map(input => input.inventoryItemId?._id?.toString()))].length;
+
+  const response = {
+    data: feedInputs,
+    summary: {
+      totalRecords: feedInputs.length,
+      totalQuantity: parseFloat(totalQuantity.toFixed(2)),
+      uniquePonds,
+      uniqueFeedTypes,
+      dateRange: {
+        start: startDate,
+        end: endDate
+      }
+    }
+  };
+
+  sendSuccessResponse(res, response, 'Filtered feed inputs retrieved successfully');
+});
 
 const { stringify } = require('csv-stringify');
 
