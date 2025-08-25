@@ -1,0 +1,103 @@
+{
+    "compilerOptions": {
+        // Target and Module Settings
+        "target": "es2018",
+        "module": "esnext",
+        "lib": [
+            "dom",
+            "dom.iterable",
+            "es6",
+            "es2017",
+            "es2018",
+            "es2019",
+            "es2020"
+        ],
+        // Module Resolution
+        "moduleResolution": "node",
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "noEmit": true,
+        "allowSyntheticDefaultImports": true,
+        "esModuleInterop": true,
+        "forceConsistentCasingInFileNames": true,
+        // Type Checking - Gradual Migration Settings
+        "strict": false,
+        "noImplicitAny": false,
+        "strictNullChecks": false,
+        "strictFunctionTypes": false,
+        "strictBindCallApply": false,
+        "strictPropertyInitialization": false,
+        "noImplicitThis": false,
+        "noImplicitReturns": false,
+        "noFallthroughCasesInSwitch": false,
+        "noUncheckedIndexedAccess": false,
+        // Additional Checks for Better Code Quality
+        "noUnusedLocals": false,
+        "noUnusedParameters": false,
+        "exactOptionalPropertyTypes": false,
+        "noImplicitOverride": false,
+        "noPropertyAccessFromIndexSignature": false,
+        // JSX Settings
+        "jsx": "react-jsx",
+        "allowJs": true,
+        "checkJs": false,
+        // Path Mapping
+        "baseUrl": "src",
+        "paths": {
+            "@/*": [
+                "*"
+            ],
+            "@/components/*": [
+                "components/*"
+            ],
+            "@/utils/*": [
+                "utils/*"
+            ],
+            "@/hooks/*": [
+                "hooks/*"
+            ],
+            "@/services/*": [
+                "services/*"
+            ],
+            "@/context/*": [
+                "context/*"
+            ],
+            "@/pages/*": [
+                "pages/*"
+            ],
+            "@/types/*": [
+                "types/*"
+            ]
+        },
+        // Output Settings
+        "skipLibCheck": true,
+        "declaration": false,
+        "declarationMap": false,
+        "sourceMap": true,
+        // Experimental Features
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true
+    },
+    "include": [
+        "src/**/*",
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "src/**/*.js",
+        "src/**/*.jsx"
+    ],
+    "exclude": [
+        "node_modules",
+        "build",
+        "dist",
+        "public",
+        "**/*.test.ts",
+        "**/*.test.tsx",
+        "**/*.test.js",
+        "**/*.test.jsx",
+        "coverage"
+    ],
+    // Type-only imports for better tree shaking
+    "compileOnSave": false,
+    // References for project structure
+    "references": []
+}
