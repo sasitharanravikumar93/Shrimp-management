@@ -3,9 +3,13 @@ const router = express.Router();
 const pondController = require('../controllers/pondController');
 const { cacheMiddleware, clearCache } = require('../middleware/cache');
 const { pondValidation } = require('../middleware/validation');
+const { authenticate, requireResourcePermission } = require('../middleware/auth');
+
+// Protect all routes with authentication
+router.use(authenticate);
 
 // POST /api/ponds - Create a new pond
-router.post('/', pondValidation.create, pondController.createPond, (req, res, next) => {
+router.post('/', requireResourcePermission('ponds', 'write'), pondValidation.create, pondController.createPond, (req, res, next) => {
   // Clear cache for all ponds endpoints
   clearCache('/api/ponds');
   clearCache('/api/ponds/');
@@ -19,16 +23,16 @@ router.post('/', pondValidation.create, pondController.createPond, (req, res, ne
 });
 
 // GET /api/ponds - Get all ponds (with caching)
-router.get('/', cacheMiddleware, pondController.getAllPonds);
+router.get('/', requireResourcePermission('ponds', 'read'), cacheMiddleware, pondController.getAllPonds);
 
 // GET /api/ponds/:id - Get a pond by ID
-router.get('/:id', pondController.getPondById);
-router.get('/:id/kpis', pondController.getPondKpis);
-router.get('/:id/events', pondController.getPondEvents);
-router.get('/:id/logs/all', pondController.getFullCycleLogs);
+router.get('/:id', requireResourcePermission('ponds', 'read'), pondController.getPondById);
+router.get('/:id/kpis', requireResourcePermission('ponds', 'read'), pondController.getPondKpis);
+router.get('/:id/events', requireResourcePermission('ponds', 'read'), pondController.getPondEvents);
+router.get('/:id/logs/all', requireResourcePermission('ponds', 'read'), pondController.getFullCycleLogs);
 
 // PUT /api/ponds/:id - Update a pond by ID
-router.put('/:id', pondValidation.update, pondController.updatePond, (req, res, next) => {
+router.put('/:id', requireResourcePermission('ponds', 'write'), pondValidation.update, pondController.updatePond, (req, res, next) => {
   // Clear cache for all ponds endpoints
   clearCache('/api/ponds');
   clearCache('/api/ponds/');
@@ -54,7 +58,7 @@ router.put('/:id', pondValidation.update, pondController.updatePond, (req, res, 
 });
 
 // DELETE /api/ponds/:id - Delete a pond by ID
-router.delete('/:id', pondController.deletePond, (req, res, next) => {
+router.delete('/:id', requireResourcePermission('ponds', 'delete'), pondController.deletePond, (req, res, next) => {
   // Clear cache for all ponds endpoints
   clearCache('/api/ponds');
   clearCache('/api/ponds/');
@@ -75,6 +79,6 @@ router.delete('/:id', pondController.deletePond, (req, res, next) => {
 });
 
 // GET /api/ponds/season/:seasonId - Get ponds by season ID
-router.get('/season/:seasonId', pondValidation.getBySeasonId, cacheMiddleware, pondController.getPondsBySeasonId);
+router.get('/season/:seasonId', requireResourcePermission('ponds', 'read'), pondValidation.getBySeasonId, cacheMiddleware, pondController.getPondsBySeasonId);
 
 module.exports = router;
