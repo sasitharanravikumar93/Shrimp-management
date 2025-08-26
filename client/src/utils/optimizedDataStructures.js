@@ -14,6 +14,11 @@
 
 import { useMemo, useCallback, useRef, useState, useEffect } from 'react';
 
+/**
+ * Performance monitoring for data operations
+ */
+import logger from './logger';
+
 // ===================
 // OPTIMIZED DATA STRUCTURES
 // ===================
@@ -504,10 +509,10 @@ export const useOptimizedSelection = (initialSelected = []) => {
     []
   );
 
-  const selected = useMemo(() => selectionManager.current.getSelected(), [version]);
-  const selectedSet = useMemo(() => selectionManager.current.getSelectedSet(), [version]);
-  const size = useMemo(() => selectionManager.current.size(), [version]);
-  const isEmpty = useMemo(() => selectionManager.current.isEmpty(), [version]);
+  const selected = useMemo(() => selectionManager.current.getSelected(), []);
+  const selectedSet = useMemo(() => selectionManager.current.getSelectedSet(), []);
+  const size = useMemo(() => selectionManager.current.size(), []);
+  const isEmpty = useMemo(() => selectionManager.current.isEmpty(), []);
 
   return { selected, selectedSet, size, isEmpty, actions };
 };
@@ -652,12 +657,12 @@ export const useOptimizedTableData = (
     // Selection (if enabled)
     ...(enableSelection
       ? {
-          selection: selection.selected,
-          selectedSet: selection.selectedSet,
-          selectionActions: selection.actions,
-          selectedCount: selection.size,
-          isSelected: selection.actions.isSelected
-        }
+        selection: selection.selected,
+        selectedSet: selection.selectedSet,
+        selectionActions: selection.actions,
+        selectedCount: selection.size,
+        isSelected: selection.actions.isSelected
+      }
       : {}),
 
     // Collection management
@@ -698,9 +703,6 @@ export const optimizeArrayOperations = {
   }
 };
 
-/**
- * Performance monitoring for data operations
- */
 export const dataPerformanceMonitor = {
   measureOperation: (operationName, operation) => {
     const start = performance.now();
@@ -708,7 +710,7 @@ export const dataPerformanceMonitor = {
     const end = performance.now();
 
     if (process.env.NODE_ENV === 'development') {
-      console.log(`🚀 Data operation "${operationName}": ${(end - start).toFixed(2)}ms`);
+      logger.info(`Data operation "${operationName}": ${(end - start).toFixed(2)}ms`);
     }
 
     return result;
@@ -716,7 +718,7 @@ export const dataPerformanceMonitor = {
 
   logDataStructureStats: (dataStructure, name) => {
     if (process.env.NODE_ENV === 'development') {
-      console.log(`📊 ${name} stats:`, {
+      logger.info(`${name} stats:`, {
         size: dataStructure.size(),
         type: dataStructure.constructor.name
       });
@@ -724,7 +726,7 @@ export const dataPerformanceMonitor = {
   }
 };
 
-export default {
+const optimizedDataStructures = {
   IndexedCollection,
   SelectionManager,
   SearchIndex,
@@ -736,3 +738,5 @@ export default {
   optimizeArrayOperations,
   dataPerformanceMonitor
 };
+
+export default optimizedDataStructures;

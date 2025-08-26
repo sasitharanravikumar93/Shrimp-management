@@ -3,7 +3,10 @@
  * Provides utilities for optimizing React component performance
  */
 
-import React, { memo, useMemo, useCallback, useRef } from 'react';
+import PropTypes from 'prop-types';
+import React, { memo, useMemo, useCallback, useRef, useEffect } from 'react';
+
+import logger from './logger';
 
 /**
  * Enhanced memo with deep comparison for complex props
@@ -40,29 +43,39 @@ export const deepMemo = (Component, customComparator) => {
 /**
  * Hook for stable callback references
  */
-export const useStableCallback = (callback, dependencies = []) => {
-  return useCallback(callback, dependencies);
+export const useStableCallback = (callback) => {
+  const callbackRef = useRef(callback);
+
+  // Keep the ref updated with the latest callback
+  useEffect(() => {
+    callbackRef.current = callback;
+  }, [callback]);
+
+  // Return a stable callback that always calls the latest callback
+  return useCallback((...args) => {
+    return callbackRef.current(...args);
+  }, []);
 };
 
 /**
  * Hook for memoizing expensive calculations
  */
-export const useStableMemo = (factory, dependencies = []) => {
-  return useMemo(factory, dependencies);
+export const useStableMemo = (factory, dependencies) => {
+  return useMemo(factory, [factory, ...dependencies]);
 };
 
 /**
  * Hook for preventing unnecessary re-renders on object props
  */
 export const useStableObject = obj => {
-  return useMemo(() => obj, [JSON.stringify(obj)]);
+  return useMemo(() => obj, [obj]);
 };
 
 /**
  * Hook for preventing unnecessary re-renders on array props
  */
 export const useStableArray = arr => {
-  return useMemo(() => arr, [JSON.stringify(arr)]);
+  return useMemo(() => arr, [arr]);
 };
 
 /**
@@ -132,6 +145,13 @@ export const LazyComponent = ({ children, fallback = null }) => {
   return <div ref={ref}>{isVisible ? children : fallback}</div>;
 };
 
+LazyComponent.propTypes = {
+  children: PropTypes.node,
+  fallback: PropTypes.node
+};
+
+LazyComponent.displayName = 'LazyComponent';
+
 /**
  * HOC for preventing unnecessary re-renders
  */
@@ -179,7 +199,7 @@ export const useStableEventHandlers = handlers => {
       stableHandlers[key] = handlers[key];
     });
     return stableHandlers;
-  }, Object.values(handlers));
+  }, [handlers]);
 };
 
 /**
@@ -191,7 +211,7 @@ export const performanceMonitor = {
       const startTime = performance.now();
       const result = callback();
       const endTime = performance.now();
-      console.log(`🚀 ${componentName} render time: ${endTime - startTime}ms`);
+      logger.info(`${componentName} render time: ${endTime - startTime}ms`);
       return result;
     }
     return callback();
@@ -199,12 +219,12 @@ export const performanceMonitor = {
 
   logRerender: (componentName, props) => {
     if (process.env.NODE_ENV === 'development') {
-      console.log(`🔄 ${componentName} re-rendered with props:`, props);
+      logger.info(`${componentName} re-rendered with props:`, props);
     }
   }
 };
 
-export default {
+const performanceOptimization = {
   deepMemo,
   useStableCallback,
   useStableMemo,
@@ -218,3 +238,5 @@ export default {
   useStableEventHandlers,
   performanceMonitor
 };
+
+export default performanceOptimization;

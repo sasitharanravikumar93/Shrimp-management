@@ -3,7 +3,7 @@
  * Extracts common list/table management logic
  */
 
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 
 import { useDebounce } from '../utils/performanceOptimization';
 
@@ -152,11 +152,17 @@ export const useDataTable = (data = [], options = {}) => {
  * @returns {Object} CRUD handlers and state
  */
 export const useCrudOperations = (apiMethods = {}, options = {}) => {
-  const { onSuccess = () => {}, onError = () => {}, optimisticUpdates = true } = options;
+  const { onSuccess = () => { }, onError = () => { }, optimisticUpdates = true } = options;
 
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState({});
   const [errors, setErrors] = useState({});
+
+  // Use ref to store apiMethods to avoid dependency issues
+  const apiMethodsRef = useRef(apiMethods);
+  useEffect(() => {
+    apiMethodsRef.current = apiMethods;
+  }, [apiMethods]);
 
   // Generic operation handler
   const handleOperation = useCallback(
@@ -182,6 +188,9 @@ export const useCrudOperations = (apiMethods = {}, options = {}) => {
             case 'delete':
               optimisticUpdate = items.filter(item => item.id !== itemId);
               setItems(optimisticUpdate);
+              break;
+            default:
+              // No optimistic update for other operations
               break;
           }
         }
@@ -213,7 +222,7 @@ export const useCrudOperations = (apiMethods = {}, options = {}) => {
         return result;
       } catch (error) {
         // Revert optimistic update on error
-        if (optimisticUpdate && optimisticUpdates) {
+        if (optimisticUpdate !== null && optimisticUpdates) {
           setItems(items); // Revert to original state
         }
 
@@ -230,34 +239,34 @@ export const useCrudOperations = (apiMethods = {}, options = {}) => {
   // CRUD operation wrappers
   const create = useCallback(
     data => {
-      if (!apiMethods.create) throw new Error('Create method not provided');
-      return handleOperation(() => apiMethods.create(data), 'create', null, data);
+      if (!apiMethodsRef.current.create) throw new Error('Create method not provided');
+      return handleOperation(() => apiMethodsRef.current.create(data), 'create', null, data);
     },
-    [apiMethods.create, handleOperation]
+    [handleOperation]
   );
 
   const update = useCallback(
     (id, data) => {
-      if (!apiMethods.update) throw new Error('Update method not provided');
-      return handleOperation(() => apiMethods.update(id, data), 'update', id, data);
+      if (!apiMethodsRef.current.update) throw new Error('Update method not provided');
+      return handleOperation(() => apiMethodsRef.current.update(id, data), 'update', id, data);
     },
-    [apiMethods.update, handleOperation]
+    [handleOperation]
   );
 
   const remove = useCallback(
     id => {
-      if (!apiMethods.delete) throw new Error('Delete method not provided');
-      return handleOperation(() => apiMethods.delete(id), 'delete', id);
+      if (!apiMethodsRef.current.delete) throw new Error('Delete method not provided');
+      return handleOperation(() => apiMethodsRef.current.delete(id), 'delete', id);
     },
-    [apiMethods.delete, handleOperation]
+    [handleOperation]
   );
 
   const fetch = useCallback(
     (params = {}) => {
-      if (!apiMethods.fetch) throw new Error('Fetch method not provided');
-      return handleOperation(() => apiMethods.fetch(params), 'fetch');
+      if (!apiMethodsRef.current.fetch) throw new Error('Fetch method not provided');
+      return handleOperation(() => apiMethodsRef.current.fetch(params), 'fetch');
     },
-    [apiMethods.fetch, handleOperation]
+    [handleOperation]
   );
 
   const refresh = useCallback(() => {
@@ -323,7 +332,7 @@ export const useSelection = (items = [], keyField = 'id') => {
     }
   }, [selectedIds.size, items.length, selectAll, selectNone]);
 
-  const isSelected = useCallback(id => selectedIds.has(id), [selectedIds]);
+  const isSelected = useCallback(id => selectedIds.has(id), []);
 
   const isAllSelected = useMemo(
     () => items.length > 0 && selectedIds.size === items.length,

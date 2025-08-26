@@ -15,6 +15,7 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 
 import { globalCache, CacheStrategy, CacheConfig } from '../utils/cacheManager';
+import logger from '../utils/logger';
 
 /**
  * Hook for cached API data fetching with intelligent strategies
@@ -151,7 +152,7 @@ export const useCachedComputation = (compute, deps = [], options = {}) => {
     category = CacheConfig.CATEGORIES.COMPUTED_DATA
   } = options;
 
-  const key = `computed_${JSON.stringify(deps)}`;
+  const key = useMemo(() => `computed_${JSON.stringify(deps)}`, [deps]);
 
   return useMemo(() => {
     // Check cache first
@@ -167,7 +168,7 @@ export const useCachedComputation = (compute, deps = [], options = {}) => {
     globalCache.set(key, result, { ttl, category });
 
     return result;
-  }, deps);
+  }, [compute, key, ttl, category]);
 };
 
 /**
@@ -261,7 +262,7 @@ export const useCacheWarmup = (warmupData = []) => {
         await globalCache.warmCache(data);
         setWarmed(true);
       } catch (error) {
-        console.error('Cache warmup failed:', error);
+        logger.error('Cache warmup failed:', error);
       } finally {
         setWarming(false);
       }
@@ -433,8 +434,7 @@ export const useCachedState = (key, initialValue, options = {}) => {
   return [value, setCachedValue];
 };
 
-// Export all hooks for convenience
-export default {
+const CachingHooks = {
   useCachedData,
   useCachedComputation,
   useCacheInvalidation,
@@ -444,3 +444,5 @@ export default {
   useCacheDependencies,
   useCachedState
 };
+
+export default CachingHooks;
