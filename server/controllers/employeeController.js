@@ -32,7 +32,7 @@ exports.createEmployee = async (req, res) => {
 exports.getEmployeeById = async (req, res) => {
   try {
     const employee = await Employee.findById(req.params.id);
-    if (employee == null) {
+    if (employee === null) {
       return res.status(404).json({ message: 'Cannot find employee' });
     }
     res.json(employee);
@@ -45,20 +45,20 @@ exports.getEmployeeById = async (req, res) => {
 exports.updateEmployee = async (req, res) => {
   try {
     const employee = await Employee.findById(req.params.id);
-    if (employee == null) {
+    if (employee === null) {
       return res.status(404).json({ message: 'Cannot find employee' });
     }
 
-    if (req.body.name != null) {
+    if (req.body.name !== null) {
       employee.name = req.body.name;
     }
-    if (req.body.role != null) {
+    if (req.body.role !== null) {
       employee.role = req.body.role;
     }
-    if (req.body.hireDate != null) {
+    if (req.body.hireDate !== null) {
       employee.hireDate = req.body.hireDate;
     }
-    if (req.body.status != null) {
+    if (req.body.status !== null) {
       employee.status = req.body.status;
     }
 
@@ -73,7 +73,7 @@ exports.updateEmployee = async (req, res) => {
 exports.deleteEmployee = async (req, res) => {
   try {
     const employee = await Employee.findById(req.params.id);
-    if (employee == null) {
+    if (employee === null) {
       return res.status(404).json({ message: 'Cannot find employee' });
     }
 

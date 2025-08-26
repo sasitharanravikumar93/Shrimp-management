@@ -126,10 +126,10 @@ feedInputSchema.virtual('calculatedTotalCost').get(function () {
 
 // Virtual for feed efficiency tracking
 feedInputSchema.virtual('feedingWindow').get(function () {
-  const hour = parseInt(this.time.split(':')[0]);
-  if (hour >= 6 && hour < 12) return 'Morning';
-  if (hour >= 12 && hour < 18) return 'Afternoon';
-  if (hour >= 18 && hour < 22) return 'Evening';
+  const hour = parseInt(this.time.split(':')[0], 10);
+  if (hour >= 6 && hour < 12) { return 'Morning'; }
+  if (hour >= 12 && hour < 18) { return 'Afternoon'; }
+  if (hour >= 18 && hour < 22) { return 'Evening'; }
   return 'Night';
 });
 
