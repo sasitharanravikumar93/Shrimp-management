@@ -1,6 +1,9 @@
 const mongoose = require('mongoose');
 require('dotenv').config();
 
+/**
+ * Tests the MongoDB connection and performs a basic user authentication test.
+ */
 async function testConnection() {
   try {
     console.log('Attempting to connect to MongoDB...');
@@ -23,10 +26,10 @@ async function testConnection() {
     });
 
     console.log('🎉 Database connection test completed successfully!');
-    process.exit(0);
+    
   } catch (error) {
     console.error('❌ Database connection failed:', error);
-    process.exit(1);
+    
   }
 }
 
