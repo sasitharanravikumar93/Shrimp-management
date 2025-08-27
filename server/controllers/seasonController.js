@@ -1,23 +1,20 @@
 const mongoose = require('mongoose');
 const logger = require('../logger');
 const Season = require('../models/Season');
-const User = require('../models/User');
 const {
   asyncHandler,
   sendSuccessResponse,
-  sendErrorResponse,
   NotFoundError,
-  ValidationError,
-  ConflictError
+  ValidationError
 } = require('../utils/errorHandler');
 
 /**
  * Helper function to get the appropriate language for a user
  * Priority: User profile > Accept-Language header > Default (en)
- * @param {Object} req - Express request object
- * @param {Object} req.user - Authenticated user object
+ * @param {object} req - Express request object
+ * @param {object} req.user - Authenticated user object
  * @param {string} req.user.language - User's preferred language
- * @param {Object} req.headers - Request headers
+ * @param {object} req.headers - Request headers
  * @param {string} req.headers['accept-language'] - Browser's accepted languages
  * @returns {string} Language code (en, hi, ta, kn, te)
  */
@@ -44,12 +41,12 @@ const getLanguageForUser = (req) => {
 /**
  * Helper function to translate a document with multilingual fields
  * Converts multilingual Map/Object fields to single language strings
- * @param {Object|mongoose.Document} doc - Document to translate
+ * @param {object|mongoose.Document} doc - Document to translate
  * @param {string} language - Target language code
- * @returns {Object} Translated document with string fields instead of Maps
+ * @returns {object} Translated document with string fields instead of Maps
  */
 const translateDocument = (doc, language) => {
-  if (!doc) return doc;
+  if (!doc) {return doc;}
 
   // Convert Mongoose document to plain object if needed
   const plainDoc = doc.toObject ? doc.toObject() : doc;
@@ -62,8 +59,8 @@ const translateDocument = (doc, language) => {
     } else if (plainDoc.name[language]) {
       // It's a plain object
       plainDoc.name = plainDoc.name[language];
-    } else if (plainDoc.name['en']) {
-      plainDoc.name = plainDoc.name['en'];
+    } else if (plainDoc.name.en) {
+      plainDoc.name = plainDoc.name.en;
     } else {
       plainDoc.name = '';
     }
@@ -74,9 +71,9 @@ const translateDocument = (doc, language) => {
 
 /**
  * Helper function to translate an array of documents
- * @param {Array<Object|mongoose.Document>} docs - Array of documents to translate
+ * @param {Array<object|mongoose.Document>} docs - Array of documents to translate
  * @param {string} language - Target language code
- * @returns {Array<Object>} Array of translated documents
+ * @returns {Array<object>} Array of translated documents
  */
 const translateDocuments = (docs, language) => {
   return docs.map(doc => translateDocument(doc, language));
@@ -165,15 +162,15 @@ exports.getSeasonById = asyncHandler(async (req, res) => {
  * Update a season by ID
  * @async
  * @function updateSeason
- * @param {Object} req - Express request object
- * @param {Object} req.params - Route parameters
+ * @param {object} req - Express request object
+ * @param {object} req.params - Route parameters
  * @param {string} req.params.id - Season ID
- * @param {Object} req.body - Request body with update data
+ * @param {object} req.body - Request body with update data
  * @param {string|Object} [req.body.name] - Updated season name
  * @param {Date} [req.body.startDate] - Updated start date
  * @param {Date} [req.body.endDate] - Updated end date
  * @param {string} [req.body.status] - Updated season status
- * @param {Object} res - Express response object
+ * @param {object} res - Express response object
  * @returns {Promise<void>} JSON response with updated season or error
  * @description Updates season with validation for date ranges and multilingual names
  */
@@ -194,9 +191,9 @@ exports.updateSeason = async (req, res) => {
         updateData.name = name;
       }
     }
-    if (startDate !== undefined) updateData.startDate = startDate;
-    if (endDate !== undefined) updateData.endDate = endDate;
-    if (status !== undefined) updateData.status = status;
+    if (startDate !== undefined) {updateData.startDate = startDate;}
+    if (endDate !== undefined) {updateData.endDate = endDate;}
+    if (status !== undefined) {updateData.status = status;}
 
     const season = await Season.findByIdAndUpdate(
       req.params.id,
@@ -228,10 +225,10 @@ exports.updateSeason = async (req, res) => {
  * Delete a season by ID
  * @async
  * @function deleteSeason
- * @param {Object} req - Express request object
- * @param {Object} req.params - Route parameters
+ * @param {object} req - Express request object
+ * @param {object} req.params - Route parameters
  * @param {string} req.params.id - Season ID
- * @param {Object} res - Express response object
+ * @param {object} res - Express response object
  * @returns {Promise<void>} JSON response with success message or error
  * @description Deletes a season after validating the ID format
  */

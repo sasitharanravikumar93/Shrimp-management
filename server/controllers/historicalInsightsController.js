@@ -707,7 +707,7 @@ const calculateDifferencesByDay = (dataA, dataB, startDateA, startDateB) => {
 exports.exportComparisonData = async (req, res) => {
   logger.info('Exporting historical comparison data', { body: req.body });
   try {
-    const { pond_a_id, pond_b_id, metrics, format, mode, start_date, end_date } = req.body;
+    const { pond_a_id, pond_b_id, metrics, format } = req.body;
 
     // Validation
     if (!pond_a_id || !pond_b_id || !metrics || !Array.isArray(metrics) || !format) {

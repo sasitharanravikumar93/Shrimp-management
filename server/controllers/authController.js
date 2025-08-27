@@ -155,7 +155,7 @@ exports.login = asyncHandler(async (req, res) => {
 /**
  * User logout
  */
-exports.logout = asyncHandler(async (req, res) => {
+exports.logout = asyncHandler((req, res) => {
   logger.info('User logout', { userId: req.user._id, username: req.user.username });
 
   // In a real implementation, you might want to blacklist the token
@@ -167,7 +167,7 @@ exports.logout = asyncHandler(async (req, res) => {
 /**
  * Get current user profile
  */
-exports.getProfile = asyncHandler(async (req, res) => {
+exports.getProfile = asyncHandler((req, res) => {
   const user = req.user;
 
   sendSuccessResponse(res, {

@@ -4,7 +4,6 @@ const InventoryAdjustment = require('../models/InventoryAdjustment');
 const FeedInput = require('../models/FeedInput');
 const WaterQualityInput = require('../models/WaterQualityInput');
 const mongoose = require('mongoose');
-const User = require('../models/User');
 
 // Helper function to get the appropriate language for a user
 const getLanguageForUser = (req) => {

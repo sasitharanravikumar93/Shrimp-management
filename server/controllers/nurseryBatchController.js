@@ -1,7 +1,6 @@
 const logger = require('../logger');
 const NurseryBatch = require('../models/NurseryBatch');
 const Season = require('../models/Season');
-const User = require('../models/User');
 const Event = require('../models/Event');
 
 // Helper function to get the appropriate language for a user
@@ -27,7 +26,7 @@ const getLanguageForUser = (req) => {
 
 // Helper function to translate a document with multilingual fields
 const translateDocument = (doc, language) => {
-  if (!doc) return doc;
+  if (!doc) {return doc;}
   
   // Convert Mongoose document to plain object if needed
   const plainDoc = doc.toObject ? doc.toObject() : doc;
@@ -40,8 +39,8 @@ const translateDocument = (doc, language) => {
     } else if (plainDoc.batchName[language]) {
       // It's a plain object
       plainDoc.batchName = plainDoc.batchName[language];
-    } else if (plainDoc.batchName['en']) {
-      plainDoc.batchName = plainDoc.batchName['en'];
+    } else if (plainDoc.batchName.en) {
+      plainDoc.batchName = plainDoc.batchName.en;
     } else {
       plainDoc.batchName = '';
     }
@@ -167,15 +166,15 @@ exports.updateNurseryBatch = async (req, res) => {
     
     // Prepare update object with only provided fields
     const updateData = {};
-    if (batchName !== undefined) updateData.batchName = batchName;
-    if (startDate !== undefined) updateData.startDate = startDate;
-    if (initialCount !== undefined) updateData.initialCount = initialCount;
-    if (species !== undefined) updateData.species = species;
-    if (source !== undefined) updateData.source = source;
-    if (seasonId !== undefined) updateData.seasonId = seasonId;
-    if (size !== undefined) updateData.size = size;
-    if (capacity !== undefined) updateData.capacity = capacity;
-    if (status !== undefined) updateData.status = status;
+    if (batchName !== undefined) {updateData.batchName = batchName;}
+    if (startDate !== undefined) {updateData.startDate = startDate;}
+    if (initialCount !== undefined) {updateData.initialCount = initialCount;}
+    if (species !== undefined) {updateData.species = species;}
+    if (source !== undefined) {updateData.source = source;}
+    if (seasonId !== undefined) {updateData.seasonId = seasonId;}
+    if (size !== undefined) {updateData.size = size;}
+    if (capacity !== undefined) {updateData.capacity = capacity;}
+    if (status !== undefined) {updateData.status = status;}
     
     const nurseryBatch = await NurseryBatch.findByIdAndUpdate(
       req.params.id,
