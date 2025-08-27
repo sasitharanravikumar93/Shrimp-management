@@ -1,17 +1,18 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const { logger } = require('./utils/logger');
 
 const app = express();
 const PORT = 5001;
 
-console.log('Starting simple test server...');
+logger.info('Starting simple test server...');
 
 // MongoDB connection
 const MONGODB_URI = 'mongodb://admin:password@localhost:27017/shrimpfarm?authSource=admin';
 
 mongoose.connect(MONGODB_URI)
   .then(() => {
-    console.log('✅ Successfully connected to MongoDB');
+    logger.info('✅ Successfully connected to MongoDB');
 
     // Basic route
     app.get('/', (req, res) => {
@@ -31,14 +32,14 @@ mongoose.connect(MONGODB_URI)
 
     // Start server
     app.listen(PORT, () => {
-      console.log(`✅ Simple test server is running on port ${PORT}`);
-      console.log('Test endpoints:');
-      console.log(`- http://localhost:${PORT}/`);
-      console.log(`- http://localhost:${PORT}/api/test-users`);
+      logger.info(`✅ Simple test server is running on port ${PORT}`);
+      logger.info('Test endpoints:');
+      logger.info(`- http://localhost:${PORT}/`);
+      logger.info(`- http://localhost:${PORT}/api/test-users`);
     });
 
   })
   .catch((err) => {
-    console.error('❌ Error connecting to MongoDB:', err.message);
-    process.exit(1);
+    logger.error('❌ Error connecting to MongoDB:', err.message);
+    throw new Error('Error connecting to MongoDB');
   });
