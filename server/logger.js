@@ -5,7 +5,6 @@
 
 const winston = require('winston');
 const path = require('path');
-const config = require('./config');
 
 // Custom log format for structured logging
 const customFormat = winston.format.combine(
@@ -37,8 +36,8 @@ const consoleFormat = winston.format.combine(
   winston.format.printf(({ timestamp, level, message, requestId, userId, ...meta }) => {
     let logLine = `${timestamp} [${level}]: ${message}`;
 
-    if (requestId) logLine += ` [req:${requestId}]`;
-    if (userId) logLine += ` [user:${userId}]`;
+    if (requestId) {logLine += ` [req:${requestId}]`;}
+    if (userId) {logLine += ` [user:${userId}]`;}
 
     const metaStr = Object.keys(meta).length > 0 ? ` ${JSON.stringify(meta)}` : '';
     return `${logLine}${metaStr}`;

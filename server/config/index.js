@@ -79,6 +79,7 @@ const config = {
 
 /**
  * Validate required configuration values
+ * @returns {boolean} True if all required configurations are present, false otherwise
  */
 function validateConfig() {
   const requiredConfigs = [
@@ -104,6 +105,7 @@ function validateConfig() {
 
 /**
  * Get configuration for specific environment
+ * @returns {object} Configuration object
  */
 function getConfig() {
   if (!validateConfig()) {
