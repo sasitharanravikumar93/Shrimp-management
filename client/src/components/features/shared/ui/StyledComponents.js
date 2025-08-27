@@ -458,7 +458,7 @@ export const HighlightBox = styled(Box)(({ theme, color = 'primary' }) => ({
 }));
 
 // Export all components
-export default {
+const StyledComponents = {
   // Layout
   AppContainer,
   PageHeader,
@@ -500,3 +500,5 @@ export default {
   SurfaceCard,
   HighlightBox
 };
+
+export default StyledComponents;

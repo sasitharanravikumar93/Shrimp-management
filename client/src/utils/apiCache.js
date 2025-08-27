@@ -418,7 +418,7 @@ export const getCacheStats = () => {
   return globalCache.getStats();
 };
 
-export default {
+const ApiCache = {
   cachedApiCall,
   deduplicatedApiCall,
   batchApiCalls,
@@ -429,3 +429,5 @@ export default {
   clearCache,
   getCacheStats
 };
+
+export default ApiCache;

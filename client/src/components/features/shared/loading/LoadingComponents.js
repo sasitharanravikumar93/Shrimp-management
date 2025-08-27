@@ -271,7 +271,7 @@ export const useLoadingStates = (initialState = {}) => {
   };
 };
 
-export default {
+const LoadingComponents = {
   SpinnerLoader,
   LinearLoader,
   SkeletonCard,
@@ -282,6 +282,8 @@ export default {
   LoadingButton,
   useLoadingStates
 };
+
+export default LoadingComponents;
 
 // PropTypes for runtime type checking
 SpinnerLoader.propTypes = {

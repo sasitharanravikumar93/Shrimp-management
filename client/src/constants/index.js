@@ -555,7 +555,7 @@ export const MESSAGES = {
 // EXPORT ALL CONSTANTS
 // ===================
 
-export default {
+const AppConstants = {
   API,
   UI,
   FORM,
@@ -575,3 +575,5 @@ export default {
   REGEX,
   MESSAGES
 };
+
+export default AppConstants;

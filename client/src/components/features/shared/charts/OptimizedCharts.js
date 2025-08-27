@@ -529,13 +529,15 @@ OptimizedLineChart.displayName = 'OptimizedLineChart';
 OptimizedPieChart.displayName = 'OptimizedPieChart';
 OptimizedTooltip.displayName = 'OptimizedTooltip';
 
-export default {
+const OptimizedCharts = {
   OptimizedBarChart,
   OptimizedLineChart,
   OptimizedPieChart,
   OptimizedTooltip,
   chartPerformanceUtils
 };
+
+export default OptimizedCharts;
 
 // Add PropTypes validation
 OptimizedBarChart.propTypes = {

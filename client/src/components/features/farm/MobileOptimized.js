@@ -510,7 +510,7 @@ export const useMobileViewport = () => {
   };
 };
 
-export default {
+const MobileOptimized = {
   MobileNavBar,
   MobileDrawer,
   MobileBottomNav,
@@ -524,3 +524,5 @@ export default {
   MobileKPICard,
   MobilePondCard
 };
+
+export default MobileOptimized;

@@ -158,7 +158,7 @@ export const CHART = {
 // EXPORT ALL
 // ===================
 
-export default {
+const Constants = {
   TIME,
   TIMEOUT,
   SIZES,
@@ -175,3 +175,5 @@ export default {
   ERROR_CODES,
   CHART
 };
+
+export default Constants;

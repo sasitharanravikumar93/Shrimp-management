@@ -724,9 +724,11 @@ if (typeof window !== 'undefined') {
   });
 }
 
-export default {
+const CacheManagerModule = {
   CacheManager,
   CacheStrategy,
   CacheConfig,
   globalCache
 };
+
+export default CacheManagerModule;
