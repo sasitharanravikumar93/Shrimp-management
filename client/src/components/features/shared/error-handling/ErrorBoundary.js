@@ -1,7 +1,7 @@
 import { ErrorOutline, Refresh } from '@mui/icons-material';
 import { Container, Typography, Button, Box, Alert, AlertTitle } from '@mui/material';
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
 
 /**
  * Error Boundary Component

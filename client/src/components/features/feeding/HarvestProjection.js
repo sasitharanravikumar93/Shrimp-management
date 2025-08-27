@@ -1,8 +1,8 @@
 import { CalendarToday as CalendarIcon, TrendingUp as TrendingUpIcon } from '@mui/icons-material';
 import { Card, CardContent, Typography, Box, LinearProgress, Tooltip, Chip } from '@mui/material';
 import { motion } from 'framer-motion';
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
 
 const HarvestProjection = ({ currentWeight, targetWeight, growthRate, startDate, pondName }) => {
   // Calculate projected harvest date

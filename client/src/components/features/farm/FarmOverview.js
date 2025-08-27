@@ -53,20 +53,20 @@ import {
   Cell
 } from 'recharts';
 
-import logger from '../../../utils/logger';
 import { useSeason } from '../../../context/SeasonContext';
 import { useApiData } from '../../../hooks/useApi';
 import { getPonds, getWaterQualityInputs, getFeedInputs } from '../../../services/api';
+import logger from '../../../utils/logger';
 import { useStableCallback, useStableMemo } from '../../../utils/performanceOptimization';
-
 import AlertBanner from '../dashboard/AlertBanner';
-import AquacultureTooltip from './AquacultureTooltip';
+import KPICard, { CircularKPICard } from '../dashboard/KPICard';
+import PredictiveInsight from '../dashboard/PredictiveInsight';
+import PondCard from '../ponds/PondCard';
 import DataTrend from '../shared/charts/DataTrend';
 import ErrorDisplay from '../shared/error-handling/ErrorDisplay';
 import HealthScore from '../water-quality/HealthScore';
-import KPICard, { CircularKPICard } from '../dashboard/KPICard';
-import PondCard from '../ponds/PondCard';
-import PredictiveInsight from '../dashboard/PredictiveInsight';
+
+import AquacultureTooltip from './AquacultureTooltip';
 
 const FarmOverview = () => {
   const { t } = useTranslation();
@@ -180,19 +180,19 @@ const FarmOverview = () => {
     const avgGrowthRate =
       filteredPonds.length > 0
         ? filteredPonds.reduce((sum, pond) => sum + (pond.growthRate || 1.2), 0) /
-        filteredPonds.length
+          filteredPonds.length
         : 1.2;
 
     const feedEfficiency =
       filteredPonds.length > 0
         ? filteredPonds.reduce((sum, pond) => sum + (pond.feedEfficiency || 1.4), 0) /
-        filteredPonds.length
+          filteredPonds.length
         : 1.4;
 
     const waterQuality =
       filteredPonds.length > 0
         ? filteredPonds.reduce((sum, pond) => sum + (pond.waterQualityScore || 85), 0) /
-        filteredPonds.length
+          filteredPonds.length
         : 85;
 
     const feedConsumption =

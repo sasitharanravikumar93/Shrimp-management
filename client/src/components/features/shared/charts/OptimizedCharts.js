@@ -3,6 +3,7 @@
  * Provides performance-optimized wrappers for Recharts components
  */
 
+import PropTypes from 'prop-types';
 import React, { memo, useMemo, useRef, useCallback } from 'react';
 import {
   ResponsiveContainer,
@@ -19,9 +20,29 @@ import {
   Pie,
   Cell
 } from 'recharts';
-import PropTypes from 'prop-types';
 
 import { useStableMemo, useDebounce, useChartResize } from '../../../utils/performanceOptimization';
+
+// Chart performance constants
+const CHART_PERFORMANCE = {
+  MAX_DATA_POINTS: 1000,
+  DEBOUNCE_DELAY: 100,
+  ANIMATION_DURATION: 300,
+  VIRTUALIZATION_THRESHOLD: 500
+};
+
+// Virtualization hook for large datasets
+const useVirtualizedData = (data, maxPoints) => {
+  return useMemo(() => {
+    if (!data || data.length <= maxPoints) {
+      return data;
+    }
+
+    // Simple sampling for virtualization
+    const step = Math.ceil(data.length / maxPoints);
+    return data.filter((_, index) => index % step === 0);
+  }, [data, maxPoints]);
+};
 
 // Optimized Bar Chart Component with virtualization
 export const OptimizedBarChart = memo(
@@ -42,8 +63,8 @@ export const OptimizedBarChart = memo(
   }) => {
     const chartRef = useRef(null);
 
-    // Use virtualized data for large datasets
-    const processedData = enableVirtualization ? useVirtualizedData(data, maxDataPoints) : data;
+    // Use virtualized data for large datasets (always call the hook)
+    const processedData = useVirtualizedData(data, enableVirtualization ? maxDataPoints : data?.length || 0);
 
     // Debounce data changes to prevent excessive re-renders
     const debouncedData = useDebounce(processedData, CHART_PERFORMANCE.DEBOUNCE_DELAY);
@@ -154,8 +175,8 @@ export const OptimizedLineChart = memo(
   }) => {
     const chartRef = useRef(null);
 
-    // Use virtualized data for large datasets
-    const processedData = enableVirtualization ? useVirtualizedData(data, maxDataPoints) : data;
+    // Use virtualized data for large datasets (always call the hook)
+    const processedData = useVirtualizedData(data, enableVirtualization ? maxDataPoints : data?.length || 0);
 
     // Debounce data changes
     const debouncedData = useDebounce(processedData, CHART_PERFORMANCE.DEBOUNCE_DELAY);

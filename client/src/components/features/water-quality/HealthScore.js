@@ -4,8 +4,8 @@ import {
   Error as ErrorIcon
 } from '@mui/icons-material';
 import { Box, Typography, CircularProgress, Tooltip } from '@mui/material';
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
 
 const HealthScore = ({ score, size = 80, showLabel = true }) => {
   // Determine color based on score

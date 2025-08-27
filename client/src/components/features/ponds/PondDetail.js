@@ -26,12 +26,12 @@ import {
   Tab,
   Chip
 } from '@mui/material';
-import React, { useState } from 'react';
 import PropTypes from 'prop-types';
+import React, { useState } from 'react';
 
+import PredictiveInsight from '../dashboard/PredictiveInsight';
 import FeedLog from '../feeding/FeedLog';
 import GrowthSamplingLog from '../feeding/GrowthSamplingLog';
-import PredictiveInsight from '../dashboard/PredictiveInsight';
 import WaterQualityLog from '../water-quality/WaterQualityLog';
 
 // --- MOCK DATA FOR DYNAMIC KPIS ---
@@ -253,8 +253,8 @@ const PondDetail = ({ pondId }) => {
             <InfoIcon fontSize='large' color='action' />
             <Typography variant='h6'>Pond Not Active</Typography>
             <Typography variant='body1' color='text.secondary'>
-              This pond is currently in &apos;Planning&apos; or &apos;Inactive&apos; status. No operational data to
-              display.
+              This pond is currently in &apos;Planning&apos; or &apos;Inactive&apos; status. No
+              operational data to display.
             </Typography>
           </CardContent>
         </Card>

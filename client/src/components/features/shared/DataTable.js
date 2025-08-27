@@ -36,9 +36,9 @@ import {
   Skeleton,
   Alert
 } from '@mui/material';
+import PropTypes from 'prop-types';
 import React, { memo, useState, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import PropTypes from 'prop-types';
 
 // Cell type constants
 export const CELL_TYPES = {

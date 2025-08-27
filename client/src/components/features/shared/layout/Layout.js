@@ -45,10 +45,10 @@ import {
   Badge
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
+import PropTypes from 'prop-types';
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import PropTypes from 'prop-types';
 
 import { useSeason } from '../../../../context/SeasonContext';
 import { useApiData } from '../../../../hooks/useApi';
@@ -254,7 +254,7 @@ const Layout = ({ children, toggleDarkMode, darkMode }) => {
                 sx={{
                   color:
                     location.pathname === item.path ||
-                      (item.path === '/admin' && location.pathname.startsWith('/pond/'))
+                    (item.path === '/admin' && location.pathname.startsWith('/pond/'))
                       ? 'inherit'
                       : 'inherit',
                   minWidth: isSidebarCollapsed ? 'auto' : 40

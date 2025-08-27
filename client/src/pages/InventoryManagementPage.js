@@ -68,7 +68,7 @@ const InventoryManagementPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedSeason?._id]);
+  }, [selectedSeason?._id, api, t]);
 
   useEffect(() => {
     if (view === 'bought') {
@@ -102,8 +102,8 @@ const InventoryManagementPage = () => {
         (item.itemName &&
           (typeof item.itemName === 'object'
             ? (item.itemName[i18n.language] || item.itemName.en || '')
-              .toLowerCase()
-              .includes(searchTerm.toLowerCase())
+                .toLowerCase()
+                .includes(searchTerm.toLowerCase())
             : item.itemName.toLowerCase().includes(searchTerm.toLowerCase()))) ||
         (item.itemType && item.itemType.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (item.supplier && item.supplier.toLowerCase().includes(searchTerm.toLowerCase()))

@@ -189,9 +189,6 @@ export const useCrudOperations = (apiMethods = {}, options = {}) => {
               optimisticUpdate = items.filter(item => item.id !== itemId);
               setItems(optimisticUpdate);
               break;
-            default:
-              // No optimistic update for other operations
-              break;
           }
         }
 
@@ -222,8 +219,14 @@ export const useCrudOperations = (apiMethods = {}, options = {}) => {
         return result;
       } catch (error) {
         // Revert optimistic update on error
-        if (optimisticUpdate !== null && optimisticUpdates) {
-          setItems(items); // Revert to original state
+        if (optimisticUpdates && itemId) {
+          // Only revert if we had an optimistic update
+          switch (operationType) {
+            case 'update':
+            case 'delete':
+              setItems(items); // Revert to original state
+              break;
+          }
         }
 
         setErrors(prev => ({ ...prev, [loadingKey]: error }));
@@ -330,7 +333,7 @@ export const useSelection = (items = [], keyField = 'id') => {
     } else {
       selectAll();
     }
-  }, [selectedIds.size, items.length, selectAll, selectNone]);
+  }, [selectedIds, items.length, selectAll, selectNone]);
 
   const isSelected = useCallback(id => selectedIds.has(id), []);
 

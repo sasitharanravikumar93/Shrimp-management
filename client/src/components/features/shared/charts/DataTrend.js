@@ -5,6 +5,7 @@ import {
 } from '@mui/icons-material';
 import { Card, CardContent, Typography, Box, Chip } from '@mui/material';
 import { motion } from 'framer-motion';
+import PropTypes from 'prop-types';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -16,7 +17,6 @@ import {
   Tooltip,
   ResponsiveContainer
 } from 'recharts';
-import PropTypes from 'prop-types';
 
 const DataTrend = ({ title, data, dataKey, color = '#007BFF', unit = '', trend = 'neutral' }) => {
   const { t } = useTranslation();

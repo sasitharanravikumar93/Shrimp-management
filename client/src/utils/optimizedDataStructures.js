@@ -657,12 +657,12 @@ export const useOptimizedTableData = (
     // Selection (if enabled)
     ...(enableSelection
       ? {
-        selection: selection.selected,
-        selectedSet: selection.selectedSet,
-        selectionActions: selection.actions,
-        selectedCount: selection.size,
-        isSelected: selection.actions.isSelected
-      }
+          selection: selection.selected,
+          selectedSet: selection.selectedSet,
+          selectionActions: selection.actions,
+          selectedCount: selection.size,
+          isSelected: selection.actions.isSelected
+        }
       : {}),
 
     // Collection management

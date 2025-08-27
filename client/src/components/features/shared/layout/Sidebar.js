@@ -17,10 +17,10 @@ import {
   Box,
   Divider
 } from '@mui/material';
+import PropTypes from 'prop-types';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import PropTypes from 'prop-types';
 
 const drawerWidth = 240;
 

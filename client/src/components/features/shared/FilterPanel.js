@@ -4,42 +4,24 @@
  */
 
 import {
-  ExpandMore as ExpandMoreIcon,
-  Clear as ClearIcon,
-  FilterList as FilterListIcon,
-  Search as SearchIcon
-} from '@mui/icons-material';
-import {
   Box,
-  Card,
-  CardContent,
-  CardHeader,
+  Chip,
   FormControl,
   InputLabel,
-  Select,
   MenuItem,
+  Select,
   TextField,
-  Button,
-  IconButton,
-  Chip,
-  Stack,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Typography,
-  Divider,
   Switch,
   FormControlLabel,
   Slider,
-  DatePicker,
   Autocomplete
 } from '@mui/material';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker as MuiDatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import PropTypes from 'prop-types';
 import React, { memo, useState, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import PropTypes from 'prop-types';
 
 // Filter type constants
 export const FILTER_TYPES = {
@@ -142,8 +124,8 @@ const FilterComponent = memo(({ filter, value, onChange, disabled = false }) => 
           InputProps={
             filter.searchable
               ? {
-                  startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />
-                }
+                startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />
+              }
               : undefined
           }
         />
@@ -310,9 +292,8 @@ const ActiveFilters = memo(({ filters, filterValues, onClear, onClearAll }) => {
               .join(', ');
           } else if (typeof value === 'object' && value !== null) {
             if (filter.type === FILTER_TYPES.DATE_RANGE) {
-              displayValue = `${value.from ? new Date(value.from).toLocaleDateString() : ''} - ${
-                value.to ? new Date(value.to).toLocaleDateString() : ''
-              }`;
+              displayValue = `${value.from ? new Date(value.from).toLocaleDateString() : ''} - ${value.to ? new Date(value.to).toLocaleDateString() : ''
+                }`;
             }
           } else {
             const option = filter.options?.find(opt => opt.value === value);
@@ -339,9 +320,9 @@ const FilterPanel = memo(
   ({
     filters = [],
     values = {},
-    onChange = () => {},
+    onChange = () => { },
     onApply = null,
-    onReset = () => {},
+    onReset = () => { },
 
     // Layout options
     layout = 'vertical', // 'vertical', 'horizontal', 'grid', 'accordion'
@@ -669,8 +650,8 @@ FilterPanel.propTypes = {
 FilterPanel.defaultProps = {
   filters: [],
   values: {},
-  onChange: () => {},
-  onReset: () => {},
+  onChange: () => { },
+  onReset: () => { },
   layout: 'vertical',
   columns: 2,
   spacing: 2,

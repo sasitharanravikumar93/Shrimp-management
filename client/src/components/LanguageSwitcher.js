@@ -2,7 +2,7 @@ import { FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { supportedLanguages } from '../i18n';
+import { supportedLanguages } from '../i18n/index';
 
 const LanguageSwitcher = () => {
   const { i18n, t } = useTranslation();

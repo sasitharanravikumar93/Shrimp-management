@@ -6,8 +6,8 @@ import {
   Close as CloseIcon
 } from '@mui/icons-material';
 import { Box, Typography, IconButton, Paper } from '@mui/material';
-import PropTypes from 'prop-types';
 import { motion } from 'framer-motion';
+import PropTypes from 'prop-types';
 import React from 'react';
 
 const AlertBanner = ({ severity = 'info', message, onClose, dismissible = false, sx = {} }) => {

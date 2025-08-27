@@ -362,6 +362,123 @@ export const TouchButton = styled('button')(({ theme }) => ({
   }
 }));
 
+// Skeleton Card for loading states
+export const SkeletonCard = ({ height = 120, width = '100%' }) => (
+  <Box
+    sx={{
+      height,
+      width,
+      bgcolor: 'grey.200',
+      borderRadius: 1,
+      animation: 'pulse 1.5s ease-in-out infinite'
+    }}
+  />
+);
+
+// Mobile KPI Card
+export const MobileKPICard = ({ title, value, icon, color, change, compact = false }) => (
+  <Card
+    sx={{
+      height: compact ? 80 : 100,
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      alignItems: 'center',
+      textAlign: 'center',
+      boxShadow: 2,
+      transition: 'transform 0.2s ease-in-out',
+      '&:hover': {
+        transform: 'translateY(-2px)'
+      }
+    }}
+  >
+    <CardContent sx={{ p: 1, '&:last-child': { pb: 1 } }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 0.5 }}>
+        {icon && React.cloneElement(icon, { sx: { color, fontSize: compact ? '1.2rem' : '1.5rem' } })}
+      </Box>
+      <Typography
+        variant={compact ? 'h6' : 'h5'}
+        component='div'
+        sx={{ fontWeight: 'bold', mb: 0.5, fontSize: compact ? '1rem' : '1.25rem' }}
+      >
+        {value}
+      </Typography>
+      <Typography
+        variant='caption'
+        sx={{ color: 'text.secondary', fontSize: compact ? '0.7rem' : '0.75rem' }}
+      >
+        {title}
+      </Typography>
+      {change && (
+        <Typography
+          variant='caption'
+          sx={{
+            color: change > 0 ? 'success.main' : 'error.main',
+            display: 'block',
+            mt: 0.5,
+            fontSize: compact ? '0.6rem' : '0.65rem'
+          }}
+        >
+          {change > 0 ? '↑' : '↓'} {Math.abs(change)}%
+        </Typography>
+      )}
+    </CardContent>
+  </Card>
+);
+
+// Mobile Pond Card
+export const MobilePondCard = ({ pond, onPondClick }) => (
+  <Card
+    sx={{
+      height: 120,
+      display: 'flex',
+      flexDirection: 'column',
+      boxShadow: 2,
+      transition: 'transform 0.2s ease-in-out',
+      '&:hover': {
+        transform: 'translateY(-2px)',
+        cursor: 'pointer'
+      }
+    }}
+    onClick={() => onPondClick && onPondClick(pond._id)}
+  >
+    <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <Box>
+          <Typography variant='subtitle2' sx={{ fontWeight: 'bold', mb: 0.5 }}>
+            {pond.name}
+          </Typography>
+          <Typography variant='caption' sx={{ color: 'text.secondary', display: 'block' }}>
+            {pond.status}
+          </Typography>
+        </Box>
+        <Box
+          sx={{
+            width: 12,
+            height: 12,
+            borderRadius: '50%',
+            bgcolor:
+              pond.status === 'Active'
+                ? 'success.main'
+                : pond.status === 'Maintenance'
+                ? 'warning.main'
+                : 'grey.500',
+            flexShrink: 0
+          }}
+        />
+      </Box>
+      <Box sx={{ mt: 1 }}>
+        <Typography variant='caption' sx={{ color: 'text.secondary', display: 'block' }}>
+          Health: {pond.health || 'Good'}
+        </Typography>
+        <Typography variant='caption' sx={{ color: 'text.secondary', display: 'block' }}>
+          Progress: {pond.progress || pond.stockingDensity || 0}%
+        </Typography>
+      </Box>
+    </CardContent>
+  </Card>
+);
+
 // Mobile viewport helper
 export const useMobileViewport = () => {
   const theme = useTheme();
@@ -401,5 +518,8 @@ export default {
   MobileGrid,
   MobileDialog,
   TouchButton,
-  useMobileViewport
+  useMobileViewport,
+  SkeletonCard,
+  MobileKPICard,
+  MobilePondCard
 };

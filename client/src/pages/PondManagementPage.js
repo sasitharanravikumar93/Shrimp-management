@@ -64,11 +64,11 @@ import {
 } from 'recharts';
 
 import AquacultureTooltip from '../components/features/farm/AquacultureTooltip';
-import CustomCalendar from '../components/features/shared/forms/CustomCalendar';
 import EventSuggestions from '../components/features/farm/EventSuggestions';
 import FeedCalculator from '../components/features/feeding/FeedCalculator';
 import HarvestProjection from '../components/features/feeding/HarvestProjection';
 import PondCard from '../components/features/ponds/PondCard';
+import CustomCalendar from '../components/features/shared/forms/CustomCalendar';
 import WaterQualityAlert from '../components/features/water-quality/WaterQualityAlert';
 import { useSeason } from '../context/SeasonContext';
 import useApi, { useApiData, useApiMutation } from '../hooks/useApi';
@@ -622,8 +622,8 @@ const PondManagementPage = () => {
                       ? pond.seasonId.name[i18n.language] || pond.seasonId.name.en
                       : pond.seasonId.name
                     : pond && typeof pond.season === 'string'
-                      ? pond.season
-                      : selectedSeason?.name || 'Season'
+                    ? pond.season
+                    : selectedSeason?.name || 'Season'
                 }
                 color='primary'
                 variant='outlined'
@@ -638,8 +638,8 @@ const PondManagementPage = () => {
                   (pond.health || 'Good') === 'Good'
                     ? 'success'
                     : (pond.health || 'Good') === 'Fair'
-                      ? 'warning'
-                      : 'error'
+                    ? 'warning'
+                    : 'error'
                 }
                 icon={(pond.health || 'Good') === 'Good' ? <CheckIcon /> : <WarningIcon />}
               />
@@ -1366,8 +1366,8 @@ const PondManagementPage = () => {
                                         Avg. Weight:{' '}
                                         {entry.totalCount > 0
                                           ? ((entry.totalWeight * 1000) / entry.totalCount).toFixed(
-                                            2
-                                          )
+                                              2
+                                            )
                                           : 0}
                                         g
                                       </Typography>
@@ -1473,20 +1473,21 @@ const PondManagementPage = () => {
                               variant='outlined'
                               sx={{
                                 height: '100%',
-                                borderLeft: `4px solid ${event.type === 'Routine'
+                                borderLeft: `4px solid ${
+                                  event.type === 'Routine'
                                     ? '#007BFF'
                                     : event.type === 'Monitoring'
-                                      ? '#28A745'
-                                      : event.type === 'Maintenance'
-                                        ? '#FD7E14'
-                                        : event.type === 'Feeding'
-                                          ? '#007BFF'
-                                          : event.type === 'Water Quality'
-                                            ? '#28A745'
-                                            : event.type === 'Growth Sampling'
-                                              ? '#6f42c1'
-                                              : '#9e9e9e'
-                                  }`
+                                    ? '#28A745'
+                                    : event.type === 'Maintenance'
+                                    ? '#FD7E14'
+                                    : event.type === 'Feeding'
+                                    ? '#007BFF'
+                                    : event.type === 'Water Quality'
+                                    ? '#28A745'
+                                    : event.type === 'Growth Sampling'
+                                    ? '#6f42c1'
+                                    : '#9e9e9e'
+                                }`
                               }}
                             >
                               <CardContent>
@@ -1527,16 +1528,16 @@ const PondManagementPage = () => {
                                       event.type === 'Routine'
                                         ? 'primary'
                                         : event.type === 'Monitoring'
-                                          ? 'success'
-                                          : event.type === 'Maintenance'
-                                            ? 'warning'
-                                            : event.type === 'Feeding'
-                                              ? 'primary'
-                                              : event.type === 'Water Quality'
-                                                ? 'success'
-                                                : event.type === 'Growth Sampling'
-                                                  ? 'secondary'
-                                                  : 'default'
+                                        ? 'success'
+                                        : event.type === 'Maintenance'
+                                        ? 'warning'
+                                        : event.type === 'Feeding'
+                                        ? 'primary'
+                                        : event.type === 'Water Quality'
+                                        ? 'success'
+                                        : event.type === 'Growth Sampling'
+                                        ? 'secondary'
+                                        : 'default'
                                     }
                                   />
                                 </Box>

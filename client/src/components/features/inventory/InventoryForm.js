@@ -18,9 +18,9 @@ import {
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import PropTypes from 'prop-types';
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import PropTypes from 'prop-types';
 
 import { useSeason } from '../../../context/SeasonContext';
 import useApi from '../../../hooks/useApi';

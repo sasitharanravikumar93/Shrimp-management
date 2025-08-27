@@ -21,9 +21,9 @@ import { useSeason } from '../../../context/SeasonContext';
 import { useApiData, useApiMutation } from '../../../hooks/useApi';
 import { getExpenses, createExpense, updateExpense, deleteExpense } from '../../../services/api';
 import { useStableCallback, useStableMemo } from '../../../utils/performanceOptimization';
-
 import { InlineError } from '../shared/error-handling/ErrorDisplay';
 import { SkeletonTable, SpinnerLoader } from '../shared/loading/LoadingComponents';
+
 import ExpenseForm from './ExpenseForm';
 
 // Memoized ExpenseRow component to prevent unnecessary re-renders

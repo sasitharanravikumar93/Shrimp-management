@@ -11,8 +11,8 @@ import {
   Tooltip,
   IconButton
 } from '@mui/material';
-import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
+import React, { useState, useEffect } from 'react';
 
 import AquacultureTooltip from '../farm/AquacultureTooltip';
 

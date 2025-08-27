@@ -43,7 +43,7 @@ export const deepMemo = (Component, customComparator) => {
 /**
  * Hook for stable callback references
  */
-export const useStableCallback = (callback) => {
+export const useStableCallback = callback => {
   const callbackRef = useRef(callback);
 
   // Keep the ref updated with the latest callback

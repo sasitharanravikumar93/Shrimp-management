@@ -1,6 +1,6 @@
 import { FormControl, InputLabel, Select, MenuItem, FormHelperText, Box } from '@mui/material';
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
 
 /**
  * ValidatedSelect - A Select component with built-in validation

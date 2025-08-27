@@ -1,6 +1,6 @@
 import { Tooltip, Typography } from '@mui/material';
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
 
 const AquacultureTooltip = ({ title, term, children, ...props }) => {
   // Dictionary of aquaculture terms and their definitions

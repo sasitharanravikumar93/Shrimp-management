@@ -7,12 +7,12 @@ import { createLazyRoute } from '../utils/lazyLoading';
 
 // Main dashboard routes
 export const LazyDashboardPage = createLazyRoute(
-    () => import('../pages/DashboardPage'),
-    { preload: true } // Preload since this is a critical route
+  () => import('../pages/DashboardPage'),
+  { preload: true } // Preload since this is a critical route
 );
 
 export const LazyExpenseManagementPage = createLazyRoute(() =>
-    import('../pages/ExpenseManagementPage')
+  import('../pages/ExpenseManagementPage')
 );
 
 // Component-level lazy loading for large components
@@ -35,11 +35,11 @@ export const LazyInventoryForm = createLazyRoute(() => import('../components/Inv
 
 // Modal components (loaded when needed)
 export const LazyAdjustmentHistoryModal = createLazyRoute(() =>
-    import('../components/features/inventory/AdjustmentHistoryModal')
+  import('../components/features/inventory/AdjustmentHistoryModal')
 );
 
 export const LazyInventoryAdjustmentModal = createLazyRoute(() =>
-    import('../components/InventoryAdjustmentModal')
+  import('../components/InventoryAdjustmentModal')
 );
 
 // Chart and visualization components (heavy dependencies)
@@ -52,46 +52,46 @@ export const LazyCustomCalendar = createLazyRoute(() => import('../components/Cu
 
 // Export route configuration for easier route setup
 export const lazyRoutes = {
-    dashboard: LazyDashboardPage,
-    expenseManagement: LazyExpenseManagementPage,
+  dashboard: LazyDashboardPage,
+  expenseManagement: LazyExpenseManagementPage,
 
-    // Component routes
-    farmOverview: LazyFarmOverview,
-    pondDetail: LazyPondDetail,
-    expenseDashboard: LazyExpenseDashboard,
-    expenseList: LazyExpenseList,
-    salaryManagement: LazySalaryManagement,
-    expenseReports: LazyExpenseReports,
+  // Component routes
+  farmOverview: LazyFarmOverview,
+  pondDetail: LazyPondDetail,
+  expenseDashboard: LazyExpenseDashboard,
+  expenseList: LazyExpenseList,
+  salaryManagement: LazySalaryManagement,
+  expenseReports: LazyExpenseReports,
 
-    // Forms
-    expenseForm: LazyExpenseForm,
-    inventoryForm: LazyInventoryForm,
+  // Forms
+  expenseForm: LazyExpenseForm,
+  inventoryForm: LazyInventoryForm,
 
-    // Modals
-    adjustmentHistoryModal: LazyAdjustmentHistoryModal,
-    inventoryAdjustmentModal: LazyInventoryAdjustmentModal,
+  // Modals
+  adjustmentHistoryModal: LazyAdjustmentHistoryModal,
+  inventoryAdjustmentModal: LazyInventoryAdjustmentModal,
 
-    // Charts
-    dataTrend: LazyDataTrend,
-    optimizedCharts: LazyOptimizedCharts,
+  // Charts
+  dataTrend: LazyDataTrend,
+  optimizedCharts: LazyOptimizedCharts,
 
-    // Calendar
-    customCalendar: LazyCustomCalendar
+  // Calendar
+  customCalendar: LazyCustomCalendar
 };
 
 // Preloading strategies
 export const preloadStrategies = {
-    // Preload critical routes immediately
-    critical: [LazyDashboardPage, LazyFarmOverview],
+  // Preload critical routes immediately
+  critical: [LazyDashboardPage, LazyFarmOverview],
 
-    // Preload on user interaction
-    interactive: [LazyExpenseManagementPage, LazyExpenseDashboard],
+  // Preload on user interaction
+  interactive: [LazyExpenseManagementPage, LazyExpenseDashboard],
 
-    // Preload on idle
-    idle: [LazyExpenseList, LazyExpenseForm, LazyDataTrend]
+  // Preload on idle
+  idle: [LazyExpenseList, LazyExpenseForm, LazyDataTrend]
 };
 
 export default {
-    ...lazyRoutes,
-    preloadStrategies
+  ...lazyRoutes,
+  preloadStrategies
 };

@@ -13,9 +13,9 @@ import {
   LinearProgress
 } from '@mui/material';
 import { motion } from 'framer-motion';
+import PropTypes from 'prop-types';
 import React, { memo, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import PropTypes from 'prop-types';
 
 import { useStableCallback, useStableMemo } from '../../../utils/performanceOptimization';
 

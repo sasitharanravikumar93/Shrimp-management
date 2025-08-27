@@ -14,8 +14,8 @@ import {
   AlertTitle
 } from '@mui/material';
 import { motion } from 'framer-motion';
-import React from 'react';
 import PropTypes from 'prop-types';
+import React from 'react';
 
 const WaterQualityAlert = ({
   pondName,
