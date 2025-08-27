@@ -27,10 +27,10 @@ async function testConnection() {
     });
 
     logger.info('🎉 Database connection test completed successfully!');
-    
+
   } catch (error) {
     logger.error('❌ Database connection failed:', error);
-    
+
   }
 }
 

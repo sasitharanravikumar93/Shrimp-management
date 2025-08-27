@@ -13,7 +13,7 @@ mongoose.connect(MONGO_URI, {
 })
   .then(async () => {
     console.log('Connected to MongoDB for testing');
-  
+
     // Test creating a season
     try {
       const season = new Season({
@@ -21,14 +21,14 @@ mongoose.connect(MONGO_URI, {
         startDate: new Date('2023-01-01'),
         endDate: new Date('2023-12-31')
       });
-    
+
       const savedSeason = await season.save();
       console.log('Season created:', savedSeason);
-    
+
       // Test retrieving seasons
       const seasons = await Season.find();
       console.log('All seasons:', seasons);
-    
+
       // Test updating a season
       const updatedSeason = await Season.findByIdAndUpdate(
         savedSeason._id,
@@ -36,15 +36,15 @@ mongoose.connect(MONGO_URI, {
         { new: true }
       );
       console.log('Updated season:', updatedSeason);
-    
+
       // Test deleting a season
       const deletedSeason = await Season.findByIdAndDelete(savedSeason._id);
       console.log('Deleted season:', deletedSeason);
-    
+
     } catch (error) {
       console.error('Error during test:', error.message);
     } finally {
-    // Close the connection
+      // Close the connection
       await mongoose.connection.close();
       console.log('MongoDB connection closed');
     }
