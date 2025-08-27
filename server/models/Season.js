@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { logger } = require('../logger');
 
 const seasonSchema = new mongoose.Schema({
   name: {
@@ -337,7 +338,7 @@ seasonSchema.methods.updateMetrics = async function () {
     await this.save();
 
   } catch (error) {
-    console.error('Error updating season metrics:', error);
+    logger.error('Error updating season metrics:', { error: error.message, stack: error.stack });
   }
 };
 
