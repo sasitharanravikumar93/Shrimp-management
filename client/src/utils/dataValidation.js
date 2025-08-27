@@ -697,7 +697,8 @@ export class BulkValidator {
   }
 }
 
-export default {
+// Create a named object for default export to fix linting warning
+const dataValidationExports = {
   DataValidator,
   ValidationError,
   ValidationTypes,
@@ -709,3 +710,5 @@ export default {
   createValidationMiddleware,
   BulkValidator
 };
+
+export default dataValidationExports;

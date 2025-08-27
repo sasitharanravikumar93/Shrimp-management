@@ -1,13 +1,14 @@
 const mongoose = require('mongoose');
 require('dotenv').config();
+const { logger } = require('./utils/logger');
 
 /**
  * Tests the MongoDB connection and performs a basic user authentication test.
  */
 async function testConnection() {
   try {
-    console.log('Attempting to connect to MongoDB...');
-    console.log('MongoDB URI:', process.env.MONGODB_URI);
+    logger.info('Attempting to connect to MongoDB...');
+    logger.info('MongoDB URI:', process.env.MONGODB_URI);
 
     await mongoose.connect(process.env.MONGODB_URI, {
       maxPoolSize: 10,
@@ -15,20 +16,20 @@ async function testConnection() {
       socketTimeoutMS: 45000,
     });
 
-    console.log('✅ Successfully connected to MongoDB');
+    logger.info('✅ Successfully connected to MongoDB');
 
     // Test user authentication
     const User = require('./models/User');
     const users = await User.find().limit(5);
-    console.log('📄 Found users:', users.length);
+    logger.info('📄 Found users:', users.length);
     users.forEach(user => {
-      console.log(`- ${user.username} (${user.role}) - ${user.email}`);
+      logger.info(`- ${user.username} (${user.role}) - ${user.email}`);
     });
 
-    console.log('🎉 Database connection test completed successfully!');
+    logger.info('🎉 Database connection test completed successfully!');
     
   } catch (error) {
-    console.error('❌ Database connection failed:', error);
+    logger.error('❌ Database connection failed:', error);
     
   }
 }

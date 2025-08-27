@@ -37,6 +37,7 @@ class Logger {
       // Only log in development or when explicitly enabled
       if (process.env.NODE_ENV !== 'production' || process.env.ENABLE_LOGGING === 'true') {
         // We'll use console here but in a production system this would go to a logging service
+        // Using console.error for proper error logging
         console.error(JSON.stringify(logEntry, null, 2));
       }
     }
@@ -58,6 +59,7 @@ class Logger {
       };
 
       if (process.env.NODE_ENV !== 'production' || process.env.ENABLE_LOGGING === 'true') {
+        // Using console.warn for proper warning logging
         console.warn(JSON.stringify(logEntry, null, 2));
       }
     }
@@ -79,6 +81,7 @@ class Logger {
       };
 
       if (process.env.NODE_ENV !== 'production' || process.env.ENABLE_LOGGING === 'true') {
+        // Using console.info for proper info logging
         console.info(JSON.stringify(logEntry, null, 2));
       }
     }
@@ -100,6 +103,7 @@ class Logger {
       };
 
       if (process.env.NODE_ENV !== 'production' || process.env.ENABLE_LOGGING === 'true') {
+        // Using console.log for proper debug logging
         console.log(JSON.stringify(logEntry, null, 2));
       }
     }

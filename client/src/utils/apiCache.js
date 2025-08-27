@@ -418,7 +418,8 @@ export const getCacheStats = () => {
   return globalCache.getStats();
 };
 
-export default {
+// Create a named object for default export to fix linting warning
+const apiCacheUtils = {
   cachedApiCall,
   deduplicatedApiCall,
   batchApiCalls,
@@ -429,3 +430,5 @@ export default {
   clearCache,
   getCacheStats
 };
+
+export default apiCacheUtils;

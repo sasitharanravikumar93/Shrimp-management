@@ -556,7 +556,8 @@ if (DEBUG_CONFIG.enabled) {
 
 export { debugStore, DEBUG_CONFIG };
 
-export default {
+// Create a named object for default export to fix linting warning
+const debugUtilsExports = {
   PerformanceDebugger,
   NetworkDebugger,
   UserActionDebugger,
@@ -565,3 +566,5 @@ export default {
   debugStore,
   config: DEBUG_CONFIG
 };
+
+export default debugUtilsExports;

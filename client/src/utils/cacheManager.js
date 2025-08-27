@@ -724,9 +724,12 @@ if (typeof window !== 'undefined') {
   });
 }
 
-export default {
+// Create a named object for default export to fix linting warning
+const cacheManagerExports = {
   CacheManager,
   CacheStrategy,
   CacheConfig,
   globalCache
 };
+
+export default cacheManagerExports;

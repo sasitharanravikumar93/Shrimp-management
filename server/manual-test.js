@@ -1,3 +1,6 @@
+// Development-only test file - console statements are acceptable here
+// This file is not part of the production application
+
 const mongoose = require('mongoose');
 const Season = require('./models/Season');
 

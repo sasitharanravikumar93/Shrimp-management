@@ -2,6 +2,7 @@
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const moment = require('moment');
+const { logger } = require('./utils/logger');
 
 dotenv.config({ path: '/Users/sasi/operation/server/.env' });
 
@@ -24,7 +25,7 @@ const seedDatabase = async () => {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-    console.log('MongoDB connected');
+    logger.info('MongoDB connected');
 
     // Clear existing data
     await Promise.all([
@@ -41,7 +42,7 @@ const seedDatabase = async () => {
       User.deleteMany({}),
       WaterQualityInput.deleteMany({}),
     ]);
-    console.log('Cleared existing data');
+    logger.info('Cleared existing data');
 
     // Create a season
     const season = await Season.create({
@@ -50,7 +51,7 @@ const seedDatabase = async () => {
       endDate: moment().add(5, 'months').toDate(),
       status: 'Active',
     });
-    console.log('Created season');
+    logger.info('Created season');
 
     // Create ponds
     const ponds = await Pond.create([
@@ -69,7 +70,7 @@ const seedDatabase = async () => {
         status: 'Active',
       },
     ]);
-    console.log('Created ponds');
+    logger.info('Created ponds');
 
     // Create a nursery batch
     const nurseryBatch = await NurseryBatch.create({
@@ -83,14 +84,14 @@ const seedDatabase = async () => {
       capacity: 50000,
       status: 'Active',
     });
-    console.log('Created nursery batch');
+    logger.info('Created nursery batch');
 
     // Create employees
     const employees = await Employee.create([
       { name: 'John Doe', role: 'Farm Manager', hireDate: new Date() },
       { name: 'Jane Smith', role: 'Technician', hireDate: new Date() },
     ]);
-    console.log('Created employees');
+    logger.info('Created employees');
 
     // Create inventory items
     const inventoryItems = await InventoryItem.create([
@@ -115,7 +116,7 @@ const seedDatabase = async () => {
         seasonId: season._id,
       },
     ]);
-    console.log('Created inventory items');
+    logger.info('Created inventory items');
 
     // Create feed inputs
     const feedInputs = [];
@@ -132,7 +133,7 @@ const seedDatabase = async () => {
       }
     }
     await FeedInput.create(feedInputs);
-    console.log('Created feed inputs');
+    logger.info('Created feed inputs');
 
     // Create water quality inputs
     const waterQualityInputs = [];
@@ -151,7 +152,7 @@ const seedDatabase = async () => {
       }
     }
     await WaterQualityInput.create(waterQualityInputs);
-    console.log('Created water quality inputs');
+    logger.info('Created water quality inputs');
 
     // Create growth samplings
     const growthSamplings = [];
@@ -168,7 +169,7 @@ const seedDatabase = async () => {
       }
     }
     await GrowthSampling.create(growthSamplings);
-    console.log('Created growth samplings');
+    logger.info('Created growth samplings');
 
     // Create events
     const events = [
@@ -195,7 +196,7 @@ const seedDatabase = async () => {
       },
     ];
     await Event.create(events);
-    console.log('Created events');
+    logger.info('Created events');
 
     // Create expenses
     const expenses = [
@@ -220,19 +221,19 @@ const seedDatabase = async () => {
       },
     ];
     await Expense.create(expenses);
-    console.log('Created expenses');
+    logger.info('Created expenses');
 
     // Create users
     await User.create([
       { username: 'admin', password: 'password', language: 'en' },
       { username: 'user', password: 'password', language: 'en' },
     ]);
-    console.log('Created users');
+    logger.info('Created users');
 
-    console.log('Database seeded successfully');
+    logger.info('Database seeded successfully');
     mongoose.connection.close();
   } catch (error) {
-    console.error('Error seeding database:', error);
+    logger.error('Error seeding database:', error);
     mongoose.connection.close();
   }
 };

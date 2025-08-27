@@ -1,5 +1,7 @@
 import localforage from 'localforage';
 
+import logger from './logger';
+
 // Initialize localForage
 const offlineStore = localforage.createInstance({
   name: 'ShrimpFarmManagement',
@@ -22,7 +24,7 @@ export const saveOfflineData = async (key, data) => {
     await offlineStore.setItem(key, data);
     return true;
   } catch (error) {
-    console.error('Error saving offline data:', error);
+    logger.error('Error saving offline data:', error);
     return false;
   }
 };
@@ -35,7 +37,7 @@ export const getOfflineData = async key => {
   try {
     return await offlineStore.getItem(key);
   } catch (error) {
-    console.error('Error retrieving offline data:', error);
+    logger.error('Error retrieving offline data:', error);
     return null;
   }
 };
@@ -49,7 +51,7 @@ export const removeOfflineData = async key => {
     await offlineStore.removeItem(key);
     return true;
   } catch (error) {
-    console.error('Error removing offline data:', error);
+    logger.error('Error removing offline data:', error);
     return false;
   }
 };
@@ -75,7 +77,7 @@ export const addToSyncQueue = async (endpoint, method, data, identifier) => {
     await syncQueue.setItem(queueItem.id.toString(), queueItem);
     return queueItem.id;
   } catch (error) {
-    console.error('Error adding to sync queue:', error);
+    logger.error('Error adding to sync queue:', error);
     return null;
   }
 };
@@ -89,11 +91,11 @@ export const processSyncQueue = async apiCall => {
     const keys = await syncQueue.keys();
 
     if (keys.length === 0) {
-      console.log('Sync queue is empty');
+      logger.info('Sync queue is empty');
       return { success: true, processed: 0, failed: 0 };
     }
 
-    console.log(`Processing ${keys.length} items in sync queue`);
+    logger.info(`Processing ${keys.length} items in sync queue`);
 
     let processed = 0;
     let failed = 0;
@@ -111,21 +113,21 @@ export const processSyncQueue = async apiCall => {
           // Remove from queue on success
           await syncQueue.removeItem(key);
           processed++;
-          console.log(`Successfully synced item ${item.id}`);
+          logger.info(`Successfully synced item ${item.id}`);
         } else {
           // Keep in queue on failure
           failed++;
-          console.error(`Failed to sync item ${item.id}:`, response.status, response.statusText);
+          logger.error(`Failed to sync item ${item.id}:`, response.status, response.statusText);
         }
       } catch (error) {
         failed++;
-        console.error(`Error processing sync item ${key}:`, error);
+        logger.error(`Error processing sync item ${key}:`, error);
       }
     }
 
     return { success: true, processed, failed };
   } catch (error) {
-    console.error('Error processing sync queue:', error);
+    logger.error('Error processing sync queue:', error);
     return { success: false, processed: 0, failed: 0, error: error.message };
   }
 };
@@ -145,7 +147,7 @@ export const getSyncQueueItems = async () => {
 
     return items;
   } catch (error) {
-    console.error('Error getting sync queue items:', error);
+    logger.error('Error getting sync queue items:', error);
     return [];
   }
 };
@@ -158,12 +160,12 @@ export const clearSyncQueue = async () => {
     await syncQueue.clear();
     return true;
   } catch (error) {
-    console.error('Error clearing sync queue:', error);
+    logger.error('Error clearing sync queue:', error);
     return false;
   }
 };
 
-export default {
+const offlineSync = {
   saveOfflineData,
   getOfflineData,
   removeOfflineData,
@@ -172,3 +174,5 @@ export default {
   getSyncQueueItems,
   clearSyncQueue
 };
+
+export default offlineSync;

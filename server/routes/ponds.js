@@ -4,6 +4,7 @@ const pondController = require('../controllers/pondController');
 const { cacheMiddleware, clearCache } = require('../middleware/cache');
 const { pondValidation } = require('../middleware/validation');
 const { authenticate, requireResourcePermission } = require('../middleware/auth');
+const { logger } = require('../utils/logger');
 
 // Protect all routes with authentication
 router.use(authenticate);
@@ -50,7 +51,7 @@ router.put('/:id', requireResourcePermission('ponds', 'write'), pondValidation.u
       }
     })
     .catch(error => {
-      console.error('Error clearing cache during pond update:', error);
+      logger.error('Error clearing cache during pond update:', error);
     })
     .finally(() => {
       next();
@@ -71,7 +72,7 @@ router.delete('/:id', requireResourcePermission('ponds', 'delete'), pondControll
       }
     })
     .catch(error => {
-      console.error('Error clearing cache during pond deletion:', error);
+      logger.error('Error clearing cache during pond deletion:', error);
     })
     .finally(() => {
       next();
