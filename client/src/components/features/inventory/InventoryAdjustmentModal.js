@@ -93,7 +93,6 @@ const InventoryAdjustmentModal = ({ open, onClose, item }) => {
               Current Quantity: {item?.currentQuantity} {item?.unit}
             </Typography>
             <TextField
-              autoFocus
               margin='dense'
               label='Adjustment Quantity (e.g., -5 for deduction, 10 for addition)'
               type='number'

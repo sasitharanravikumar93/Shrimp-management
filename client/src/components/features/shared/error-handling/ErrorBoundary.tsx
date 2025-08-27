@@ -128,7 +128,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
             </Typography>
 
             <Typography variant='h6' color='text.secondary' paragraph>
-              We encountered an unexpected error. Don't worry, we're working to fix it.
+              We encountered an unexpected error. Don&apos;t worry, we&apos;re working to fix it.
             </Typography>
 
             <Alert severity='error' sx={{ width: '100%', textAlign: 'left' }}>

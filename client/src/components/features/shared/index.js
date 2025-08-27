@@ -3,6 +3,36 @@
  * Central export point for all shared components across features
  */
 
+// Import all components and their exports
+import DataTable, { CELL_TYPES, createColumn, createActionColumn } from './DataTable';
+import DataVisualization, {
+  CHART_TYPES,
+  MetricsBarChart,
+  TrendLineChart,
+  DistributionPieChart,
+  GrowthAreaChart
+} from './DataVisualization';
+import FilterPanel, {
+  FILTER_TYPES,
+  createFilter,
+  createSelectFilter,
+  createDateRangeFilter,
+  createTextFilter,
+  createNumberFilter
+} from './FilterPanel';
+import MetricsGrid, {
+  METRIC_TYPES,
+  GRID_LAYOUTS,
+  DashboardMetrics,
+  PerformanceMetrics,
+  CompactMetrics,
+  FinancialMetrics,
+  createMetric,
+  createFinancialMetric,
+  createPercentageMetric,
+  formatters
+} from './MetricsGrid';
+
 // UI Components
 export * from './ui';
 

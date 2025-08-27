@@ -1,6 +1,7 @@
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import PropTypes from 'prop-types';
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
 
@@ -28,90 +29,162 @@ jest.mock('react-router-dom', () => ({
 }));
 
 // Mock the chart components from recharts
+const MockResponsiveContainer = ({ children }) => (
+  <div data-testid='responsive-container'>{children}</div>
+);
+MockResponsiveContainer.displayName = 'ResponsiveContainer';
+MockResponsiveContainer.propTypes = {
+  children: PropTypes.node.isRequired
+};
+
+const MockBarChart = () => <div data-testid='bar-chart'>Bar Chart</div>;
+MockBarChart.displayName = 'BarChart';
+const MockBar = () => <div data-testid='bar'>Bar</div>;
+MockBar.displayName = 'Bar';
+const MockXAxis = () => <div data-testid='x-axis'>X Axis</div>;
+MockXAxis.displayName = 'XAxis';
+const MockYAxis = () => <div data-testid='y-axis'>Y Axis</div>;
+MockYAxis.displayName = 'YAxis';
+const MockCartesianGrid = () => <div data-testid='cartesian-grid'>Cartesian Grid</div>;
+MockCartesianGrid.displayName = 'CartesianGrid';
+const MockTooltip = () => <div data-testid='tooltip'>Tooltip</div>;
+MockTooltip.displayName = 'Tooltip';
+const MockLegend = () => <div data-testid='legend'>Legend</div>;
+MockLegend.displayName = 'Legend';
+const MockLineChart = () => <div data-testid='line-chart'>Line Chart</div>;
+MockLineChart.displayName = 'LineChart';
+const MockLine = () => <div data-testid='line'>Line</div>;
+MockLine.displayName = 'Line';
+const MockPieChart = () => <div data-testid='pie-chart'>Pie Chart</div>;
+MockPieChart.displayName = 'PieChart';
+const MockPie = () => <div data-testid='pie'>Pie</div>;
+MockPie.displayName = 'Pie';
+const MockCell = () => <div data-testid='cell'>Cell</div>;
+MockCell.displayName = 'Cell';
+
 jest.mock('recharts', () => ({
   ...jest.requireActual('recharts'),
-  ResponsiveContainer: ({ children }) => <div data-testid='responsive-container'>{children}</div>,
-  BarChart: () => <div data-testid='bar-chart'>Bar Chart</div>,
-  Bar: () => <div data-testid='bar'>Bar</div>,
-  XAxis: () => <div data-testid='x-axis'>X Axis</div>,
-  YAxis: () => <div data-testid='y-axis'>Y Axis</div>,
-  CartesianGrid: () => <div data-testid='cartesian-grid'>Cartesian Grid</div>,
-  Tooltip: () => <div data-testid='tooltip'>Tooltip</div>,
-  Legend: () => <div data-testid='legend'>Legend</div>,
-  LineChart: () => <div data-testid='line-chart'>Line Chart</div>,
-  Line: () => <div data-testid='line'>Line</div>,
-  PieChart: () => <div data-testid='pie-chart'>Pie Chart</div>,
-  Pie: () => <div data-testid='pie'>Pie</div>,
-  Cell: () => <div data-testid='cell'>Cell</div>
+  ResponsiveContainer: MockResponsiveContainer,
+  BarChart: MockBarChart,
+  Bar: MockBar,
+  XAxis: MockXAxis,
+  YAxis: MockYAxis,
+  CartesianGrid: MockCartesianGrid,
+  Tooltip: MockTooltip,
+  Legend: MockLegend,
+  LineChart: MockLineChart,
+  Line: MockLine,
+  PieChart: MockPieChart,
+  Pie: MockPie,
+  Cell: MockCell
 }));
 
 // Mock the components that are imported
-jest.mock('../components/KPICard', () => {
-  return ({ title, value, suffix, changeText }) => (
-    <div data-testid='kpi-card'>
-      <span data-testid='kpi-title'>{title}</span>
-      <span data-testid='kpi-value'>
-        {value}
-        {suffix}
-      </span>
-      {changeText && <span data-testid='kpi-change'>{changeText}</span>}
-    </div>
-  );
-});
+const MockKPICard = ({ title, value, suffix, changeText }) => (
+  <div data-testid='kpi-card'>
+    <span data-testid='kpi-title'>{title}</span>
+    <span data-testid='kpi-value'>
+      {value}
+      {suffix}
+    </span>
+    {changeText && <span data-testid='kpi-change'>{changeText}</span>}
+  </div>
+);
+MockKPICard.displayName = 'KPICard';
+MockKPICard.propTypes = {
+  title: PropTypes.string.isRequired,
+  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+  suffix: PropTypes.string,
+  changeText: PropTypes.string
+};
+jest.mock('../components/KPICard', () => MockKPICard);
 
-jest.mock('../components/AlertBanner', () => {
-  return ({ message, severity, dismissible, onClose }) => (
-    <div data-testid='alert-banner' data-severity={severity}>
-      <span>{message}</span>
-      {dismissible && <button onClick={onClose}>Close</button>}
-    </div>
-  );
-});
+const MockAlertBanner = ({ message, severity, dismissible, onClose }) => (
+  <div data-testid='alert-banner' data-severity={severity}>
+    <span>{message}</span>
+    {dismissible && <button onClick={onClose}>Close</button>}
+  </div>
+);
+MockAlertBanner.displayName = 'AlertBanner';
+MockAlertBanner.propTypes = {
+  message: PropTypes.string.isRequired,
+  severity: PropTypes.string.isRequired,
+  dismissible: PropTypes.bool,
+  onClose: PropTypes.func
+};
+jest.mock('../components/AlertBanner', () => MockAlertBanner);
 
-jest.mock('../components/AquacultureTooltip', () => {
-  return ({ children }) => <div data-testid='aquaculture-tooltip'>{children}</div>;
-});
+const MockAquacultureTooltip = ({ children }) => (
+  <div data-testid='aquaculture-tooltip'>{children}</div>
+);
+MockAquacultureTooltip.displayName = 'AquacultureTooltip';
+MockAquacultureTooltip.propTypes = {
+  children: PropTypes.node.isRequired
+};
+jest.mock('../components/AquacultureTooltip', () => MockAquacultureTooltip);
 
-jest.mock('../components/PredictiveInsight', () => {
-  return ({ title, insight }) => (
-    <div data-testid='predictive-insight'>
-      <span data-testid='insight-title'>{title}</span>
-      <span data-testid='insight-content'>{insight}</span>
-    </div>
-  );
-});
+const MockPredictiveInsight = ({ title, insight }) => (
+  <div data-testid='predictive-insight'>
+    <span data-testid='insight-title'>{title}</span>
+    <span data-testid='insight-content'>{insight}</span>
+  </div>
+);
+MockPredictiveInsight.displayName = 'PredictiveInsight';
+MockPredictiveInsight.propTypes = {
+  title: PropTypes.string.isRequired,
+  insight: PropTypes.string.isRequired
+};
+jest.mock('../components/PredictiveInsight', () => MockPredictiveInsight);
 
-jest.mock('../components/HealthScore', () => {
-  return ({ score }) => <div data-testid='health-score'>{score}</div>;
-});
+const MockHealthScore = ({ score }) => <div data-testid='health-score'>{score}</div>;
+MockHealthScore.displayName = 'HealthScore';
+MockHealthScore.propTypes = {
+  score: PropTypes.number.isRequired
+};
+jest.mock('../components/HealthScore', () => MockHealthScore);
 
-jest.mock('../components/PondCard', () => {
-  return ({ pond, onClick, onManageClick, onTimelineClick }) => (
-    <div data-testid='pond-card'>
-      <span data-testid='pond-name'>{pond.name}</span>
-      <span data-testid='pond-status'>{pond.status}</span>
-      <button onClick={() => onClick()}>View</button>
-      <button onClick={() => onManageClick()}>Manage</button>
-      <button onClick={() => onTimelineClick()}>Timeline</button>
-    </div>
-  );
-});
+const MockPondCard = ({ pond, onClick, onManageClick, onTimelineClick }) => (
+  <div data-testid='pond-card'>
+    <span data-testid='pond-name'>{pond.name}</span>
+    <span data-testid='pond-status'>{pond.status}</span>
+    <button onClick={() => onClick()}>View</button>
+    <button onClick={() => onManageClick()}>Manage</button>
+    <button onClick={() => onTimelineClick()}>Timeline</button>
+  </div>
+);
+MockPondCard.displayName = 'PondCard';
+MockPondCard.propTypes = {
+  pond: PropTypes.shape({
+    name: PropTypes.string.isRequired,
+    status: PropTypes.string.isRequired
+  }).isRequired,
+  onClick: PropTypes.func.isRequired,
+  onManageClick: PropTypes.func.isRequired,
+  onTimelineClick: PropTypes.func.isRequired
+};
+jest.mock('../components/PondCard', () => MockPondCard);
 
-jest.mock('../components/DataTrend', () => {
-  return ({ title }) => (
-    <div data-testid='data-trend'>
-      <div data-testid='data-trend-title'>{title}</div>
-    </div>
-  );
-});
+const MockDataTrend = ({ title }) => (
+  <div data-testid='data-trend'>
+    <div data-testid='data-trend-title'>{title}</div>
+  </div>
+);
+MockDataTrend.displayName = 'DataTrend';
+MockDataTrend.propTypes = {
+  title: PropTypes.string.isRequired
+};
+jest.mock('../components/DataTrend', () => MockDataTrend);
 
-jest.mock('../components/QuickActions', () => {
-  return ({ onActionClick }) => (
-    <div data-testid='quick-actions'>
-      <button onClick={() => onActionClick({ id: 1, title: 'Test Action' })}>Quick Actions</button>
-    </div>
-  );
-});
+const MockQuickActions = ({ onActionClick }) => (
+  <div data-testid='quick-actions'>
+    <button onClick={() => onActionClick({ id: 1, title: 'Test Action' })}>Quick Actions</button>
+  </div>
+);
+MockQuickActions.displayName = 'QuickActions';
+MockQuickActions.propTypes = {
+  onActionClick: PropTypes.func.isRequired
+};
+jest.mock('../components/QuickActions', () => MockQuickActions);
 
 // Create a theme for testing
 const theme = createTheme();
@@ -122,6 +195,9 @@ const WithProviders = ({ children }) => (
     <BrowserRouter>{children}</BrowserRouter>
   </ThemeProvider>
 );
+WithProviders.propTypes = {
+  children: PropTypes.node.isRequired
+};
 
 describe('DashboardPage', () => {
   const mockPonds = [
@@ -158,7 +234,7 @@ describe('DashboardPage', () => {
     jest.clearAllMocks();
 
     // Mock API functions
-    api.getPonds = jest.fn().mockResolvedValue({ data: mockPonds });
+    jest.spyOn(api, 'getPonds').mockResolvedValue({ data: mockPonds });
   });
 
   it('renders dashboard page with title and welcome message', async () => {
@@ -296,7 +372,7 @@ describe('DashboardPage', () => {
 
   it('shows loading state initially', async () => {
     // Mock API to simulate loading
-    api.getPonds = jest.fn(() => new Promise(() => {})); // Never resolves
+    jest.spyOn(api, 'getPonds').mockImplementation(() => new Promise(() => {})); // Never resolves
 
     render(
       <WithProviders>
@@ -315,7 +391,7 @@ describe('DashboardPage', () => {
 
   it('shows error state when API call fails', async () => {
     // Mock API to simulate error
-    api.getPonds = jest.fn().mockRejectedValue(new Error('Failed to fetch ponds'));
+    jest.spyOn(api, 'getPonds').mockRejectedValue(new Error('Failed to fetch ponds'));
 
     render(
       <WithProviders>
@@ -327,7 +403,7 @@ describe('DashboardPage', () => {
     await waitFor(
       () => {
         expect(
-          screen.getByText((content, element) => {
+          screen.getByText((content, _element) => {
             return content.includes('Error loading dashboard data');
           })
         ).toBeInTheDocument();
@@ -337,7 +413,7 @@ describe('DashboardPage', () => {
 
     // Should show error message
     expect(
-      screen.getByText((content, element) => {
+      screen.getByText((content, _element) => {
         return content.includes('Failed to fetch ponds');
       })
     ).toBeInTheDocument();

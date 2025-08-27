@@ -42,7 +42,7 @@ describe('SeasonContext', () => {
     jest.clearAllMocks();
 
     // Mock API functions
-    api.getSeasons = jest.fn().mockResolvedValue(mockSeasons);
+    jest.spyOn(api, 'getSeasons').mockResolvedValue(mockSeasons);
   });
 
   it('provides seasons data and selects active season by default', async () => {
@@ -72,7 +72,7 @@ describe('SeasonContext', () => {
 
   it('handles API error gracefully', async () => {
     // Mock API to simulate error
-    api.getSeasons = jest.fn().mockRejectedValue(new Error('Failed to fetch seasons'));
+    jest.spyOn(api, 'getSeasons').mockRejectedValue(new Error('Failed to fetch seasons'));
 
     render(
       <SeasonProvider>
@@ -136,7 +136,7 @@ describe('SeasonContext', () => {
       { id: '3', name: 'Test Season 3', status: 'Planned' }
     ];
 
-    api.getSeasons = jest.fn().mockResolvedValue(mockSeasonsWithoutActive);
+    jest.spyOn(api, 'getSeasons').mockResolvedValue(mockSeasonsWithoutActive);
 
     render(
       <SeasonProvider>

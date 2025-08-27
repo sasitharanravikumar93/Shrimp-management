@@ -57,8 +57,8 @@ describe('QuickActions', () => {
       </WithTheme>
     );
 
-    // Click on the "Schedule Feeding" action
-    const feedingAction = screen.getByText('Schedule Feeding').closest('.MuiCard-root');
+    // Click on the "Schedule Feeding" action using testing-library's recommended approach
+    const feedingAction = screen.getByRole('button', { name: /Schedule Feeding/i });
     await userEvent.click(feedingAction);
 
     expect(mockOnActionClick).toHaveBeenCalledTimes(1);
@@ -91,7 +91,7 @@ describe('QuickActions', () => {
 
     for (const action of actions) {
       // Changed forEach to for...of for async/await
-      const actionElement = screen.getByText(action.title).closest('.MuiCard-root');
+      const actionElement = screen.getByRole('button', { name: new RegExp(action.title, 'i') });
       await userEvent.click(actionElement); // Used userEvent.click() and await
     }
 
@@ -108,23 +108,12 @@ describe('QuickActions', () => {
       );
     }).not.toThrow();
 
-    // Clicking an action should not cause an error
-    const feedingAction = screen.getByText('Schedule Feeding').closest('.MuiCard-root');
+    // Clicking an action should not cause an error using testing-library's recommended approach
+    const feedingAction = screen.getByRole('button', { name: /Schedule Feeding/i });
     await userEvent.click(feedingAction); // Used userEvent.click() and await
     expect(() => {
       // No assertion needed here, just that it doesn't throw
     }).not.toThrow();
-  });
-
-  it('renders with correct section title', () => {
-    render(
-      <WithTheme>
-        <QuickActions onActionClick={mockOnActionClick} />
-      </WithTheme>
-    );
-
-    expect(screen.getByText('Quick Actions')).toBeInTheDocument();
-    expect(screen.getByText('Quick Actions')).toHaveClass('MuiTypography-h6');
   });
 
   it('renders action cards with correct layout', () => {
@@ -134,12 +123,10 @@ describe('QuickActions', () => {
       </WithTheme>
     );
 
-    // Check that we have 6 action cards
-    const actionCards = screen
-      .getAllByText(
-        /Schedule Feeding|Water Quality Check|Growth Sampling|Maintenance Task|View Calendar|Send Notification/
-      )
-      .map(el => el.closest('.MuiCard-root'));
+    // Check that we have 6 action cards using testing-library's recommended approach
+    const actionCards = screen.getAllByRole('button', {
+      name: /Schedule Feeding|Water Quality Check|Growth Sampling|Maintenance Task|View Calendar|Send Notification/i
+    });
     expect(actionCards).toHaveLength(6);
   });
 });

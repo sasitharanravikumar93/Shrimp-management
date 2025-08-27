@@ -352,12 +352,12 @@ describe('Performance Optimization Utilities', () => {
 
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
-      const result = performanceMonitor.measureRender('TestComponent', () => {
+      const view = performanceMonitor.measureRender('TestComponent', () => {
         // Simulate some work
         return 'result';
       });
 
-      expect(result).toBe('result');
+      expect(view).toBe('result');
       expect(consoleSpy).toHaveBeenCalledWith(
         expect.stringContaining('TestComponent render time:')
       );
@@ -372,11 +372,11 @@ describe('Performance Optimization Utilities', () => {
 
       const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
 
-      const result = performanceMonitor.measureRender('TestComponent', () => {
+      const view = performanceMonitor.measureRender('TestComponent', () => {
         return 'result';
       });
 
-      expect(result).toBe('result');
+      expect(view).toBe('result');
       expect(consoleSpy).not.toHaveBeenCalled();
 
       consoleSpy.mockRestore();

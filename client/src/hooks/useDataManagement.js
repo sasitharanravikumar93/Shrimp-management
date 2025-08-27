@@ -152,7 +152,7 @@ export const useDataTable = (data = [], options = {}) => {
  * @returns {Object} CRUD handlers and state
  */
 export const useCrudOperations = (apiMethods = {}, options = {}) => {
-  const { onSuccess = () => { }, onError = () => { }, optimisticUpdates = true } = options;
+  const { onSuccess = () => {}, onError = () => {}, optimisticUpdates = true } = options;
 
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState({});

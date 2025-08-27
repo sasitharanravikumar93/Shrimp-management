@@ -6,6 +6,3 @@
 export { default as WaterQualityAlert } from './WaterQualityAlert';
 export { default as WaterQualityLog } from './WaterQualityLog';
 export { default as HealthScore } from './HealthScore';
-
-// Test exports (for testing purposes)
-export { default as HealthScoreTest } from './HealthScore.test';

@@ -64,7 +64,10 @@ export const OptimizedBarChart = memo(
     const chartRef = useRef(null);
 
     // Use virtualized data for large datasets (always call the hook)
-    const processedData = useVirtualizedData(data, enableVirtualization ? maxDataPoints : data?.length || 0);
+    const processedData = useVirtualizedData(
+      data,
+      enableVirtualization ? maxDataPoints : data?.length || 0
+    );
 
     // Debounce data changes to prevent excessive re-renders
     const debouncedData = useDebounce(processedData, CHART_PERFORMANCE.DEBOUNCE_DELAY);
@@ -176,7 +179,10 @@ export const OptimizedLineChart = memo(
     const chartRef = useRef(null);
 
     // Use virtualized data for large datasets (always call the hook)
-    const processedData = useVirtualizedData(data, enableVirtualization ? maxDataPoints : data?.length || 0);
+    const processedData = useVirtualizedData(
+      data,
+      enableVirtualization ? maxDataPoints : data?.length || 0
+    );
 
     // Debounce data changes
     const debouncedData = useDebounce(processedData, CHART_PERFORMANCE.DEBOUNCE_DELAY);

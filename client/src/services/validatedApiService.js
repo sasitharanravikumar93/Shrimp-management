@@ -13,6 +13,8 @@
  * - Retry logic with validation
  */
 
+import React from 'react';
+
 import { useApiValidation } from '../hooks/useDataValidation';
 import {
   validateApiResponse,

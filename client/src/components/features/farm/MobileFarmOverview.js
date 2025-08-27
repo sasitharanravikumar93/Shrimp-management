@@ -36,10 +36,10 @@ import { getPonds, getWaterQualityInputs, getFeedInputs } from '../../../service
 import logger from '../../../utils/logger';
 import { useMobileDetection } from '../../../utils/responsiveUtils';
 
-import { 
-  MobileGrid, 
-  MobileKPICard, 
-  MobilePondCard, 
+import {
+  MobileGrid,
+  MobileKPICard,
+  MobilePondCard,
   TouchButton,
   SkeletonCard,
   ExpandableMobileCard
@@ -106,23 +106,23 @@ const MobileFarmOverview = () => {
     const avgGrowthRate =
       filteredPonds.length > 0
         ? filteredPonds.reduce((sum, pond) => sum + (pond.growthRate || DEFAULT_GROWTH_RATE), 0) /
-        filteredPonds.length
+          filteredPonds.length
         : DEFAULT_GROWTH_RATE;
 
     const feedEfficiency =
       filteredPonds.length > 0
         ? filteredPonds.reduce(
-          (sum, pond) => sum + (pond.feedEfficiency || DEFAULT_FEED_EFFICIENCY),
-          0
-        ) / filteredPonds.length
+            (sum, pond) => sum + (pond.feedEfficiency || DEFAULT_FEED_EFFICIENCY),
+            0
+          ) / filteredPonds.length
         : DEFAULT_FEED_EFFICIENCY;
 
     const waterQuality =
       filteredPonds.length > 0
         ? filteredPonds.reduce(
-          (sum, pond) => sum + (pond.waterQualityScore || DEFAULT_WATER_QUALITY_SCORE),
-          0
-        ) / filteredPonds.length
+            (sum, pond) => sum + (pond.waterQualityScore || DEFAULT_WATER_QUALITY_SCORE),
+            0
+          ) / filteredPonds.length
         : DEFAULT_WATER_QUALITY_SCORE;
 
     return [

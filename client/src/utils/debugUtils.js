@@ -3,7 +3,9 @@
  * Provides comprehensive debugging tools, error context, and development helpers
  */
 
-import { LogLevel } from './logger';
+import React from 'react';
+
+import { LOG_LEVELS } from './logger';
 
 // ===================
 // DEBUG CONFIGURATION
@@ -85,7 +87,7 @@ export class ComponentDebugger {
 
     const componentInfo = {
       type: 'component',
-      level: LogLevel.DEBUG,
+      level: LOG_LEVELS.DEBUG,
       component: componentName,
       data: {
         props: this.sanitizeProps(props),
@@ -103,7 +105,7 @@ export class ComponentDebugger {
 
     debugStore.addEntry({
       type: 'state_change',
-      level: LogLevel.DEBUG,
+      level: LOG_LEVELS.DEBUG,
       component: componentName,
       data: {
         action,
@@ -122,7 +124,7 @@ export class ComponentDebugger {
     if (Object.keys(propsDiff).length > 0) {
       debugStore.addEntry({
         type: 'props_change',
-        level: LogLevel.DEBUG,
+        level: LOG_LEVELS.DEBUG,
         component: componentName,
         data: {
           prevProps: this.sanitizeProps(prevProps),
@@ -207,7 +209,7 @@ export class PerformanceDebugger {
 
     debugStore.addEntry({
       type: 'performance_start',
-      level: LogLevel.DEBUG,
+      level: LOG_LEVELS.DEBUG,
       data: { label, markId, metadata }
     });
 
@@ -228,7 +230,7 @@ export class PerformanceDebugger {
 
     debugStore.addEntry({
       type: 'performance_end',
-      level: LogLevel.DEBUG,
+      level: LOG_LEVELS.DEBUG,
       data: {
         label: mark.label,
         markId,
@@ -259,7 +261,7 @@ export class PerformanceDebugger {
 
       debugStore.addEntry({
         type: 'function_error',
-        level: LogLevel.ERROR,
+        level: LOG_LEVELS.ERROR,
         data: {
           functionName,
           error: error.message,
@@ -285,7 +287,7 @@ export class PerformanceDebugger {
 
       debugStore.addEntry({
         type: 'async_error',
-        level: LogLevel.ERROR,
+        level: LOG_LEVELS.ERROR,
         data: {
           label,
           error: error.message,
@@ -311,7 +313,7 @@ export class NetworkDebugger {
 
     debugStore.addEntry({
       type: 'network_request',
-      level: LogLevel.DEBUG,
+      level: LOG_LEVELS.DEBUG,
       data: {
         requestId,
         method: config.method,
@@ -337,7 +339,7 @@ export class NetworkDebugger {
 
     debugStore.addEntry({
       type: 'network_response',
-      level: error ? LogLevel.ERROR : LogLevel.DEBUG,
+      level: error ? LOG_LEVELS.ERROR : LOG_LEVELS.DEBUG,
       data: {
         requestId,
         status: response?.status,
@@ -370,7 +372,7 @@ export class UserActionDebugger {
 
     const actionEntry = {
       type: 'user_action',
-      level: LogLevel.INFO,
+      level: LOG_LEVELS.INFO,
       component,
       data: {
         action,
@@ -552,19 +554,9 @@ if (DEBUG_CONFIG.enabled) {
 // EXPORTS
 // ===================
 
-export {
-  ComponentDebugger,
-  PerformanceDebugger,
-  NetworkDebugger,
-  UserActionDebugger,
-  ErrorContextEnhancer,
-  DebugConsole,
-  debugStore,
-  DEBUG_CONFIG
-};
+export { debugStore, DEBUG_CONFIG };
 
 export default {
-  ComponentDebugger,
   PerformanceDebugger,
   NetworkDebugger,
   UserActionDebugger,

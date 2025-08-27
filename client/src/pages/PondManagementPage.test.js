@@ -1,6 +1,7 @@
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import PropTypes from 'prop-types';
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
 
@@ -42,9 +43,13 @@ jest.mock('date-fns', () => ({
 }));
 
 // Mock the chart components from recharts
+const MockResponsiveContainer = ({ children }) => (
+  <div data-testid='responsive-container'>{children}</div>
+);
+MockResponsiveContainer.propTypes = { children: PropTypes.node.isRequired };
 jest.mock('recharts', () => ({
   ...jest.requireActual('recharts'),
-  ResponsiveContainer: ({ children }) => <div data-testid='responsive-container'>{children}</div>,
+  ResponsiveContainer: MockResponsiveContainer,
   BarChart: () => <div data-testid='bar-chart'>Bar Chart</div>,
   Bar: () => <div data-testid='bar'>Bar</div>,
   XAxis: () => <div data-testid='x-axis'>X Axis</div>,
@@ -60,29 +65,28 @@ jest.mock('recharts', () => ({
 }));
 
 // Mock the components that are imported
-jest.mock('../components/CustomCalendar', () => {
-  return () => <div data-testid='custom-calendar'>Custom Calendar</div>;
-});
+const MockCustomCalendar = () => <div data-testid='custom-calendar'>Custom Calendar</div>;
+jest.mock('../components/CustomCalendar', () => MockCustomCalendar);
 
-jest.mock('../components/HarvestProjection', () => {
-  return () => <div data-testid='harvest-projection'>Harvest Projection</div>;
-});
+const MockHarvestProjection = () => <div data-testid='harvest-projection'>Harvest Projection</div>;
+jest.mock('../components/HarvestProjection', () => MockHarvestProjection);
 
-jest.mock('../components/FeedCalculator', () => {
-  return () => <div data-testid='feed-calculator'>Feed Calculator</div>;
-});
+const MockFeedCalculator = () => <div data-testid='feed-calculator'>Feed Calculator</div>;
+jest.mock('../components/FeedCalculator', () => MockFeedCalculator);
 
-jest.mock('../components/WaterQualityAlert', () => {
-  return () => <div data-testid='water-quality-alert'>Water Quality Alert</div>;
-});
+const MockWaterQualityAlert = () => (
+  <div data-testid='water-quality-alert'>Water Quality Alert</div>
+);
+jest.mock('../components/WaterQualityAlert', () => MockWaterQualityAlert);
 
-jest.mock('../components/EventSuggestions', () => {
-  return () => <div data-testid='event-suggestions'>Event Suggestions</div>;
-});
+const MockEventSuggestions = () => <div data-testid='event-suggestions'>Event Suggestions</div>;
+jest.mock('../components/EventSuggestions', () => MockEventSuggestions);
 
-jest.mock('../components/AquacultureTooltip', () => {
-  return ({ children }) => <div data-testid='aquaculture-tooltip'>{children}</div>;
-});
+const MockAquacultureTooltip = ({ children }) => (
+  <div data-testid='aquaculture-tooltip'>{children}</div>
+);
+MockAquacultureTooltip.propTypes = { children: PropTypes.node.isRequired };
+jest.mock('../components/AquacultureTooltip', () => MockAquacultureTooltip);
 
 // Mock react-hook-form
 jest.mock('react-hook-form', () => ({
@@ -98,17 +102,17 @@ jest.mock('react-hook-form', () => ({
 }));
 
 // Mock MUI date pickers
-jest.mock('@mui/x-date-pickers/LocalizationProvider', () => {
-  return ({ children }) => <div data-testid='localization-provider'>{children}</div>;
-});
+const MockLocalizationProvider = ({ children }) => (
+  <div data-testid='localization-provider'>{children}</div>
+);
+MockLocalizationProvider.propTypes = { children: PropTypes.node.isRequired };
+jest.mock('@mui/x-date-pickers/LocalizationProvider', () => MockLocalizationProvider);
 
-jest.mock('@mui/x-date-pickers/DatePicker', () => {
-  return () => <div data-testid='date-picker'>Date Picker</div>;
-});
+const MockDatePicker = () => <div data-testid='date-picker'>Date Picker</div>;
+jest.mock('@mui/x-date-pickers/DatePicker', () => MockDatePicker);
 
-jest.mock('@mui/x-date-pickers/TimePicker', () => {
-  return () => <div data-testid='time-picker'>Time Picker</div>;
-});
+const MockTimePicker = () => <div data-testid='time-picker'>Time Picker</div>;
+jest.mock('@mui/x-date-pickers/TimePicker', () => MockTimePicker);
 
 // Create a theme for testing
 const theme = createTheme();
@@ -119,6 +123,7 @@ const WithProviders = ({ children }) => (
     <BrowserRouter>{children}</BrowserRouter>
   </ThemeProvider>
 );
+WithProviders.propTypes = { children: PropTypes.node.isRequired };
 
 describe('PondManagementPage', () => {
   beforeEach(() => {
@@ -207,7 +212,7 @@ describe('PondManagementPage', () => {
     });
 
     // Mock API functions
-    api.getPondById = jest.fn().mockResolvedValue({
+    jest.spyOn(api, 'getPondById').mockResolvedValue({
       id: 'pond1',
       name: 'Test Pond',
       seasonId: { name: 'Test Season' },
@@ -216,13 +221,13 @@ describe('PondManagementPage', () => {
       projectedHarvest: '30 days'
     });
 
-    api.getFeedInputsByPondId = jest
-      .fn()
+    jest
+      .spyOn(api, 'getFeedInputsByPondId')
       .mockResolvedValue([
         { _id: 'feed1', feedType: 'Standard Feed', date: '2023-06-15', time: '14:30', quantity: 50 }
       ]);
 
-    api.getWaterQualityInputsByPondId = jest.fn().mockResolvedValue([
+    jest.spyOn(api, 'getWaterQualityInputsByPondId').mockResolvedValue([
       {
         _id: 'water1',
         pH: 7.2,
@@ -234,13 +239,13 @@ describe('PondManagementPage', () => {
       }
     ]);
 
-    api.getGrowthSamplingsByPondId = jest
-      .fn()
+    jest
+      .spyOn(api, 'getGrowthSamplingsByPondId')
       .mockResolvedValue([
         { _id: 'growth1', totalWeight: 500, totalCount: 25000, date: '2023-06-15', time: '14:30' }
       ]);
 
-    api.getEventsByPondId = jest.fn().mockResolvedValue([
+    jest.spyOn(api, 'getEventsByPondId').mockResolvedValue([
       {
         _id: 'event1',
         title: 'Feeding Event',
@@ -251,10 +256,10 @@ describe('PondManagementPage', () => {
       }
     ]);
 
-    api.createFeedInput = jest.fn().mockResolvedValue({});
-    api.createWaterQualityInput = jest.fn().mockResolvedValue({});
-    api.createGrowthSampling = jest.fn().mockResolvedValue({});
-    api.createEvent = jest.fn().mockResolvedValue({});
+    jest.spyOn(api, 'createFeedInput').mockResolvedValue({});
+    jest.spyOn(api, 'createWaterQualityInput').mockResolvedValue({});
+    jest.spyOn(api, 'createGrowthSampling').mockResolvedValue({});
+    jest.spyOn(api, 'createEvent').mockResolvedValue({});
   });
 
   it('renders pond management page with basic information', async () => {
@@ -379,7 +384,7 @@ describe('PondManagementPage', () => {
 
   it('shows loading state initially', () => {
     // Mock API calls to simulate loading
-    api.getPondById = jest.fn(() => new Promise(() => {})); // Never resolves
+    jest.spyOn(api, 'getPondById').mockImplementation(() => new Promise(() => {})); // Never resolves
 
     render(
       <WithProviders>
@@ -393,7 +398,7 @@ describe('PondManagementPage', () => {
 
   it('shows error state when API calls fail', async () => {
     // Mock API calls to simulate error
-    api.getPondById = jest.fn().mockRejectedValue(new Error('Failed to fetch pond'));
+    jest.spyOn(api, 'getPondById').mockRejectedValue(new Error('Failed to fetch pond'));
 
     render(
       <WithProviders>

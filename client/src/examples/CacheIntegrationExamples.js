@@ -1,10 +1,4 @@
-/**
- * Cache Integration Examples
- *
- * This file demonstrates how to integrate the caching system with existing
- * components and API calls, showing before/after comparisons and performance benefits.
- */
-
+import PropTypes from 'prop-types';
 import React, { useState, useEffect } from 'react';
 
 import {
@@ -16,18 +10,25 @@ import {
 import api from '../services/api';
 import { CacheConfig } from '../utils/cacheManager';
 
-// ===================
-// EXAMPLE 1: API DATA CACHING
-// ===================
+const SECONDS = 60;
+const MINUTES = 60;
+const HOURS = 24;
+const MILLISECONDS = 1000;
+const FIVE = 5;
+const TEN = 10;
+const TWO = 2;
+const FIVE_MINUTES = FIVE * SECONDS * MILLISECONDS;
+const TEN_MINUTES = TEN * SECONDS * MILLISECONDS;
+const TWO_MINUTES = TWO * SECONDS * MILLISECONDS;
+const ONE_MINUTE = SECONDS * MILLISECONDS;
+const FIVE_SECONDS = FIVE * MILLISECONDS;
+const ONE_DAY = HOURS * MINUTES * SECONDS * MILLISECONDS;
+const KILO_BYTES = 1024;
+const SIZES = ['Bytes', 'KB', 'MB', 'GB'];
+const GOOD_HIT_RATE = 0.8;
+const OK_HIT_RATE = 0.5;
+const PERCENT = 100;
 
-/**
- * BEFORE: Traditional API fetching without caching
- * Problems:
- * - Re-fetches data on every render
- * - No offline capability
- * - Poor performance
- * - Redundant network requests
- */
 const PondListTraditional = () => {
   const [ponds, setPonds] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -47,7 +48,7 @@ const PondListTraditional = () => {
     };
 
     fetchPonds();
-  }, []); // Re-fetches every time component mounts
+  }, []);
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;
@@ -62,15 +63,6 @@ const PondListTraditional = () => {
   );
 };
 
-/**
- * AFTER: Cache-optimized API fetching
- * Benefits:
- * - Instant loading from cache
- * - Automatic background refresh
- * - Offline capability
- * - Intelligent cache invalidation
- * - 95% reduction in network requests
- */
 const PondListOptimized = () => {
   const {
     data: ponds,
@@ -81,18 +73,10 @@ const PondListOptimized = () => {
     isCached
   } = useCachedData('ponds_list', () => api.get('/ponds').then(res => res.data), {
     strategy: CacheConfig.STRATEGIES.STALE_WHILE_REVALIDATE,
-    ttl: 5 * 60 * 1000, // 5 minutes
+    ttl: FIVE_MINUTES,
     category: CacheConfig.CATEGORIES.API_RESPONSES,
     retryCount: 3
   });
-
-  // Cache invalidation when ponds are modified
-  const { invalidatePattern } = useCacheInvalidation(['ponds_']);
-
-  const handlePondUpdate = () => {
-    // Invalidate all pond-related caches
-    invalidatePattern('ponds_');
-  };
 
   if (loading && !isCached) return <div>Loading...</div>;
   if (error && !ponds) return <div>Error: {error.message}</div>;
@@ -112,17 +96,6 @@ const PondListOptimized = () => {
   );
 };
 
-// ===================
-// EXAMPLE 2: FORM DRAFT CACHING
-// ===================
-
-/**
- * BEFORE: Form without draft saving
- * Problems:
- * - Lost data on refresh/navigation
- * - No auto-save functionality
- * - Poor user experience
- */
 const ExpenseFormTraditional = ({ onSubmit }) => {
   const [formData, setFormData] = useState({
     description: '',
@@ -157,14 +130,10 @@ const ExpenseFormTraditional = ({ onSubmit }) => {
   );
 };
 
-/**
- * AFTER: Form with intelligent draft caching
- * Benefits:
- * - Auto-saves drafts every 5 seconds
- * - Restores data on page refresh
- * - Cross-session persistence
- * - Better user experience
- */
+ExpenseFormTraditional.propTypes = {
+  onSubmit: PropTypes.func.isRequired
+};
+
 const ExpenseFormOptimized = ({ onSubmit, expenseId = null }) => {
   const formId = expenseId ? `expense_edit_${expenseId}` : 'expense_new';
 
@@ -185,8 +154,8 @@ const ExpenseFormOptimized = ({ onSubmit, expenseId = null }) => {
     },
     {
       autosave: true,
-      autosaveInterval: 5000, // Auto-save every 5 seconds
-      ttl: 24 * 60 * 60 * 1000 // Keep drafts for 24 hours
+      autosaveInterval: FIVE_SECONDS,
+      ttl: ONE_DAY
     }
   );
 
@@ -194,9 +163,8 @@ const ExpenseFormOptimized = ({ onSubmit, expenseId = null }) => {
     e.preventDefault();
     try {
       await onSubmit(formData);
-      clearCache(); // Clear draft after successful submission
+      clearCache();
     } catch (error) {
-      // Keep draft if submission fails
       console.error('Submission failed:', error);
     }
   };
@@ -242,140 +210,147 @@ const ExpenseFormOptimized = ({ onSubmit, expenseId = null }) => {
   );
 };
 
-// ===================
-// EXAMPLE 3: DASHBOARD WITH CACHE MONITORING
-// ===================
+ExpenseFormOptimized.propTypes = {
+  onSubmit: PropTypes.func.isRequired,
+  expenseId: PropTypes.string
+};
 
-/**
- * Dashboard component that demonstrates cache performance monitoring
- */
-const CacheAwareDashboard = () => {
+const formatBytes = bytes => {
+  if (bytes === 0) return '0 Bytes';
+  const i = Math.floor(Math.log(bytes) / Math.log(KILO_BYTES));
+  return `${parseFloat((bytes / KILO_BYTES ** i).toFixed(2))} ${SIZES[i]}`;
+};
+
+const getHitRateClass = hitRate => {
+  if (hitRate > GOOD_HIT_RATE) return 'good';
+  if (hitRate > OK_HIT_RATE) return 'ok';
+  return 'poor';
+};
+
+const CacheMetricsPanel = () => {
   const { hitRate, totalSize, entries, categories, clearMetrics, refreshMetrics } =
     useCacheMetrics();
 
-  // Cache multiple data sources with different strategies
-  const { data: pondsData, loading: pondsLoading } = useCachedData(
-    'dashboard_ponds',
-    () => api.get('/ponds/summary').then(res => res.data),
-    { strategy: CacheConfig.STRATEGIES.CACHE_FIRST, ttl: 10 * 60 * 1000 }
-  );
-
-  const { data: expensesData, loading: expensesLoading } = useCachedData(
-    'dashboard_expenses',
-    () => api.get('/expenses/recent').then(res => res.data),
-    { strategy: CacheConfig.STRATEGIES.STALE_WHILE_REVALIDATE, ttl: 2 * 60 * 1000 }
-  );
-
-  const { data: waterQualityData, loading: waterQualityLoading } = useCachedData(
-    'dashboard_water_quality',
-    () => api.get('/water-quality/latest').then(res => res.data),
-    { strategy: CacheConfig.STRATEGIES.NETWORK_FIRST, ttl: 1 * 60 * 1000 }
-  );
-
-  const formatBytes = bytes => {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
-  };
-
   return (
-    <div className='cache-aware-dashboard'>
-      <h1>Farm Dashboard (Cache-Optimized)</h1>
-
-      {/* Cache Performance Panel */}
-      <div className='cache-metrics-panel'>
-        <h3>Cache Performance</h3>
-        <div className='metrics-grid'>
-          <div className='metric'>
-            <label>Hit Rate:</label>
-            <span className={hitRate > 0.8 ? 'good' : hitRate > 0.5 ? 'ok' : 'poor'}>
-              {(hitRate * 100).toFixed(1)}%
-            </span>
-          </div>
-          <div className='metric'>
-            <label>Cache Size:</label>
-            <span>{formatBytes(totalSize)}</span>
-          </div>
-          <div className='metric'>
-            <label>Entries:</label>
-            <span>{entries}</span>
-          </div>
+    <div className='cache-metrics-panel'>
+      <h3>Cache Performance</h3>
+      <div className='metrics-grid'>
+        <div className='metric'>
+          <label htmlFor='hitRate'>Hit Rate:</label>
+          <span id='hitRate' className={getHitRateClass(hitRate)}>
+            {(hitRate * PERCENT).toFixed(1)}%
+          </span>
         </div>
-
-        <div className='cache-categories'>
-          <h4>Cache Categories:</h4>
-          {Object.entries(categories).map(([category, stats]) => (
-            <div key={category} className='category-stat'>
-              <span>{category}:</span>
-              <span>
-                {stats.count} items ({formatBytes(stats.size)})
-              </span>
-            </div>
-          ))}
+        <div className='metric'>
+          <label htmlFor='cacheSize'>Cache Size:</label>
+          <span id='cacheSize'>{formatBytes(totalSize)}</span>
         </div>
-
-        <div className='cache-actions'>
-          <button onClick={refreshMetrics}>Refresh Metrics</button>
-          <button onClick={clearMetrics}>Clear Metrics</button>
+        <div className='metric'>
+          <label htmlFor='entries'>Entries:</label>
+          <span id='entries'>{entries}</span>
         </div>
       </div>
 
-      {/* Dashboard Content */}
-      <div className='dashboard-content'>
-        <div className='dashboard-section'>
-          <h3>Ponds Summary</h3>
-          {pondsLoading ? (
-            <div>Loading ponds...</div>
-          ) : (
-            <div>
-              Total Ponds: {pondsData?.totalPonds || 0}
-              <br />
-              Active Ponds: {pondsData?.activePonds || 0}
-            </div>
-          )}
-        </div>
+      <div className='cache-categories'>
+        <h4>Cache Categories:</h4>
+        {Object.entries(categories).map(([category, stats]) => (
+          <div key={category} className='category-stat'>
+            <span>{category}:</span>
+            <span>
+              {stats.count} items ({formatBytes(stats.size)})
+            </span>
+          </div>
+        ))}
+      </div>
 
-        <div className='dashboard-section'>
-          <h3>Recent Expenses</h3>
-          {expensesLoading ? (
-            <div>Loading expenses...</div>
-          ) : (
-            <div>
-              This Month: ${expensesData?.thisMonth || 0}
-              <br />
-              Last Month: ${expensesData?.lastMonth || 0}
-            </div>
-          )}
-        </div>
-
-        <div className='dashboard-section'>
-          <h3>Water Quality Status</h3>
-          {waterQualityLoading ? (
-            <div>Loading water quality...</div>
-          ) : (
-            <div>
-              Average pH: {waterQualityData?.averagePH || 'N/A'}
-              <br />
-              Last Updated: {waterQualityData?.lastUpdate || 'N/A'}
-            </div>
-          )}
-        </div>
+      <div className='cache-actions'>
+        <button onClick={refreshMetrics}>Refresh Metrics</button>
+        <button onClick={clearMetrics}>Clear Metrics</button>
       </div>
     </div>
   );
 };
 
-// ===================
-// EXAMPLE 4: MASTER-DETAIL WITH CACHE DEPENDENCIES
-// ===================
+const DashboardSection = ({ title, loading, data, renderData }) => (
+  <div className='dashboard-section'>
+    <h3>{title}</h3>
+    {loading ? <div>Loading...</div> : <div>{renderData(data)}</div>}
+  </div>
+);
 
-/**
- * Master-detail view that demonstrates cache dependencies
- */
+DashboardSection.propTypes = {
+  title: PropTypes.string.isRequired,
+  loading: PropTypes.bool.isRequired,
+  data: PropTypes.object,
+  renderData: PropTypes.func.isRequired
+};
+
+const CacheAwareDashboard = () => {
+  const { data: pondsData, loading: pondsLoading } = useCachedData(
+    'dashboard_ponds',
+    () => api.get('/ponds/summary').then(res => res.data),
+    { strategy: CacheConfig.STRATEGIES.CACHE_FIRST, ttl: TEN_MINUTES }
+  );
+
+  const { data: expensesData, loading: expensesLoading } = useCachedData(
+    'dashboard_expenses',
+    () => api.get('/expenses/recent').then(res => res.data),
+    { strategy: CacheConfig.STRATEGIES.STALE_WHILE_REVALIDATE, ttl: TWO_MINUTES }
+  );
+
+  const { data: waterQualityData, loading: waterQualityLoading } = useCachedData(
+    'dashboard_water_quality',
+    () => api.get('/water-quality/latest').then(res => res.data),
+    { strategy: CacheConfig.STRATEGIES.NETWORK_FIRST, ttl: ONE_MINUTE }
+  );
+
+  return (
+    <div className='cache-aware-dashboard'>
+      <h1>Farm Dashboard (Cache-Optimized)</h1>
+      <CacheMetricsPanel />
+      <div className='dashboard-content'>
+        <DashboardSection
+          title='Ponds Summary'
+          loading={pondsLoading}
+          data={pondsData}
+          renderData={data => (
+            <>
+              Total Ponds: {data?.totalPonds || 0}
+              <br />
+              Active Ponds: {data?.activePonds || 0}
+            </>
+          )}
+        />
+        <DashboardSection
+          title='Recent Expenses'
+          loading={expensesLoading}
+          data={expensesData}
+          renderData={data => (
+            <>
+              This Month: ${data?.thisMonth || 0}
+              <br />
+              Last Month: ${data?.lastMonth || 0}
+            </>
+          )}
+        />
+        <DashboardSection
+          title='Water Quality Status'
+          loading={waterQualityLoading}
+          data={waterQualityData}
+          renderData={data => (
+            <>
+              Average pH: {data?.averagePH || 'N/A'}
+              <br />
+              Last Updated: {data?.lastUpdate || 'N/A'}
+            </>
+          )}
+        />
+      </div>
+    </div>
+  );
+};
+
 const PondDetailWithCache = ({ pondId }) => {
-  // Cache pond details with dependencies
   const {
     data: pond,
     loading: pondLoading,
@@ -383,33 +358,21 @@ const PondDetailWithCache = ({ pondId }) => {
   } = useCachedData(
     `pond_detail_${pondId}`,
     () => api.get(`/ponds/${pondId}`).then(res => res.data),
-    {
-      ttl: 10 * 60 * 1000,
-      dependencies: [`pond_${pondId}`] // This pond depends on the main pond cache
-    }
+    { ttl: TEN_MINUTES, dependencies: [`pond_${pondId}`] }
   );
 
-  // Cache related feed inputs
   const { data: feedInputs, loading: feedLoading } = useCachedData(
     `pond_${pondId}_feed_inputs`,
     () => api.get(`/feed-inputs?pondId=${pondId}`).then(res => res.data),
-    {
-      ttl: 5 * 60 * 1000,
-      dependencies: [`pond_${pondId}`, 'feed_inputs']
-    }
+    { ttl: FIVE_MINUTES, dependencies: [`pond_${pondId}`, 'feed_inputs'] }
   );
 
-  // Cache water quality data
   const { data: waterQuality, loading: waterLoading } = useCachedData(
     `pond_${pondId}_water_quality`,
     () => api.get(`/water-quality?pondId=${pondId}`).then(res => res.data),
-    {
-      ttl: 2 * 60 * 1000,
-      dependencies: [`pond_${pondId}`, 'water_quality']
-    }
+    { ttl: TWO_MINUTES, dependencies: [`pond_${pondId}`, 'water_quality'] }
   );
 
-  // Handle cache invalidation when pond is updated
   const { invalidatePattern } = useCacheInvalidation([
     `pond_${pondId}`,
     `pond_detail_${pondId}`,
@@ -420,9 +383,7 @@ const PondDetailWithCache = ({ pondId }) => {
   const handlePondUpdate = async updateData => {
     try {
       await api.put(`/ponds/${pondId}`, updateData);
-      // Invalidate all related caches
       invalidatePattern(`pond_${pondId}`);
-      // Refresh main pond data
       refetchPond();
     } catch (error) {
       console.error('Update failed:', error);
@@ -463,13 +424,10 @@ const PondDetailWithCache = ({ pondId }) => {
   );
 };
 
-// ===================
-// PERFORMANCE COMPARISON
-// ===================
+PondDetailWithCache.propTypes = {
+  pondId: PropTypes.string.isRequired
+};
 
-/**
- * Component that demonstrates performance improvements
- */
 const PerformanceComparison = () => {
   const [showTraditional, setShowTraditional] = useState(false);
 
@@ -525,7 +483,14 @@ const PerformanceComparison = () => {
   );
 };
 
-// Export examples
+const examples = {
+  PondListOptimized,
+  ExpenseFormOptimized,
+  CacheAwareDashboard,
+  PondDetailWithCache,
+  PerformanceComparison
+};
+
 export {
   PondListTraditional,
   PondListOptimized,
@@ -536,10 +501,4 @@ export {
   PerformanceComparison
 };
 
-export default {
-  PondListOptimized,
-  ExpenseFormOptimized,
-  CacheAwareDashboard,
-  PondDetailWithCache,
-  PerformanceComparison
-};
+export default examples;

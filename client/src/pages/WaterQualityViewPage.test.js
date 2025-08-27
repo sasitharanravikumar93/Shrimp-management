@@ -1,5 +1,6 @@
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import PropTypes from 'prop-types';
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
 
@@ -21,25 +22,35 @@ jest.mock('date-fns', () => ({
 }));
 
 // Mock MUI date pickers
-jest.mock('@mui/x-date-pickers/LocalizationProvider', () => {
-  return ({ children }) => <div data-testid='localization-provider'>{children}</div>;
-});
+const MockLocalizationProvider = ({ children }) => (
+  <div data-testid='localization-provider'>{children}</div>
+);
+MockLocalizationProvider.displayName = 'MockLocalizationProvider';
+MockLocalizationProvider.propTypes = {
+  children: PropTypes.node.isRequired
+};
+jest.mock('@mui/x-date-pickers/LocalizationProvider', () => MockLocalizationProvider);
 
-jest.mock('@mui/x-date-pickers/DatePicker', () => {
-  const React = require('react');
-  return ({ renderInput, value, onChange, label }) => {
-    const inputProps = renderInput({ inputProps: {} });
-    return (
-      <div data-testid={`date-picker-${label}`}>
-        <label>{label}</label>
-        {React.cloneElement(inputProps, {
-          onChange: e => onChange(new Date(e.target.value)),
-          value: value ? value.toISOString().split('T')[0] : ''
-        })}
-      </div>
-    );
-  };
-});
+const MockDatePicker = ({ renderInput, value, onChange, label }) => {
+  const view = renderInput({ inputProps: {} });
+  return (
+    <div data-testid={`date-picker-${label}`}>
+      <label>{label}</label>
+      {React.cloneElement(view, {
+        onChange: e => onChange(new Date(e.target.value)),
+        value: value ? value.toISOString().split('T')[0] : ''
+      })}
+    </div>
+  );
+};
+MockDatePicker.displayName = 'MockDatePicker';
+MockDatePicker.propTypes = {
+  renderInput: PropTypes.func.isRequired,
+  value: PropTypes.oneOfType([PropTypes.instanceOf(Date), PropTypes.string]),
+  onChange: PropTypes.func.isRequired,
+  label: PropTypes.string.isRequired
+};
+jest.mock('@mui/x-date-pickers/DatePicker', () => MockDatePicker);
 
 // Create a theme for testing
 const theme = createTheme();
@@ -50,6 +61,9 @@ const WithProviders = ({ children }) => (
     <BrowserRouter>{children}</BrowserRouter>
   </ThemeProvider>
 );
+WithProviders.propTypes = {
+  children: PropTypes.node.isRequired
+};
 
 describe('WaterQualityViewPage', () => {
   const mockWaterQualityEntries = [
@@ -90,8 +104,8 @@ describe('WaterQualityViewPage', () => {
     jest.clearAllMocks();
 
     // Mock API functions
-    api.getWaterQualityInputs = jest.fn().mockResolvedValue(mockWaterQualityEntries);
-    api.getPonds = jest.fn().mockResolvedValue(mockPonds);
+    jest.spyOn(api, 'getWaterQualityInputs').mockResolvedValue(mockWaterQualityEntries);
+    jest.spyOn(api, 'getPonds').mockResolvedValue(mockPonds);
   });
 
   it('renders water quality view page with title and export button', async () => {
@@ -174,8 +188,8 @@ describe('WaterQualityViewPage', () => {
 
   it('shows loading state initially', () => {
     // Mock API to simulate loading
-    api.getWaterQualityInputs = jest.fn(() => new Promise(() => {})); // Never resolves
-    api.getPonds = jest.fn(() => new Promise(() => {})); // Never resolves
+    jest.spyOn(api, 'getWaterQualityInputs').mockImplementation(() => new Promise(() => {})); // Never resolves
+    jest.spyOn(api, 'getPonds').mockImplementation(() => new Promise(() => {})); // Never resolves
 
     render(
       <WithProviders>
@@ -189,10 +203,10 @@ describe('WaterQualityViewPage', () => {
 
   it('shows error state when API calls fail', async () => {
     // Mock API to simulate error
-    api.getWaterQualityInputs = jest
-      .fn()
+    jest
+      .spyOn(api, 'getWaterQualityInputs')
       .mockRejectedValue(new Error('Failed to fetch water quality entries'));
-    api.getPonds = jest.fn().mockResolvedValue(mockPonds);
+    jest.spyOn(api, 'getPonds').mockResolvedValue(mockPonds);
 
     render(
       <WithProviders>

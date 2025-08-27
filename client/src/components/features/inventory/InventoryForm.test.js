@@ -1,5 +1,7 @@
+import { TextField } from '@mui/material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 
 import * as useApiHook from '../hooks/useApi';
@@ -16,10 +18,10 @@ jest.mock('@mui/x-date-pickers/LocalizationProvider', () => {
 
 jest.mock('@mui/x-date-pickers/DatePicker', () => ({
   DatePicker: ({ renderInput, value, onChange }) => {
-    const inputProps = renderInput({ inputProps: {} });
+    const view = renderInput({ inputProps: {} });
     return (
       <TextField
-        label={inputProps.label}
+        label={view.label}
         value={value ? value.toISOString().split('T')[0] : ''}
         onChange={e => onChange(new Date(e.target.value))}
         data-testid='date-picker'
@@ -120,8 +122,17 @@ describe('InventoryForm', () => {
     // Check that validation errors are shown
     await waitFor(() => {
       expect(screen.getByText('Item Name is required')).toBeInTheDocument();
+    });
+
+    await waitFor(() => {
       expect(screen.getByText('Item Type is required')).toBeInTheDocument();
+    });
+
+    await waitFor(() => {
       expect(screen.getByText('Purchase Date is required')).toBeInTheDocument();
+    });
+
+    await waitFor(() => {
       expect(screen.getByText('Unit is required')).toBeInTheDocument();
     });
   });
@@ -149,6 +160,9 @@ describe('InventoryForm', () => {
     // Check that validation errors are shown
     await waitFor(() => {
       expect(screen.getByText('Cost Per Unit must be a non-negative number')).toBeInTheDocument();
+    });
+
+    await waitFor(() => {
       expect(
         screen.getByText('Low Stock Threshold must be a non-negative number')
       ).toBeInTheDocument();

@@ -3,7 +3,7 @@
  * Provides consistent logging with different levels and context
  */
 
-const LOG_LEVELS = {
+export const LOG_LEVELS = {
   ERROR: 0,
   WARN: 1,
   INFO: 2,

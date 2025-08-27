@@ -112,7 +112,6 @@ const InventoryAdjustmentModal = ({ open, onClose, item }) => {
               </Typography>
 
               <TextField
-                autoFocus
                 margin='dense'
                 name='adjustmentQuantity'
                 label='Adjustment Quantity (e.g., -5 for deduction, 10 for addition)'

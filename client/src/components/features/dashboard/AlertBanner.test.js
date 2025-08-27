@@ -1,6 +1,7 @@
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import PropTypes from 'prop-types';
 import React from 'react';
 
 import AlertBanner from './AlertBanner';
@@ -10,6 +11,7 @@ const theme = createTheme();
 
 // Wrapper component to provide theme
 const WithTheme = ({ children }) => <ThemeProvider theme={theme}>{children}</ThemeProvider>;
+WithTheme.propTypes = { children: PropTypes.node.isRequired };
 
 // Mock MUI icons
 jest.mock('@mui/icons-material', () => ({
@@ -43,8 +45,8 @@ describe('AlertBanner', () => {
     expect(screen.getByText('Info message')).toBeInTheDocument();
     expect(screen.getByTestId('infoicon')).toBeInTheDocument();
     // Check that the container has the correct background color for info
-    const container = screen.getByText('Info message').closest('.MuiPaper-root');
-    expect(container).toHaveStyle('background-color: rgb(227, 242, 253)');
+    const alert = screen.getByRole('alert');
+    expect(alert).toHaveStyle('background-color: rgb(227, 242, 253)');
   });
 
   it('shows correct icon and styles for success severity', () => {
@@ -57,8 +59,8 @@ describe('AlertBanner', () => {
     expect(screen.getByText('Success message')).toBeInTheDocument();
     expect(screen.getByTestId('checkcircleicon')).toBeInTheDocument();
     // Check that the container has the correct background color for success
-    const container = screen.getByText('Success message').closest('.MuiPaper-root');
-    expect(container).toHaveStyle('background-color: rgb(232, 245, 233)');
+    const alert = screen.getByRole('alert');
+    expect(alert).toHaveStyle('background-color: rgb(232, 245, 233)');
   });
 
   it('shows correct icon and styles for warning severity', () => {
@@ -71,8 +73,8 @@ describe('AlertBanner', () => {
     expect(screen.getByText('Warning message')).toBeInTheDocument();
     expect(screen.getByTestId('warningicon')).toBeInTheDocument();
     // Check that the container has the correct background color for warning
-    const container = screen.getByText('Warning message').closest('.MuiPaper-root');
-    expect(container).toHaveStyle('background-color: rgb(255, 243, 224)');
+    const alert = screen.getByRole('alert');
+    expect(alert).toHaveStyle('background-color: rgb(255, 243, 224)');
   });
 
   it('shows correct icon and styles for error severity', () => {
@@ -85,8 +87,8 @@ describe('AlertBanner', () => {
     expect(screen.getByText('Error message')).toBeInTheDocument();
     expect(screen.getByTestId('erroricon')).toBeInTheDocument();
     // Check that the container has the correct background color for error
-    const container = screen.getByText('Error message').closest('.MuiPaper-root');
-    expect(container).toHaveStyle('background-color: rgb(255, 235, 238)');
+    const alert = screen.getByRole('alert');
+    expect(alert).toHaveStyle('background-color: rgb(255, 235, 238)');
   });
 
   it('does not show close button when not dismissible', () => {
@@ -147,8 +149,8 @@ describe('AlertBanner', () => {
       </WithTheme>
     );
 
-    const container = screen.getByText('Test message').closest('.MuiPaper-root');
-    expect(container).toHaveStyle('margin-top: 32px');
-    expect(container).toHaveStyle('background-color: purple');
+    const alert = screen.getByRole('alert');
+    expect(alert).toHaveStyle('margin-top: 32px');
+    expect(alert).toHaveStyle('background-color: purple');
   });
 });

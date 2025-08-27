@@ -394,7 +394,8 @@ export const MobileKPICard = ({ title, value, icon, color, change, compact = fal
   >
     <CardContent sx={{ p: 1, '&:last-child': { pb: 1 } }}>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 0.5 }}>
-        {icon && React.cloneElement(icon, { sx: { color, fontSize: compact ? '1.2rem' : '1.5rem' } })}
+        {icon &&
+          React.cloneElement(icon, { sx: { color, fontSize: compact ? '1.2rem' : '1.5rem' } })}
       </Box>
       <Typography
         variant={compact ? 'h6' : 'h5'}

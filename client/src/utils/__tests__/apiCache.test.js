@@ -227,7 +227,13 @@ describe('API Cache System', () => {
 
         expect(global.fetch).toHaveBeenCalledTimes(4);
       } finally {
-        process.env.REACT_APP_CACHE_MAX_SIZE = originalCacheSize;
+        // Restore original environment variable state atomically
+        if (originalCacheSize === undefined) {
+          Object.assign(process.env, { REACT_APP_CACHE_MAX_SIZE: undefined });
+          delete process.env.REACT_APP_CACHE_MAX_SIZE;
+        } else {
+          Object.assign(process.env, { REACT_APP_CACHE_MAX_SIZE: originalCacheSize });
+        }
       }
     });
 
@@ -260,7 +266,13 @@ describe('API Cache System', () => {
 
         expect(global.fetch).toHaveBeenCalledTimes(5);
       } finally {
-        process.env.REACT_APP_CACHE_MAX_SIZE = originalCacheSize;
+        // Restore original environment variable state atomically
+        if (originalCacheSize === undefined) {
+          Object.assign(process.env, { REACT_APP_CACHE_MAX_SIZE: undefined });
+          delete process.env.REACT_APP_CACHE_MAX_SIZE;
+        } else {
+          Object.assign(process.env, { REACT_APP_CACHE_MAX_SIZE: originalCacheSize });
+        }
       }
     });
   });

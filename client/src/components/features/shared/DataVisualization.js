@@ -10,7 +10,8 @@ import {
   Typography,
   Box,
   CircularProgress,
-  Alert
+  Alert,
+  IconButton
 } from '@mui/material';
 import React, { memo, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';

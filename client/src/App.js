@@ -33,7 +33,7 @@ const LoadingComponent = () => (
 );
 
 // App content component with RTL support
-function AppContent() {
+const AppContent = () => {
   const [darkMode, setDarkMode] = useState(false);
   const { isRTL } = useRTL();
 
@@ -96,10 +96,10 @@ function AppContent() {
       </ThemeProvider>
     </LazyMotion>
   );
-}
+};
 
 // Main App component with all providers
-function App() {
+const App = () => {
   return (
     <ErrorBoundary>
       <I18nextProvider i18n={i18n}>
@@ -109,6 +109,6 @@ function App() {
       </I18nextProvider>
     </ErrorBoundary>
   );
-}
+};
 
 export default App;

@@ -3,18 +3,33 @@
  * Reusable component for filtering data across different views
  */
 
+import ClearIcon from '@mui/icons-material/Clear';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import FilterListIcon from '@mui/icons-material/FilterList';
+import SearchIcon from '@mui/icons-material/Search';
 import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Autocomplete,
   Box,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
   Chip,
+  Divider,
   FormControl,
+  FormControlLabel,
+  IconButton,
   InputLabel,
   MenuItem,
   Select,
-  TextField,
-  Switch,
-  FormControlLabel,
   Slider,
-  Autocomplete
+  Stack,
+  Switch,
+  TextField,
+  Typography
 } from '@mui/material';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker as MuiDatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -124,8 +139,8 @@ const FilterComponent = memo(({ filter, value, onChange, disabled = false }) => 
           InputProps={
             filter.searchable
               ? {
-                startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />
-              }
+                  startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} />
+                }
               : undefined
           }
         />
@@ -292,8 +307,9 @@ const ActiveFilters = memo(({ filters, filterValues, onClear, onClearAll }) => {
               .join(', ');
           } else if (typeof value === 'object' && value !== null) {
             if (filter.type === FILTER_TYPES.DATE_RANGE) {
-              displayValue = `${value.from ? new Date(value.from).toLocaleDateString() : ''} - ${value.to ? new Date(value.to).toLocaleDateString() : ''
-                }`;
+              displayValue = `${value.from ? new Date(value.from).toLocaleDateString() : ''} - ${
+                value.to ? new Date(value.to).toLocaleDateString() : ''
+              }`;
             }
           } else {
             const option = filter.options?.find(opt => opt.value === value);
@@ -320,9 +336,9 @@ const FilterPanel = memo(
   ({
     filters = [],
     values = {},
-    onChange = () => { },
+    onChange = () => {},
     onApply = null,
-    onReset = () => { },
+    onReset = () => {},
 
     // Layout options
     layout = 'vertical', // 'vertical', 'horizontal', 'grid', 'accordion'
@@ -650,8 +666,8 @@ FilterPanel.propTypes = {
 FilterPanel.defaultProps = {
   filters: [],
   values: {},
-  onChange: () => { },
-  onReset: () => { },
+  onChange: () => {},
+  onReset: () => {},
   layout: 'vertical',
   columns: 2,
   spacing: 2,

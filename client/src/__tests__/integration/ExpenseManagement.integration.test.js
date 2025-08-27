@@ -9,14 +9,7 @@ import React from 'react';
 
 import { SeasonProvider } from '../../context/SeasonContext';
 import ExpenseManagementPage from '../../pages/ExpenseManagementPage';
-import { robustSelectors, robustAssertions } from '../../utils/robustTesting';
-import {
-  renderUtils,
-  testDataFactories,
-  mockUtils,
-  robustInteractions,
-  createPageObject
-} from '../../utils/testUtils';
+import { renderUtils, testDataFactories, mockUtils } from '../../utils/testUtils';
 
 // Mock API responses
 const mockExpenses = [
@@ -48,11 +41,8 @@ const mockSeasons = [
 
 describe('Expense Management Integration Tests', () => {
   let mockFetch;
-  let user;
 
   beforeEach(() => {
-    user = userEvent.setup();
-
     // Setup comprehensive API mocks
     mockFetch = mockUtils.createMockFetch({
       '/seasons': mockSeasons,
@@ -65,6 +55,7 @@ describe('Expense Management Integration Tests', () => {
 
   afterEach(() => {
     mockFetch.cleanup();
+    jest.restoreAllMocks();
   });
 
   const renderExpenseManagementPage = () => {
@@ -76,7 +67,7 @@ describe('Expense Management Integration Tests', () => {
   };
 
   describe('Page Load and Navigation', () => {
-    it('loads the expense management page successfully', async () => {
+    it('loads the expense management page and navigates between tabs', async () => {
       renderExpenseManagementPage();
 
       // Wait for page to load
@@ -86,30 +77,22 @@ describe('Expense Management Integration Tests', () => {
 
       // Check that tabs are present
       expect(screen.getByRole('tab', { name: /dashboard/i })).toBeInTheDocument();
-      expect(screen.getByRole('tab', { name: /culture expenses/i })).toBeInTheDocument();
-      expect(screen.getByRole('tab', { name: /farm expenses/i })).toBeInTheDocument();
+      const cultureTab = screen.getByRole('tab', { name: /culture expenses/i });
+      expect(cultureTab).toBeInTheDocument();
+      const farmTab = screen.getByRole('tab', { name: /farm expenses/i });
+      expect(farmTab).toBeInTheDocument();
       expect(screen.getByRole('tab', { name: /salaries/i })).toBeInTheDocument();
       expect(screen.getByRole('tab', { name: /reports/i })).toBeInTheDocument();
-    });
-
-    it('navigates between tabs correctly', async () => {
-      renderExpenseManagementPage();
-
-      await waitFor(() => {
-        expect(screen.getByText('Expense Management')).toBeInTheDocument();
-      });
 
       // Navigate to Culture Expenses tab
-      const cultureTab = screen.getByRole('tab', { name: /culture expenses/i });
-      await robustInteractions.click(cultureTab);
+      await userEvent.click(cultureTab);
 
       await waitFor(() => {
         expect(screen.getByText('Culture Expenses')).toBeInTheDocument();
       });
 
       // Navigate to Farm Expenses tab
-      const farmTab = screen.getByRole('tab', { name: /farm expenses/i });
-      await robustInteractions.click(farmTab);
+      await userEvent.click(farmTab);
 
       await waitFor(() => {
         expect(screen.getByText('Farm Expenses')).toBeInTheDocument();
@@ -118,53 +101,44 @@ describe('Expense Management Integration Tests', () => {
   });
 
   describe('Expense List Integration', () => {
-    it('displays expenses correctly when tab is selected', async () => {
+    it('displays and filters expenses correctly', async () => {
       renderExpenseManagementPage();
 
-      // Navigate to Culture Expenses
+      // Check Culture expenses
       const cultureTab = screen.getByRole('tab', { name: /culture expenses/i });
-      await robustInteractions.click(cultureTab);
+      await userEvent.click(cultureTab);
 
-      // Wait for expenses to load
       await waitFor(() => {
         expect(screen.getByText('Fish Feed Purchase')).toBeInTheDocument();
+      });
+      await waitFor(() => {
+        expect(screen.queryByText('Pond Maintenance')).not.toBeInTheDocument();
       });
 
       // Verify expense details
       expect(screen.getByText('$500.00')).toBeInTheDocument();
       expect(screen.getByText('Feed')).toBeInTheDocument();
-    });
-
-    it('filters expenses by category correctly', async () => {
-      renderExpenseManagementPage();
-
-      // Check Culture expenses
-      const cultureTab = screen.getByRole('tab', { name: /culture expenses/i });
-      await robustInteractions.click(cultureTab);
-
-      await waitFor(() => {
-        expect(screen.getByText('Fish Feed Purchase')).toBeInTheDocument();
-        expect(screen.queryByText('Pond Maintenance')).not.toBeInTheDocument();
-      });
 
       // Check Farm expenses
       const farmTab = screen.getByRole('tab', { name: /farm expenses/i });
-      await robustInteractions.click(farmTab);
+      await userEvent.click(farmTab);
 
       await waitFor(() => {
         expect(screen.getByText('Pond Maintenance')).toBeInTheDocument();
+      });
+      await waitFor(() => {
         expect(screen.queryByText('Fish Feed Purchase')).not.toBeInTheDocument();
       });
     });
   });
 
-  describe('Expense Creation Workflow', () => {
-    it('completes full expense creation workflow', async () => {
+  describe('Expense Creation and Validation', () => {
+    it('completes full expense creation workflow and handles validation', async () => {
       renderExpenseManagementPage();
 
       // Navigate to Culture Expenses
       const cultureTab = screen.getByRole('tab', { name: /culture expenses/i });
-      await robustInteractions.click(cultureTab);
+      await userEvent.click(cultureTab);
 
       // Wait for page to load and click Add button
       await waitFor(() => {
@@ -172,33 +146,38 @@ describe('Expense Management Integration Tests', () => {
       });
 
       const addButton = screen.getByRole('button', { name: /add culture expense/i });
-      await robustInteractions.click(addButton);
+      await userEvent.click(addButton);
 
       // Wait for form modal to open
       await waitFor(() => {
         expect(screen.getByRole('dialog')).toBeInTheDocument();
       });
 
-      // Fill out the form
+      // Try to submit empty form
       const modal = screen.getByRole('dialog');
-      const formPage = createPageObject();
+      const saveButton = within(modal).getByRole('button', { name: /save/i });
+      await userEvent.click(saveButton);
 
-      // Fill form fields
+      // Check for validation errors
+      await waitFor(() => {
+        expect(within(modal).getByText('Description is required')).toBeInTheDocument();
+      });
+
+      // Fill out the form
       const descriptionInput = within(modal).getByLabelText(/description/i);
-      await robustInteractions.type(descriptionInput, 'New Test Expense');
+      await userEvent.type(descriptionInput, 'New Test Expense');
 
       const amountInput = within(modal).getByLabelText(/amount/i);
-      await robustInteractions.type(amountInput, '150');
+      await userEvent.type(amountInput, '150');
 
       const categorySelect = within(modal).getByLabelText(/sub category/i);
-      await robustInteractions.select(categorySelect, 'Equipment');
+      await userEvent.selectOptions(categorySelect, 'Equipment');
 
       const dateInput = within(modal).getByLabelText(/date/i);
-      await robustInteractions.type(dateInput, '2024-01-20');
+      await userEvent.type(dateInput, '2024-01-20');
 
       // Submit form
-      const saveButton = within(modal).getByRole('button', { name: /save/i });
-      await robustInteractions.click(saveButton);
+      await userEvent.click(saveButton);
 
       // Wait for form to close and expense to appear
       await waitFor(() => {
@@ -214,28 +193,6 @@ describe('Expense Management Integration Tests', () => {
         })
       );
     });
-
-    it('handles form validation errors gracefully', async () => {
-      renderExpenseManagementPage();
-
-      const cultureTab = screen.getByRole('tab', { name: /culture expenses/i });
-      await robustInteractions.click(cultureTab);
-
-      const addButton = await screen.findByRole('button', { name: /add culture expense/i });
-      await robustInteractions.click(addButton);
-
-      const modal = await screen.findByRole('dialog');
-
-      // Try to submit empty form
-      const saveButton = within(modal).getByRole('button', { name: /save/i });
-      await robustInteractions.click(saveButton);
-
-      // Check for validation errors
-      await waitFor(() => {
-        const descriptionInput = within(modal).getByLabelText(/description/i);
-        robustAssertions.hasError(descriptionInput);
-      });
-    });
   });
 
   describe('Expense Editing Workflow', () => {
@@ -243,7 +200,7 @@ describe('Expense Management Integration Tests', () => {
       renderExpenseManagementPage();
 
       const cultureTab = screen.getByRole('tab', { name: /culture expenses/i });
-      await robustInteractions.click(cultureTab);
+      await userEvent.click(cultureTab);
 
       // Wait for expenses to load and find edit button
       await waitFor(() => {
@@ -252,7 +209,7 @@ describe('Expense Management Integration Tests', () => {
 
       // Find and click edit button for the first expense
       const editButtons = screen.getAllByRole('button', { name: /edit/i });
-      await robustInteractions.click(editButtons[0]);
+      await userEvent.click(editButtons[0]);
 
       // Wait for edit form to open
       const modal = await screen.findByRole('dialog');
@@ -262,15 +219,16 @@ describe('Expense Management Integration Tests', () => {
       expect(descriptionInput).toBeInTheDocument();
 
       // Update the description
-      await robustInteractions.type(descriptionInput, ' - Updated', { clear: false });
+      await userEvent.type(descriptionInput, ' - Updated');
 
       // Update amount
       const amountInput = within(modal).getByDisplayValue('500');
-      await robustInteractions.type(amountInput, '600', { clear: true });
+      await userEvent.clear(amountInput);
+      await userEvent.type(amountInput, '600');
 
       // Save changes
       const saveButton = within(modal).getByRole('button', { name: /save/i });
-      await robustInteractions.click(saveButton);
+      await userEvent.click(saveButton);
 
       // Wait for form to close
       await waitFor(() => {
@@ -289,74 +247,47 @@ describe('Expense Management Integration Tests', () => {
   });
 
   describe('Expense Deletion Workflow', () => {
-    it('completes expense deletion with confirmation', async () => {
-      // Mock window.confirm
-      const originalConfirm = window.confirm;
-      window.confirm = jest.fn(() => true);
+    it('completes expense deletion with confirmation and handles cancellation', async () => {
+      const confirmSpy = jest.spyOn(window, 'confirm');
 
-      try {
-        renderExpenseManagementPage();
+      // Test deletion cancellation
+      confirmSpy.mockReturnValue(false);
+      renderExpenseManagementPage();
 
-        const cultureTab = screen.getByRole('tab', { name: /culture expenses/i });
-        await robustInteractions.click(cultureTab);
+      const cultureTab = screen.getByRole('tab', { name: /culture expenses/i });
+      await userEvent.click(cultureTab);
 
-        await waitFor(() => {
-          expect(screen.getByText('Fish Feed Purchase')).toBeInTheDocument();
-        });
+      await waitFor(() => {
+        expect(screen.getByText('Fish Feed Purchase')).toBeInTheDocument();
+      });
 
-        // Find and click delete button
-        const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
-        await robustInteractions.click(deleteButtons[0]);
+      const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
+      await userEvent.click(deleteButtons[0]);
 
-        // Verify confirmation was called
-        expect(window.confirm).toHaveBeenCalledWith(
-          'Are you sure you want to delete this expense?'
-        );
+      expect(confirmSpy).toHaveBeenCalledWith('Are you sure you want to delete this expense?');
 
-        // Verify API was called
-        await waitFor(() => {
-          expect(mockFetch.mockFetch).toHaveBeenCalledWith(
-            expect.stringContaining('/expenses/1'),
-            expect.objectContaining({ method: 'DELETE' })
-          );
-        });
-      } finally {
-        window.confirm = originalConfirm;
-      }
-    });
+      // Verify API was NOT called for deletion
+      expect(mockFetch.mockFetch).not.toHaveBeenCalledWith(
+        expect.stringContaining('/expenses/1'),
+        expect.objectContaining({ method: 'DELETE' })
+      );
 
-    it('cancels deletion when user cancels confirmation', async () => {
-      const originalConfirm = window.confirm;
-      window.confirm = jest.fn(() => false);
+      // Test deletion confirmation
+      confirmSpy.mockReturnValue(true);
+      await userEvent.click(deleteButtons[0]);
 
-      try {
-        renderExpenseManagementPage();
-
-        const cultureTab = screen.getByRole('tab', { name: /culture expenses/i });
-        await robustInteractions.click(cultureTab);
-
-        await waitFor(() => {
-          expect(screen.getByText('Fish Feed Purchase')).toBeInTheDocument();
-        });
-
-        const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
-        await robustInteractions.click(deleteButtons[0]);
-
-        expect(window.confirm).toHaveBeenCalled();
-
-        // Verify API was NOT called for deletion
-        expect(mockFetch.mockFetch).not.toHaveBeenCalledWith(
+      // Verify API was called
+      await waitFor(() => {
+        expect(mockFetch.mockFetch).toHaveBeenCalledWith(
           expect.stringContaining('/expenses/1'),
           expect.objectContaining({ method: 'DELETE' })
         );
-      } finally {
-        window.confirm = originalConfirm;
-      }
+      });
     });
   });
 
   describe('Error Handling Integration', () => {
-    it('displays error when API fails', async () => {
+    it('displays error when API fails and handles network timeout', async () => {
       // Mock API failure
       mockFetch.cleanup();
       mockFetch = mockUtils.createMockFetch({
@@ -367,7 +298,7 @@ describe('Expense Management Integration Tests', () => {
       renderExpenseManagementPage();
 
       const cultureTab = screen.getByRole('tab', { name: /culture expenses/i });
-      await robustInteractions.click(cultureTab);
+      await userEvent.click(cultureTab);
 
       // Wait for error to be displayed
       await waitFor(() => {
@@ -376,9 +307,7 @@ describe('Expense Management Integration Tests', () => {
 
       const errorElement = screen.getByRole('alert');
       expect(errorElement).toHaveTextContent(/error/i);
-    });
 
-    it('handles network timeout gracefully', async () => {
       // Mock slow API response
       mockFetch.cleanup();
       global.fetch = jest.fn(
@@ -388,8 +317,7 @@ describe('Expense Management Integration Tests', () => {
 
       renderExpenseManagementPage();
 
-      const cultureTab = screen.getByRole('tab', { name: /culture expenses/i });
-      await robustInteractions.click(cultureTab);
+      await userEvent.click(cultureTab);
 
       // Should show loading state first
       await waitFor(() => {
@@ -426,7 +354,7 @@ describe('Expense Management Integration Tests', () => {
       renderExpenseManagementPage();
 
       const cultureTab = screen.getByRole('tab', { name: /culture expenses/i });
-      await robustInteractions.click(cultureTab);
+      await userEvent.click(cultureTab);
 
       // Wait for initial load
       await waitFor(() => {
@@ -445,7 +373,7 @@ describe('Expense Management Integration Tests', () => {
   });
 
   describe('Performance and Loading States', () => {
-    it('shows appropriate loading states during operations', async () => {
+    it('shows loading states and handles concurrent operations', async () => {
       // Mock slow API
       mockFetch.cleanup();
       global.fetch = jest.fn(
@@ -465,7 +393,7 @@ describe('Expense Management Integration Tests', () => {
       renderExpenseManagementPage();
 
       const cultureTab = screen.getByRole('tab', { name: /culture expenses/i });
-      await robustInteractions.click(cultureTab);
+      await userEvent.click(cultureTab);
 
       // Should show loading state
       await waitFor(() => {
@@ -479,17 +407,6 @@ describe('Expense Management Integration Tests', () => {
         },
         { timeout: 1000 }
       );
-    });
-
-    it('handles concurrent operations correctly', async () => {
-      renderExpenseManagementPage();
-
-      const cultureTab = screen.getByRole('tab', { name: /culture expenses/i });
-      await robustInteractions.click(cultureTab);
-
-      await waitFor(() => {
-        expect(screen.getByText('Fish Feed Purchase')).toBeInTheDocument();
-      });
 
       // Start multiple operations concurrently
       const addButton = screen.getByRole('button', { name: /add culture expense/i });
@@ -497,11 +414,11 @@ describe('Expense Management Integration Tests', () => {
 
       // This should not cause race conditions or crashes
       await Promise.all([
-        robustInteractions.click(addButton),
+        userEvent.click(addButton),
         // Small delay to prevent exact simultaneous clicks
         new Promise(resolve =>
           setTimeout(() => {
-            robustInteractions.click(editButtons[0]).then(resolve);
+            userEvent.click(editButtons[0]).then(resolve);
           }, 10)
         )
       ]);

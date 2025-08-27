@@ -3,11 +3,10 @@
  * Provides debugging context and tools for the entire application
  */
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { Box, CssBaseline } from '@mui/material';
-import DebugPanel from './DebugPanel';
-import EnhancedErrorBoundary from '../error-handling/EnhancedErrorBoundary';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import React, { createContext, useContext, useEffect, useState } from 'react';
+
 import {
   ComponentDebugger,
   PerformanceDebugger,
@@ -17,6 +16,9 @@ import {
   DEBUG_CONFIG
 } from '../../../utils/debugUtils';
 import logger from '../../../utils/logger';
+import EnhancedErrorBoundary from '../error-handling/EnhancedErrorBoundary';
+
+import DebugPanel from './DebugPanel';
 
 // Debug provider is only available in development
 const isDevelopment = process.env.NODE_ENV === 'development';
@@ -401,4 +403,4 @@ const PerformanceMonitor = () => {
 };
 
 export default DebugProvider;
-export { DebugContext, useDebugContext };
+export { DebugContext };

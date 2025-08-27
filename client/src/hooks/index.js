@@ -30,7 +30,7 @@ export {
 } from './useCaching';
 
 // Existing API Hooks (enhanced versions)
-export { useApiData, useApiMutation, usePaginatedApi } from './useApi';
+export { useApiData, useApiMutation } from './useApi';
 
 // Performance Optimization Hooks
 export {
@@ -42,7 +42,8 @@ export {
 } from '../utils/performanceOptimization';
 
 // RTL and Internationalization Hooks
-export { useRTL, useLanguage } from '../utils/rtlUtils';
+export { useRTL } from '../utils/rtlUtils';
+export { useLanguage } from '../i18n/index';
 
 // Offline Form Hooks
 export { default as useOfflineForm } from './useOfflineForm';
