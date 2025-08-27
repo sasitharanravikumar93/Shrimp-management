@@ -3,8 +3,6 @@ const FeedInput = require('../models/FeedInput');
 const WaterQualityInput = require('../models/WaterQualityInput');
 const GrowthSampling = require('../models/GrowthSampling');
 const Event = require('../models/Event');
-const InventoryItem = require('../models/InventoryItem');
-const InventoryAdjustment = require('../models/InventoryAdjustment');
 const {
   asyncHandler,
   sendSuccessResponse,
@@ -12,18 +10,8 @@ const {
   NotFoundError
 } = require('../utils/errorHandler');
 const logger = require('../logger');
-const moment = require('moment');
-const WaterQualityInput = require('../models/WaterQualityInput');
-const GrowthSampling = require('../models/GrowthSampling');
-const Event = require('../models/Event');
 const Season = require('../models/Season');
-const logger = require('../logger');
-const {
-  asyncHandler,
-  sendSuccessResponse,
-  ValidationError,
-  NotFoundError
-} = require('../utils/errorHandler');
+const mongoose = require('mongoose');
 
 /**
  * Get comprehensive farm-level KPIs
@@ -196,21 +184,21 @@ const getWaterQualityTrends = asyncHandler(async (req, res) => {
   let groupByFormat;
 
   switch (timeRange) {
-    case 'week':
-      startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      groupByFormat = '%Y-%m-%d';
-      break;
-    case 'month':
-      startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-      groupByFormat = '%Y-%m-%d';
-      break;
-    case 'quarter':
-      startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
-      groupByFormat = '%Y-%m-%d';
-      break;
-    default:
-      startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      groupByFormat = '%Y-%m-%d';
+  case 'week':
+    startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    groupByFormat = '%Y-%m-%d';
+    break;
+  case 'month':
+    startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    groupByFormat = '%Y-%m-%d';
+    break;
+  case 'quarter':
+    startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+    groupByFormat = '%Y-%m-%d';
+    break;
+  default:
+    startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    groupByFormat = '%Y-%m-%d';
   }
 
   // Aggregate water quality data by date
@@ -367,21 +355,21 @@ const getFeedConsumptionTrends = asyncHandler(async (req, res) => {
   let groupByFormat;
 
   switch (timeRange) {
-    case 'week':
-      startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      groupByFormat = '%Y-%m-%d';
-      break;
-    case 'month':
-      startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-      groupByFormat = '%Y-%m-%d';
-      break;
-    case 'quarter':
-      startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
-      groupByFormat = '%Y-%W';
-      break;
-    default:
-      startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      groupByFormat = '%Y-%m-%d';
+  case 'week':
+    startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    groupByFormat = '%Y-%m-%d';
+    break;
+  case 'month':
+    startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    groupByFormat = '%Y-%m-%d';
+    break;
+  case 'quarter':
+    startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+    groupByFormat = '%Y-%W';
+    break;
+  default:
+    startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    groupByFormat = '%Y-%m-%d';
   }
 
   // Aggregate feed consumption data by date
@@ -687,6 +675,8 @@ const getFarmReport = asyncHandler(async (req, res) => {
 
 /**
  * Helper function to calculate farm KPIs (reusable)
+ * @param {string} seasonId - The season ID to calculate KPIs for
+ * @returns {Promise<object>} The calculated farm KPIs
  */
 async function calculateFarmKpis(seasonId) {
   // Simplified version of the KPI calculation for report generation
@@ -734,8 +724,12 @@ async function calculateFarmKpis(seasonId) {
 
 /**
  * Generate recommendations based on farm data
+ * @param {object} farmKpis - The farm KPIs data
+ * @param {object} waterQuality - The water quality data
+ * @param {object} _growthData - The growth data (unused)
+ * @returns {Array<object>} Array of recommendations
  */
-function generateRecommendations(farmKpis, waterQuality, growthData) {
+function generateRecommendations(farmKpis, waterQuality, _growthData) {
   const recommendations = [];
 
   // Water quality recommendations
@@ -793,6 +787,8 @@ function generateRecommendations(farmKpis, waterQuality, growthData) {
 
 /**
  * Helper function to flatten report data for CSV export
+ * @param {object} report - The report data to flatten
+ * @returns {string} CSV formatted string
  */
 function flattenReportForCSV(report) {
   // Simple CSV generation - in production, use a proper CSV library

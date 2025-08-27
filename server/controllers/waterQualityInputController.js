@@ -6,8 +6,7 @@ const { createInventoryAdjustment } = require('../controllers/inventoryControlle
 const {
   asyncHandler,
   sendSuccessResponse,
-  ValidationError,
-  NotFoundError
+  ValidationError
 } = require('../utils/errorHandler');
 
 
@@ -15,8 +14,8 @@ const {
  * Create a new water quality input
  * @async
  * @function createWaterQualityInput
- * @param {Object} req - Express request object
- * @param {Object} req.body - Request body
+ * @param {object} req - Express request object
+ * @param {object} req.body - Request body
  * @param {Date} req.body.date - Water quality test date
  * @param {string} req.body.time - Test time (HH:MM format)
  * @param {string} req.body.pondId - Associated pond ID
@@ -30,7 +29,7 @@ const {
  * @param {string} req.body.seasonId - Associated season ID
  * @param {string} [req.body.inventoryItemId] - Chemical/treatment item ID
  * @param {number} [req.body.quantityUsed] - Quantity of chemical used
- * @param {Object} res - Express response object
+ * @param {object} res - Express response object
  * @returns {Promise<void>} JSON response with created water quality input or error
  * @description Creates a new water quality input with pond/season validation and optional inventory adjustment
  */
@@ -96,7 +95,7 @@ exports.createWaterQualityInput = async (req, res) => {
           }
         }, null); // Pass null for res and req objects as it's an internal call
       } catch (adjError) {
-        console.error('Error creating inventory adjustment for water quality:', adjError);
+        logger.error('Error creating inventory adjustment for water quality:', adjError);
         // For now, we'll just log and proceed with water quality input creation
       }
     }
@@ -117,10 +116,10 @@ exports.createWaterQualityInput = async (req, res) => {
  * Create multiple water quality inputs in batch
  * @async
  * @function createWaterQualityInputsBatch
- * @param {Object} req - Express request object
- * @param {Object} req.body - Request body
- * @param {Array<Object>} req.body.waterQualityInputs - Array of water quality input objects
- * @param {Object} res - Express response object
+ * @param {object} req - Express request object
+ * @param {object} req.body - Request body
+ * @param {Array<object>} req.body.waterQualityInputs - Array of water quality input objects
+ * @param {object} res - Express response object
  * @returns {Promise<void>} JSON response with batch operation results
  * @description Processes multiple water quality inputs with conflict resolution and inventory updates
  */
@@ -164,6 +163,7 @@ exports.createWaterQualityInputsBatch = async (req, res) => {
         }
 
         // Check if pond exists
+        // eslint-disable-next-line no-await-in-loop
         const pond = await Pond.findById(pondId);
         if (!pond) {
           results.errors.push({
@@ -174,6 +174,7 @@ exports.createWaterQualityInputsBatch = async (req, res) => {
         }
 
         // Check if season exists
+        // eslint-disable-next-line no-await-in-loop
         const season = await Season.findById(seasonId);
         if (!season) {
           results.errors.push({
@@ -186,6 +187,7 @@ exports.createWaterQualityInputsBatch = async (req, res) => {
         // For conflict resolution, check if a record with the same identifiers already exists
         // and if the incoming updatedAt is older than the existing one
         if (updatedAt) {
+          // eslint-disable-next-line no-await-in-loop
           const existingWaterQualityInput = await WaterQualityInput.findOne({
             pondId,
             date: new Date(date),
@@ -219,11 +221,13 @@ exports.createWaterQualityInputsBatch = async (req, res) => {
           quantityUsed
         });
 
+        // eslint-disable-next-line no-await-in-loop
         await waterQualityInput.save();
 
         // Create inventory adjustment if an item was used
         if (inventoryItemId && quantityUsed) {
           try {
+            // eslint-disable-next-line no-await-in-loop
             await createInventoryAdjustment({
               body: {
                 inventoryItemId: inventoryItemId,
@@ -235,7 +239,7 @@ exports.createWaterQualityInputsBatch = async (req, res) => {
               }
             }, null); // Pass null for res and req objects as it's an internal call
           } catch (adjError) {
-            console.error('Error creating inventory adjustment for water quality:', adjError);
+            logger.error('Error creating inventory adjustment for water quality:', adjError);
             // For now, we'll just log and proceed with water quality input creation
           }
         }
@@ -266,11 +270,11 @@ exports.getAllWaterQualityInputs = async (req, res) => {
     const { seasonId } = req.query;
 
     // Pagination parameters
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 25;
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 25;
     const skip = (page - 1) * limit;
 
-    let query = {};
+    const query = {};
     if (seasonId) {
       query.seasonId = seasonId;
     }
@@ -413,7 +417,7 @@ exports.getWaterQualityInputsByPondId = async (req, res) => {
       return res.status(404).json({ message: 'Pond not found' });
     }
 
-    let query = { pondId };
+    const query = { pondId };
     if (seasonId) {
       query.seasonId = seasonId;
     }
@@ -441,7 +445,7 @@ exports.getWaterQualityInputsByDateRange = async (req, res) => {
       return res.status(400).json({ message: 'Start date and end date are required as query parameters' });
     }
 
-    let query = {
+    const query = {
       date: {
         $gte: new Date(startDate),
         $lte: new Date(endDate)
@@ -513,7 +517,7 @@ exports.getFilteredWaterQualityInputs = asyncHandler(async (req, res) => {
   }
 
   // Build query object
-  let query = {
+  const query = {
     date: {
       $gte: new Date(startDate),
       $lte: new Date(endDate)
@@ -532,26 +536,26 @@ exports.getFilteredWaterQualityInputs = asyncHandler(async (req, res) => {
   // Add parameter-specific filters
   if (minPH || maxPH) {
     query.pH = {};
-    if (minPH) query.pH.$gte = parseFloat(minPH);
-    if (maxPH) query.pH.$lte = parseFloat(maxPH);
+    if (minPH) { query.pH.$gte = parseFloat(minPH); }
+    if (maxPH) { query.pH.$lte = parseFloat(maxPH); }
   }
 
   if (minDO || maxDO) {
     query.dissolvedOxygen = {};
-    if (minDO) query.dissolvedOxygen.$gte = parseFloat(minDO);
-    if (maxDO) query.dissolvedOxygen.$lte = parseFloat(maxDO);
+    if (minDO) { query.dissolvedOxygen.$gte = parseFloat(minDO); }
+    if (maxDO) { query.dissolvedOxygen.$lte = parseFloat(maxDO); }
   }
 
   if (minTemperature || maxTemperature) {
     query.temperature = {};
-    if (minTemperature) query.temperature.$gte = parseFloat(minTemperature);
-    if (maxTemperature) query.temperature.$lte = parseFloat(maxTemperature);
+    if (minTemperature) { query.temperature.$gte = parseFloat(minTemperature); }
+    if (maxTemperature) { query.temperature.$lte = parseFloat(maxTemperature); }
   }
 
   if (minSalinity || maxSalinity) {
     query.salinity = {};
-    if (minSalinity) query.salinity.$gte = parseFloat(minSalinity);
-    if (maxSalinity) query.salinity.$lte = parseFloat(maxSalinity);
+    if (minSalinity) { query.salinity.$gte = parseFloat(minSalinity); }
+    if (maxSalinity) { query.salinity.$lte = parseFloat(maxSalinity); }
   }
 
   const waterQualityInputs = await WaterQualityInput.find(query)
@@ -627,13 +631,13 @@ const { stringify } = require('csv-stringify');
 exports.exportWaterQualityData = async (req, res) => {
   logger.info('Exporting water quality data to CSV', { query: req.query });
   try {
-    const { startDate, endDate, pondId, parameter } = req.query;
+    const { startDate, endDate, pondId } = req.query;
 
     if (!startDate || !endDate) {
       return res.status(400).json({ message: 'Start date and end date are required for export' });
     }
 
-    let query = {
+    const query = {
       date: {
         $gte: new Date(startDate),
         $lte: new Date(endDate)

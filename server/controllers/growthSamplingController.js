@@ -98,7 +98,7 @@ exports.getAllGrowthSamplings = async (req, res) => {
   logger.info('Getting all growth sampling entries', { query: req.query });
   try {
     const { seasonId } = req.query;
-    let query = {};
+    const query = {};
     if (seasonId) {
       query.seasonId = seasonId;
     }
@@ -210,7 +210,7 @@ exports.getGrowthSamplingsByPondId = async (req, res) => {
       return res.status(404).json({ message: 'Pond not found' });
     }
     
-    let query = { pondId };
+    const query = { pondId };
     if (seasonId) {
       query.seasonId = seasonId;
     }
@@ -238,7 +238,7 @@ exports.getGrowthSamplingsByDateRange = async (req, res) => {
       return res.status(400).json({ message: 'Start date and end date are required as query parameters' });
     }
     
-    let query = {
+    const query = {
       date: {
         $gte: new Date(startDate),
         $lte: new Date(endDate)

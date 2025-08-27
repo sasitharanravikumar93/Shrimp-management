@@ -3,7 +3,7 @@ const Event = require('../models/Event');
 const Pond = require('../models/Pond');
 const Season = require('../models/Season');
 const InventoryItem = require('../models/InventoryItem'); // New import
-const InventoryAdjustment = require('../models/InventoryAdjustment'); // New import
+// const InventoryAdjustment = require('../models/InventoryAdjustment'); // New import - unused
 const NurseryBatch = require('../models/NurseryBatch'); // New import
 const inventoryController = require('./inventoryController'); // New import
 
@@ -48,121 +48,128 @@ exports.createEvent = async (req, res) => {
     }
 
     // Type-specific validation and logic
+    // Declare variables outside switch to avoid lexical declaration issues
+    let method, preparationDate, stockingDate, stockNurseryBatchId, species, initialCount, 
+      applicationDate, inventoryItemId, quantityApplied, harvestDate, harvestWeight, averageWeight,
+      preparationMethod, nurseryPrepDate, pH, dissolvedOxygen, temperature, salinity, 
+      testTime, samplingTime, totalWeight, totalCount,
+      feedTime, feedInventoryItemId, quantity;
+
     switch (eventType) {
-      case 'PondPreparation':
-        const { method, preparationDate } = details;
-        if (!method || !preparationDate) {
-          return res.status(400).json({ message: 'PondPreparation: method and preparationDate are required in details' });
-        }
-        // This event type is only valid for ponds
-        if (!pondId) {
-          return res.status(400).json({ message: 'PondPreparation event requires a pond ID' });
-        }
-        break;
+    case 'PondPreparation':
+      ({ method, preparationDate } = details);
+      if (!method || !preparationDate) {
+        return res.status(400).json({ message: 'PondPreparation: method and preparationDate are required in details' });
+      }
+      // This event type is only valid for ponds
+      if (!pondId) {
+        return res.status(400).json({ message: 'PondPreparation event requires a pond ID' });
+      }
+      break;
 
-      case 'Stocking':
-        const { stockingDate, nurseryBatchId: stockNurseryBatchId, species, initialCount } = details;
-        if (!stockingDate || !stockNurseryBatchId || !species || initialCount === undefined) {
-          return res.status(400).json({ message: 'Stocking: stockingDate, nurseryBatchId, species, and initialCount are required in details' });
-        }
-        // Validate nurseryBatchId
-        const stockNurseryBatch = await NurseryBatch.findById(stockNurseryBatchId);
-        if (!stockNurseryBatch) {
-          return res.status(404).json({ message: 'Stocking: Nursery Batch not found' });
-        }
-        // This event type is only valid for ponds
-        if (!pondId) {
-          return res.status(400).json({ message: 'Stocking event requires a pond ID' });
-        }
-        break;
+    case 'Stocking': {
+      ({ stockingDate, nurseryBatchId: stockNurseryBatchId, species, initialCount } = details);
+      if (!stockingDate || !stockNurseryBatchId || !species || initialCount === undefined) {
+        return res.status(400).json({ message: 'Stocking: stockingDate, nurseryBatchId, species, and initialCount are required in details' });
+      }
+      // Validate nurseryBatchId
+      const stockNurseryBatch = await NurseryBatch.findById(stockNurseryBatchId);
+      if (!stockNurseryBatch) {
+        return res.status(404).json({ message: 'Stocking: Nursery Batch not found' });
+      }
+      // This event type is only valid for ponds
+      if (!pondId) {
+        return res.status(400).json({ message: 'Stocking event requires a pond ID' });
+      }
+      break;
+    }
 
-      case 'ChemicalApplication':
-        const { applicationDate, inventoryItemId, quantityApplied } = details;
-        if (!applicationDate || !inventoryItemId || quantityApplied === undefined) {
-          return res.status(400).json({ message: 'ChemicalApplication: applicationDate, inventoryItemId, and quantityApplied are required in details' });
-        }
-        // Validate inventoryItemId
-        const chemicalItem = await InventoryItem.findById(inventoryItemId);
-        if (!chemicalItem || !chemicalItem.isActive) {
-          return res.status(404).json({ message: 'ChemicalApplication: Inventory item not found or is inactive' });
-        }
-        if (chemicalItem.itemType !== 'Chemical' && chemicalItem.itemType !== 'Probiotic') {
-          return res.status(400).json({ message: 'ChemicalApplication: Selected inventory item is not a Chemical or Probiotic type' });
-        }
-        break;
+    case 'ChemicalApplication': {
+      ({ applicationDate, inventoryItemId, quantityApplied } = details);
+      if (!applicationDate || !inventoryItemId || quantityApplied === undefined) {
+        return res.status(400).json({ message: 'ChemicalApplication: applicationDate, inventoryItemId, and quantityApplied are required in details' });
+      }
+      // Validate inventoryItemId
+      const chemicalItem = await InventoryItem.findById(inventoryItemId);
+      if (!chemicalItem || !chemicalItem.isActive) {
+        return res.status(404).json({ message: 'ChemicalApplication: Inventory item not found or is inactive' });
+      }
+      if (chemicalItem.itemType !== 'Chemical' && chemicalItem.itemType !== 'Probiotic') {
+        return res.status(400).json({ message: 'ChemicalApplication: Selected inventory item is not a Chemical or Probiotic type' });
+      }
+      break;
+    }
 
-      case 'PartialHarvest':
-      case 'FullHarvest':
-        const { harvestDate, harvestWeight, averageWeight } = details;
-        if (!harvestDate || harvestWeight === undefined || averageWeight === undefined) {
-          return res.status(400).json({ message: `${eventType}: harvestDate, harvestWeight, and averageWeight are required in details` });
-        }
-        // These event types are only valid for ponds
-        if (!pondId) {
-          return res.status(400).json({ message: 'Harvest events require a pond ID' });
-        }
-        break;
+    case 'PartialHarvest':
+    case 'FullHarvest':
+      ({ harvestDate, harvestWeight, averageWeight } = details);
+      if (!harvestDate || harvestWeight === undefined || averageWeight === undefined) {
+        return res.status(400).json({ message: `${eventType}: harvestDate, harvestWeight, and averageWeight are required in details` });
+      }
+      // These event types are only valid for ponds
+      if (!pondId) {
+        return res.status(400).json({ message: 'Harvest events require a pond ID' });
+      }
+      break;
 
-      case 'NurseryPreparation':
-        const { preparationMethod, preparationDate: nurseryPrepDate } = details;
-        if (!preparationMethod || !nurseryPrepDate) {
-          return res.status(400).json({ message: 'NurseryPreparation: preparationMethod and preparationDate are required in details' });
-        }
-        // This event type is only valid for nursery batches
-        if (!nurseryBatchId) {
-          return res.status(400).json({ message: 'NurseryPreparation event requires a nursery batch ID' });
-        }
-        break;
+    case 'NurseryPreparation':
+      ({ preparationMethod, preparationDate: nurseryPrepDate } = details);
+      if (!preparationMethod || !nurseryPrepDate) {
+        return res.status(400).json({ message: 'NurseryPreparation: preparationMethod and preparationDate are required in details' });
+      }
+      // This event type is only valid for nursery batches
+      if (!nurseryBatchId) {
+        return res.status(400).json({ message: 'NurseryPreparation event requires a nursery batch ID' });
+      }
+      break;
 
-      case 'WaterQualityTesting':
-        const { 
-          pH, 
-          dissolvedOxygen, 
-          temperature, 
-          salinity, 
-          ammonia, 
-          nitrite, 
-          alkalinity,
-          testTime
-        } = details;
+    case 'WaterQualityTesting':
+      ({ 
+        pH, 
+        dissolvedOxygen, 
+        temperature, 
+        salinity, 
+        testTime
+      } = details);
         
-        if (pH === undefined || dissolvedOxygen === undefined || temperature === undefined || salinity === undefined) {
-          return res.status(400).json({ message: 'WaterQualityTesting: pH, dissolvedOxygen, temperature, and salinity are required in details' });
-        }
-        if (!testTime) {
-          return res.status(400).json({ message: 'WaterQualityTesting: testTime is required in details' });
-        }
-        break;
+      if (pH === undefined || dissolvedOxygen === undefined || temperature === undefined || salinity === undefined) {
+        return res.status(400).json({ message: 'WaterQualityTesting: pH, dissolvedOxygen, temperature, and salinity are required in details' });
+      }
+      if (!testTime) {
+        return res.status(400).json({ message: 'WaterQualityTesting: testTime is required in details' });
+      }
+      break;
 
-      case 'GrowthSampling':
-        const { samplingTime, totalWeight, totalCount } = details;
-        if (!samplingTime || totalWeight === undefined || totalCount === undefined) {
-          return res.status(400).json({ message: 'GrowthSampling: samplingTime, totalWeight, and totalCount are required in details' });
-        }
-        break;
+    case 'GrowthSampling':
+      ({ samplingTime, totalWeight, totalCount } = details);
+      if (!samplingTime || totalWeight === undefined || totalCount === undefined) {
+        return res.status(400).json({ message: 'GrowthSampling: samplingTime, totalWeight, and totalCount are required in details' });
+      }
+      break;
 
-      case 'Feeding':
-        const { feedTime, inventoryItemId: feedInventoryItemId, quantity } = details;
-        if (!feedTime || !feedInventoryItemId || quantity === undefined) {
-          return res.status(400).json({ message: 'Feeding: feedTime, inventoryItemId, and quantity are required in details' });
-        }
-        // Validate inventoryItemId
-        const feedItem = await InventoryItem.findById(feedInventoryItemId);
-        if (!feedItem || !feedItem.isActive) {
-          return res.status(404).json({ message: 'Feeding: Feed item not found or is inactive' });
-        }
-        if (feedItem.itemType !== 'Feed') {
-          return res.status(400).json({ message: 'Feeding: Selected inventory item is not a Feed type' });
-        }
-        break;
+    case 'Feeding': {
+      ({ feedTime, inventoryItemId: feedInventoryItemId, quantity } = details);
+      if (!feedTime || !feedInventoryItemId || quantity === undefined) {
+        return res.status(400).json({ message: 'Feeding: feedTime, inventoryItemId, and quantity are required in details' });
+      }
+      // Validate inventoryItemId
+      const feedItem = await InventoryItem.findById(feedInventoryItemId);
+      if (!feedItem || !feedItem.isActive) {
+        return res.status(404).json({ message: 'Feeding: Feed item not found or is inactive' });
+      }
+      if (feedItem.itemType !== 'Feed') {
+        return res.status(400).json({ message: 'Feeding: Selected inventory item is not a Feed type' });
+      }
+      break;
+    }
 
-      case 'Inspection':
-        // Inspection events don't have strict required fields beyond the basics
-        // but can include media
-        break;
+    case 'Inspection':
+      // Inspection events don't have strict required fields beyond the basics
+      // but can include media
+      break;
 
-      default:
-        return res.status(400).json({ message: 'Invalid event type' });
+    default:
+      return res.status(400).json({ message: 'Invalid event type' });
     }
 
     const event = new Event({
@@ -333,120 +340,125 @@ exports.updateEvent = async (req, res) => {
 
     // Type-specific validation and logic (similar to createEvent)
     switch (eventType) {
-      case 'PondPreparation':
-        const { method, preparationDate } = details;
-        if (!method || !preparationDate) {
-          return res.status(400).json({ message: 'PondPreparation: method and preparationDate are required in details' });
-        }
-        // This event type is only valid for ponds
-        if (!pondId) {
-          return res.status(400).json({ message: 'PondPreparation event requires a pond ID' });
-        }
-        break;
+    case 'PondPreparation': {
+      const { method, preparationDate } = details;
+      if (!method || !preparationDate) {
+        return res.status(400).json({ message: 'PondPreparation: method and preparationDate are required in details' });
+      }
+      // This event type is only valid for ponds
+      if (!pondId) {
+        return res.status(400).json({ message: 'PondPreparation event requires a pond ID' });
+      }
+      break;
+    }
 
-      case 'Stocking':
-        const { stockingDate, nurseryBatchId: stockNurseryBatchId, species, initialCount } = details;
-        if (!stockingDate || !stockNurseryBatchId || !species || initialCount === undefined) {
-          return res.status(400).json({ message: 'Stocking: stockingDate, nurseryBatchId, species, and initialCount are required in details' });
-        }
-        // Validate nurseryBatchId
-        const stockNurseryBatch = await NurseryBatch.findById(stockNurseryBatchId);
-        if (!stockNurseryBatch) {
-          return res.status(404).json({ message: 'Stocking: Nursery Batch not found' });
-        }
-        // This event type is only valid for ponds
-        if (!pondId) {
-          return res.status(400).json({ message: 'Stocking event requires a pond ID' });
-        }
-        break;
+    case 'Stocking': {
+      const { stockingDate, nurseryBatchId: stockNurseryBatchId, species, initialCount } = details;
+      if (!stockingDate || !stockNurseryBatchId || !species || initialCount === undefined) {
+        return res.status(400).json({ message: 'Stocking: stockingDate, nurseryBatchId, species, and initialCount are required in details' });
+      }
+      // Validate nurseryBatchId
+      const stockNurseryBatch = await NurseryBatch.findById(stockNurseryBatchId);
+      if (!stockNurseryBatch) {
+        return res.status(404).json({ message: 'Stocking: Nursery Batch not found' });
+      }
+      // This event type is only valid for ponds
+      if (!pondId) {
+        return res.status(400).json({ message: 'Stocking event requires a pond ID' });
+      }
+      break;
+    }
 
-      case 'ChemicalApplication':
-        const { applicationDate, inventoryItemId, quantityApplied } = details;
-        if (!applicationDate || !inventoryItemId || quantityApplied === undefined) {
-          return res.status(400).json({ message: 'ChemicalApplication: applicationDate, inventoryItemId, and quantityApplied are required in details' });
-        }
-        // Validate inventoryItemId
-        const chemicalItem = await InventoryItem.findById(inventoryItemId);
-        if (!chemicalItem || !chemicalItem.isActive) {
-          return res.status(404).json({ message: 'ChemicalApplication: Inventory item not found or is inactive' });
-        }
-        if (chemicalItem.itemType !== 'Chemical' && chemicalItem.itemType !== 'Probiotic') {
-          return res.status(400).json({ message: 'ChemicalApplication: Selected inventory item is not a Chemical or Probiotic type' });
-        }
-        break;
+    case 'ChemicalApplication': {
+      const { applicationDate, inventoryItemId, quantityApplied } = details;
+      if (!applicationDate || !inventoryItemId || quantityApplied === undefined) {
+        return res.status(400).json({ message: 'ChemicalApplication: applicationDate, inventoryItemId, and quantityApplied are required in details' });
+      }
+      // Validate inventoryItemId
+      const chemicalItem = await InventoryItem.findById(inventoryItemId);
+      if (!chemicalItem || !chemicalItem.isActive) {
+        return res.status(404).json({ message: 'ChemicalApplication: Inventory item not found or is inactive' });
+      }
+      if (chemicalItem.itemType !== 'Chemical' && chemicalItem.itemType !== 'Probiotic') {
+        return res.status(400).json({ message: 'ChemicalApplication: Selected inventory item is not a Chemical or Probiotic type' });
+      }
+      break;
+    }
 
-      case 'PartialHarvest':
-      case 'FullHarvest':
-        const { harvestDate, harvestWeight, averageWeight } = details;
-        if (!harvestDate || harvestWeight === undefined || averageWeight === undefined) {
-          return res.status(400).json({ message: `${eventType}: harvestDate, harvestWeight, and averageWeight are required in details` });
-        }
-        // These event types are only valid for ponds
-        if (!pondId) {
-          return res.status(400).json({ message: 'Harvest events require a pond ID' });
-        }
-        break;
+    case 'PartialHarvest':
+    case 'FullHarvest': {
+      const { harvestDate, harvestWeight, averageWeight } = details;
+      if (!harvestDate || harvestWeight === undefined || averageWeight === undefined) {
+        return res.status(400).json({ message: `${eventType}: harvestDate, harvestWeight, and averageWeight are required in details` });
+      }
+      // These event types are only valid for ponds
+      if (!pondId) {
+        return res.status(400).json({ message: 'Harvest events require a pond ID' });
+      }
+      break;
+    }
 
-      case 'NurseryPreparation':
-        const { preparationMethod, preparationDate: nurseryPrepDate } = details;
-        if (!preparationMethod || !nurseryPrepDate) {
-          return res.status(400).json({ message: 'NurseryPreparation: preparationMethod and preparationDate are required in details' });
-        }
-        // This event type is only valid for nursery batches
-        if (!nurseryBatchId) {
-          return res.status(400).json({ message: 'NurseryPreparation event requires a nursery batch ID' });
-        }
-        break;
+    case 'NurseryPreparation': {
+      const { preparationMethod, preparationDate: nurseryPrepDate } = details;
+      if (!preparationMethod || !nurseryPrepDate) {
+        return res.status(400).json({ message: 'NurseryPreparation: preparationMethod and preparationDate are required in details' });
+      }
+      // This event type is only valid for nursery batches
+      if (!nurseryBatchId) {
+        return res.status(400).json({ message: 'NurseryPreparation event requires a nursery batch ID' });
+      }
+      break;
+    }
 
-      case 'WaterQualityTesting':
-        const { 
-          pH, 
-          dissolvedOxygen, 
-          temperature, 
-          salinity, 
-          ammonia, 
-          nitrite, 
-          alkalinity,
-          testTime
-        } = details;
+    case 'WaterQualityTesting': {
+      const { 
+        pH, 
+        dissolvedOxygen, 
+        temperature, 
+        salinity, 
+        testTime
+      } = details;
         
-        if (pH === undefined || dissolvedOxygen === undefined || temperature === undefined || salinity === undefined) {
-          return res.status(400).json({ message: 'WaterQualityTesting: pH, dissolvedOxygen, temperature, and salinity are required in details' });
-        }
-        if (!testTime) {
-          return res.status(400).json({ message: 'WaterQualityTesting: testTime is required in details' });
-        }
-        break;
+      if (pH === undefined || dissolvedOxygen === undefined || temperature === undefined || salinity === undefined) {
+        return res.status(400).json({ message: 'WaterQualityTesting: pH, dissolvedOxygen, temperature, and salinity are required in details' });
+      }
+      if (!testTime) {
+        return res.status(400).json({ message: 'WaterQualityTesting: testTime is required in details' });
+      }
+      break;
+    }
 
-      case 'GrowthSampling':
-        const { samplingTime, totalWeight, totalCount } = details;
-        if (!samplingTime || totalWeight === undefined || totalCount === undefined) {
-          return res.status(400).json({ message: 'GrowthSampling: samplingTime, totalWeight, and totalCount are required in details' });
-        }
-        break;
+    case 'GrowthSampling': {
+      const { samplingTime, totalWeight, totalCount } = details;
+      if (!samplingTime || totalWeight === undefined || totalCount === undefined) {
+        return res.status(400).json({ message: 'GrowthSampling: samplingTime, totalWeight, and totalCount are required in details' });
+      }
+      break;
+    }
 
-      case 'Feeding':
-        const { feedTime, inventoryItemId: feedInventoryItemId, quantity } = details;
-        if (!feedTime || !feedInventoryItemId || quantity === undefined) {
-          return res.status(400).json({ message: 'Feeding: feedTime, inventoryItemId, and quantity are required in details' });
-        }
-        // Validate inventoryItemId
-        const feedItem = await InventoryItem.findById(feedInventoryItemId);
-        if (!feedItem || !feedItem.isActive) {
-          return res.status(404).json({ message: 'Feeding: Feed item not found or is inactive' });
-        }
-        if (feedItem.itemType !== 'Feed') {
-          return res.status(400).json({ message: 'Feeding: Selected inventory item is not a Feed type' });
-        }
-        break;
+    case 'Feeding': {
+      const { feedTime, inventoryItemId: feedInventoryItemId, quantity } = details;
+      if (!feedTime || !feedInventoryItemId || quantity === undefined) {
+        return res.status(400).json({ message: 'Feeding: feedTime, inventoryItemId, and quantity are required in details' });
+      }
+      // Validate inventoryItemId
+      const feedItem = await InventoryItem.findById(feedInventoryItemId);
+      if (!feedItem || !feedItem.isActive) {
+        return res.status(404).json({ message: 'Feeding: Feed item not found or is inactive' });
+      }
+      if (feedItem.itemType !== 'Feed') {
+        return res.status(400).json({ message: 'Feeding: Selected inventory item is not a Feed type' });
+      }
+      break;
+    }
 
-      case 'Inspection':
-        // Inspection events don't have strict required fields beyond the basics
-        // but can include media
-        break;
+    case 'Inspection':
+      // Inspection events don't have strict required fields beyond the basics
+      // but can include media
+      break;
 
-      default:
-        return res.status(400).json({ message: 'Invalid event type' });
+    default:
+      return res.status(400).json({ message: 'Invalid event type' });
     }
     
     const event = await Event.findByIdAndUpdate(
@@ -461,9 +473,9 @@ exports.updateEvent = async (req, res) => {
       },
       { new: true, runValidators: true }
     )
-    .populate('pondId', 'name')
-    .populate('nurseryBatchId', 'batchName')
-    .populate('seasonId', 'name');
+      .populate('pondId', 'name')
+      .populate('nurseryBatchId', 'batchName')
+      .populate('seasonId', 'name');
     
     if (!event) {
       return res.status(404).json({ message: 'Event not found' });
@@ -675,10 +687,10 @@ exports.getEventsByDateRange = async (req, res) => {
         $lte: new Date(endDate)
       }
     })
-    .populate('pondId', 'name')
-    .populate('nurseryBatchId', 'batchName')
-    .populate('seasonId', 'name')
-    .sort({ date: -1 });
+      .populate('pondId', 'name')
+      .populate('nurseryBatchId', 'batchName')
+      .populate('seasonId', 'name')
+      .sort({ date: -1 });
     
     // Conditionally populate inventoryItemId for ChemicalApplication and Feeding events
     for (let i = 0; i < events.length; i++) {
