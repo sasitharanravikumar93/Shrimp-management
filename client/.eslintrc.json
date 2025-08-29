@@ -200,6 +200,13 @@
                 "@typescript-eslint/no-var-requires": "off",
                 "@typescript-eslint/explicit-function-return-type": "off"
             }
+        },
+        {
+            "files": ["src/constants/index.js"],
+            "rules": {
+                "no-magic-numbers": "off",
+                "max-lines": "off"
+            }
         }
     ],
     "ignorePatterns": [
