@@ -6,7 +6,7 @@ import {
   CalendarToday as CalendarIcon,
   Notifications as NotificationIcon
 } from '@mui/icons-material';
-import { Card, CardContent, Typography, Box, Button, Grid, Divider } from '@mui/material';
+import { Card, CardContent, Typography, Box, Grid } from '@mui/material';
 import { motion } from 'framer-motion';
 import React from 'react';
 import { useTranslation } from 'react-i18next';

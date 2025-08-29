@@ -1,4 +1,4 @@
-const logger = require('../logger');
+const { logger } = require('../utils/logger');
 const InventoryItem = require('../models/InventoryItem');
 const InventoryAdjustment = require('../models/InventoryAdjustment');
 const FeedInput = require('../models/FeedInput');

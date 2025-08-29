@@ -10,9 +10,9 @@ import {
   Typography,
   Box,
   CircularProgress,
-  Alert,
-  IconButton
+  Alert
 } from '@mui/material';
+import PropTypes from 'prop-types';
 import React, { memo, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -32,6 +32,12 @@ import {
   AreaChart,
   Area
 } from 'recharts';
+
+const DEFAULT_CHART_HEIGHT = 300;
+const PERCENTAGE_MULTIPLIER = 100;
+const DEFAULT_PIE_OUTER_RADIUS = 80;
+const PIE_OUTER_RADIUS_OFFSET = 20;
+const DEFAULT_VIZ_HEIGHT = 400;
 
 // Chart type constants
 export const CHART_TYPES = {
@@ -65,8 +71,8 @@ const CustomTooltip = memo(({ active, payload, label, formatter }) => {
         <Typography variant='body2' sx={{ mb: 1, fontWeight: 'bold' }}>
           {label}
         </Typography>
-        {payload.map((entry, index) => (
-          <Typography key={index} variant='body2' sx={{ color: entry.color }}>
+        {payload.map(entry => (
+          <Typography key={entry.name || entry.dataKey} variant='body2' sx={{ color: entry.color }}>
             {entry.name}: {formatter ? formatter(entry.value) : entry.value}
           </Typography>
         ))}
@@ -75,10 +81,18 @@ const CustomTooltip = memo(({ active, payload, label, formatter }) => {
   }
   return null;
 });
+CustomTooltip.displayName = 'CustomTooltip';
+
+CustomTooltip.propTypes = {
+  active: PropTypes.bool,
+  payload: PropTypes.array,
+  label: PropTypes.string,
+  formatter: PropTypes.func
+};
 
 // Chart components
 const BarChartComponent = memo(({ data, config, colors }) => (
-  <ResponsiveContainer width='100%' height={config.height || 300}>
+  <ResponsiveContainer width='100%' height={config.height || DEFAULT_CHART_HEIGHT}>
     <BarChart data={data} margin={config.margin}>
       <CartesianGrid strokeDasharray='3 3' />
       <XAxis dataKey={config.xAxisKey || 'name'} tick={{ fontSize: 12 }} />
@@ -97,9 +111,16 @@ const BarChartComponent = memo(({ data, config, colors }) => (
     </BarChart>
   </ResponsiveContainer>
 ));
+BarChartComponent.displayName = 'BarChartComponent';
+
+BarChartComponent.propTypes = {
+  data: PropTypes.array.isRequired,
+  config: PropTypes.object,
+  colors: PropTypes.array
+};
 
 const LineChartComponent = memo(({ data, config, colors }) => (
-  <ResponsiveContainer width='100%' height={config.height || 300}>
+  <ResponsiveContainer width='100%' height={config.height || DEFAULT_CHART_HEIGHT}>
     <LineChart data={data} margin={config.margin}>
       <CartesianGrid strokeDasharray='3 3' />
       <XAxis dataKey={config.xAxisKey || 'name'} tick={{ fontSize: 12 }} />
@@ -130,9 +151,16 @@ const LineChartComponent = memo(({ data, config, colors }) => (
     </LineChart>
   </ResponsiveContainer>
 ));
+LineChartComponent.displayName = 'LineChartComponent';
+
+LineChartComponent.propTypes = {
+  data: PropTypes.array.isRequired,
+  config: PropTypes.object,
+  colors: PropTypes.array
+};
 
 const PieChartComponent = memo(({ data, config, colors }) => (
-  <ResponsiveContainer width='100%' height={config.height || 300}>
+  <ResponsiveContainer width='100%' height={config.height || DEFAULT_CHART_HEIGHT}>
     <PieChart>
       <Pie
         data={data}
@@ -141,15 +169,15 @@ const PieChartComponent = memo(({ data, config, colors }) => (
         labelLine={false}
         label={
           config.showLabels
-            ? ({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`
+            ? ({ name, percent }) => `${name} ${(percent * PERCENTAGE_MULTIPLIER).toFixed(0)}%`
             : false
         }
-        outerRadius={config.outerRadius || 80}
+        outerRadius={config.outerRadius || DEFAULT_PIE_OUTER_RADIUS}
         fill='#8884d8'
         dataKey={config.valueKey || 'value'}
       >
         {data.map((entry, index) => (
-          <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
+          <Cell key={entry.name || `cell-${index}`} fill={colors[index % colors.length]} />
         ))}
       </Pie>
       <Tooltip content={<CustomTooltip formatter={config.formatter} />} />
@@ -157,9 +185,16 @@ const PieChartComponent = memo(({ data, config, colors }) => (
     </PieChart>
   </ResponsiveContainer>
 ));
+PieChartComponent.displayName = 'PieChartComponent';
+
+PieChartComponent.propTypes = {
+  data: PropTypes.array.isRequired,
+  config: PropTypes.object,
+  colors: PropTypes.array
+};
 
 const AreaChartComponent = memo(({ data, config, colors }) => (
-  <ResponsiveContainer width='100%' height={config.height || 300}>
+  <ResponsiveContainer width='100%' height={config.height || DEFAULT_CHART_HEIGHT}>
     <AreaChart data={data} margin={config.margin}>
       <CartesianGrid strokeDasharray='3 3' />
       <XAxis dataKey={config.xAxisKey || 'name'} tick={{ fontSize: 12 }} />
@@ -187,6 +222,13 @@ const AreaChartComponent = memo(({ data, config, colors }) => (
     </AreaChart>
   </ResponsiveContainer>
 ));
+AreaChartComponent.displayName = 'AreaChartComponent';
+
+AreaChartComponent.propTypes = {
+  data: PropTypes.array.isRequired,
+  config: PropTypes.object,
+  colors: PropTypes.array
+};
 
 // Main DataVisualization component
 const DataVisualization = memo(
@@ -201,7 +243,7 @@ const DataVisualization = memo(
     error = null,
     actions = null,
     className = '',
-    height = 400,
+    height = DEFAULT_VIZ_HEIGHT,
     ...cardProps
   }) => {
     const { t } = useTranslation();
@@ -234,37 +276,25 @@ const DataVisualization = memo(
       [config, height, type]
     );
 
-    if (loading) {
-      return (
-        <Card className={className} {...cardProps}>
-          <CardContent>
-            <Box display='flex' justifyContent='center' alignItems='center' height={height}>
-              <CircularProgress />
-            </Box>
-          </CardContent>
-        </Card>
-      );
-    }
+    const renderContent = () => {
+      if (loading) {
+        return (
+          <Box display='flex' justifyContent='center' alignItems='center' height={height}>
+            <CircularProgress />
+          </Box>
+        );
+      }
 
-    if (error) {
-      return (
-        <Card className={className} {...cardProps}>
-          <CardContent>
-            <Alert severity='error'>{error.message || t('error_loading_data')}</Alert>
-          </CardContent>
-        </Card>
-      );
-    }
+      if (error) {
+        return <Alert severity='error'>{error.message || t('error_loading_data')}</Alert>;
+      }
 
-    if (!data || data.length === 0) {
-      return (
-        <Card className={className} {...cardProps}>
-          <CardContent>
-            <Alert severity='info'>{t('no_data_available')}</Alert>
-          </CardContent>
-        </Card>
-      );
-    }
+      if (!data || data.length === 0) {
+        return <Alert severity='info'>{t('no_data_available')}</Alert>;
+      }
+
+      return <ChartComponent data={data} config={chartConfig} colors={colors} />;
+    };
 
     return (
       <Card className={className} {...cardProps}>
@@ -287,13 +317,26 @@ const DataVisualization = memo(
             action={actions}
           />
         )}
-        <CardContent>
-          <ChartComponent data={data} config={chartConfig} colors={colors} />
-        </CardContent>
+        <CardContent>{renderContent()}</CardContent>
       </Card>
     );
   }
 );
+DataVisualization.displayName = 'DataVisualization';
+
+DataVisualization.propTypes = {
+  title: PropTypes.string,
+  subtitle: PropTypes.string,
+  data: PropTypes.array.isRequired,
+  type: PropTypes.oneOf(Object.values(CHART_TYPES)),
+  config: PropTypes.object,
+  colors: PropTypes.array,
+  loading: PropTypes.bool,
+  error: PropTypes.object,
+  actions: PropTypes.node,
+  className: PropTypes.string,
+  height: PropTypes.number
+};
 
 // Specialized components for common use cases
 export const MetricsBarChart = memo(({ data, title, ...props }) => (
@@ -309,6 +352,12 @@ export const MetricsBarChart = memo(({ data, title, ...props }) => (
     {...props}
   />
 ));
+MetricsBarChart.displayName = 'MetricsBarChart';
+
+MetricsBarChart.propTypes = {
+  data: PropTypes.array.isRequired,
+  title: PropTypes.string
+};
 
 export const TrendLineChart = memo(({ data, title, ...props }) => (
   <DataVisualization
@@ -323,6 +372,12 @@ export const TrendLineChart = memo(({ data, title, ...props }) => (
     {...props}
   />
 ));
+TrendLineChart.displayName = 'TrendLineChart';
+
+TrendLineChart.propTypes = {
+  data: PropTypes.array.isRequired,
+  title: PropTypes.string
+};
 
 export const DistributionPieChart = memo(({ data, title, ...props }) => (
   <DataVisualization
@@ -332,11 +387,17 @@ export const DistributionPieChart = memo(({ data, title, ...props }) => (
     config={{
       valueKey: 'value',
       showLabels: true,
-      outerRadius: 100
+      outerRadius: DEFAULT_PIE_OUTER_RADIUS + PIE_OUTER_RADIUS_OFFSET // Example: 100
     }}
     {...props}
   />
 ));
+DistributionPieChart.displayName = 'DistributionPieChart';
+
+DistributionPieChart.propTypes = {
+  data: PropTypes.array.isRequired,
+  title: PropTypes.string
+};
 
 export const GrowthAreaChart = memo(({ data, title, ...props }) => (
   <DataVisualization
@@ -351,5 +412,11 @@ export const GrowthAreaChart = memo(({ data, title, ...props }) => (
     {...props}
   />
 ));
+GrowthAreaChart.displayName = 'GrowthAreaChart';
+
+GrowthAreaChart.propTypes = {
+  data: PropTypes.array.isRequired,
+  title: PropTypes.string
+};
 
 export default DataVisualization;

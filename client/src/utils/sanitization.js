@@ -3,6 +3,12 @@
  * Provides functions to sanitize user input and prevent XSS attacks
  */
 
+// Constants for validation limits
+const MIN_PHONE_LENGTH = 10;
+const MAX_PHONE_LENGTH = 15;
+const MAX_FILENAME_LENGTH = 255;
+const MAX_SEARCH_TERM_LENGTH = 100;
+
 // DOMPurify alternative - lightweight HTML sanitizer
 const createHTMLSanitizer = () => {
   // Create a temporary element to test for potential XSS
@@ -65,7 +71,7 @@ export const sanitizePhone = phone => {
   const cleaned = phone.replace(/[^\d+]/g, '');
 
   // Basic validation - should start with + or digit, and be reasonable length
-  if (cleaned.length >= 10 && cleaned.length <= 15) {
+  if (cleaned.length >= MIN_PHONE_LENGTH && cleaned.length <= MAX_PHONE_LENGTH) {
     return cleaned;
   }
 
@@ -120,10 +126,10 @@ export const sanitizeFileName = fileName => {
 
   // Remove dangerous characters and limit length
   return fileName
-    .replace(/[<>:"/\\|?*\x00-\x1f]/g, '')
+    .replace(/[<>:"/\\|?*\x00-\x1f]/g, '') // eslint-disable-line no-control-regex
     .replace(/\.$/, '') // Remove trailing dot
     .trim()
-    .substring(0, 255);
+    .substring(0, MAX_FILENAME_LENGTH);
 };
 
 // SQL injection prevention for search terms
@@ -133,7 +139,7 @@ export const sanitizeSearchTerm = term => {
   return term
     .trim()
     .replace(/['"`;\\]/g, '') // Remove SQL special characters
-    .substring(0, 100); // Limit length
+    .substring(0, MAX_SEARCH_TERM_LENGTH); // Limit length
 };
 
 // HTML content sanitizer (when you need to preserve some HTML)
@@ -208,7 +214,8 @@ export const validateInput = (value, rules = {}) => {
   };
 };
 
-export default {
+// Export all utilities as named exports
+const sanitizationUtils = {
   sanitizeText,
   sanitizeEmail,
   sanitizePhone,
@@ -220,3 +227,5 @@ export default {
   sanitizeFormData,
   validateInput
 };
+
+export default sanitizationUtils;

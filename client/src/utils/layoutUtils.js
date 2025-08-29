@@ -9,6 +9,10 @@ import React from 'react';
 
 import { designTokens } from '../theme/designTokens';
 
+const MATERIAL_UI_SPACING_UNIT = 8;
+const BORDER_RADIUS_MULTIPLIER = 1.5;
+const DEFAULT_Z_INDEX = 10;
+
 const { spacing, breakpoints } = designTokens;
 
 // Responsive spacing utility
@@ -43,13 +47,13 @@ export const getContainerSize = size => {
 
 // Layout Grid Component
 export const LayoutGrid = styled(Grid)(({ theme, spacing: spacingProp = 'md' }) => ({
-  padding: theme.spacing(0, getResponsiveSpacing(spacingProp) / 8),
+  padding: theme.spacing(0, getResponsiveSpacing(spacingProp) / MATERIAL_UI_SPACING_UNIT),
 
   '& .MuiGrid-item': {
-    paddingLeft: theme.spacing(getResponsiveSpacing(spacingProp) / 8),
-    paddingRight: theme.spacing(getResponsiveSpacing(spacingProp) / 8),
-    paddingTop: theme.spacing(getResponsiveSpacing(spacingProp) / 8),
-    paddingBottom: theme.spacing(getResponsiveSpacing(spacingProp) / 8)
+    paddingLeft: theme.spacing(getResponsiveSpacing(spacingProp) / MATERIAL_UI_SPACING_UNIT),
+    paddingRight: theme.spacing(getResponsiveSpacing(spacingProp) / MATERIAL_UI_SPACING_UNIT),
+    paddingTop: theme.spacing(getResponsiveSpacing(spacingProp) / MATERIAL_UI_SPACING_UNIT),
+    paddingBottom: theme.spacing(getResponsiveSpacing(spacingProp) / MATERIAL_UI_SPACING_UNIT)
   }
 }));
 
@@ -69,18 +73,19 @@ export const ResponsiveStack = styled(Stack)(
 // Section Container
 export const Section = styled(Box)(
   ({ theme, padding = 'lg', margin = 'lg', fullWidth = false }) => ({
-    padding: theme.spacing(getResponsiveSpacing(padding) / 8),
-    margin: theme.spacing(getResponsiveSpacing(margin) / 8, 0),
+    padding: theme.spacing(getResponsiveSpacing(padding) / MATERIAL_UI_SPACING_UNIT),
+    margin: theme.spacing(getResponsiveSpacing(margin) / MATERIAL_UI_SPACING_UNIT, 0),
     width: fullWidth ? '100%' : 'auto',
 
     [theme.breakpoints.down('md')]: {
-      padding: theme.spacing(getResponsiveSpacing('md') / 8),
-      margin: theme.spacing(getResponsiveSpacing('md') / 8, 0)
+      padding: theme.spacing(getResponsiveSpacing('md') / MATERIAL_UI_SPACING_UNIT),
+      margin: theme.spacing(getResponsiveSpacing('md') / MATERIAL_UI_SPACING_UNIT, 0)
     }
   })
 );
 
 // Page Layout Component
+// eslint-disable-next-line react/prop-types
 export const PageLayout = ({
   children,
   maxWidth = 'lg',
@@ -98,8 +103,8 @@ export const PageLayout = ({
       sx={{
         minHeight: '100vh',
         backgroundColor: backgroundColors[background] || backgroundColors.default,
-        paddingTop: getResponsiveSpacing(padding) / 8,
-        paddingBottom: getResponsiveSpacing(padding) / 8
+        paddingTop: getResponsiveSpacing(padding) / MATERIAL_UI_SPACING_UNIT,
+        paddingBottom: getResponsiveSpacing(padding) / MATERIAL_UI_SPACING_UNIT
       }}
     >
       <Container
@@ -116,23 +121,24 @@ export const PageLayout = ({
 
 // Card Layout with consistent spacing
 export const CardLayout = styled(Box)(({ theme, padding = 'lg', variant = 'default' }) => ({
-  padding: theme.spacing(getResponsiveSpacing(padding) / 8),
-  borderRadius: theme.shape.borderRadius * 1.5,
+  padding: theme.spacing(getResponsiveSpacing(padding) / MATERIAL_UI_SPACING_UNIT),
+  borderRadius: theme.shape.borderRadius * BORDER_RADIUS_MULTIPLIER,
 
   ...(variant === 'compact' && {
-    padding: theme.spacing(getResponsiveSpacing('md') / 8)
+    padding: theme.spacing(getResponsiveSpacing('md') / MATERIAL_UI_SPACING_UNIT)
   }),
 
   ...(variant === 'spacious' && {
-    padding: theme.spacing(getResponsiveSpacing('xl') / 8)
+    padding: theme.spacing(getResponsiveSpacing('xl') / MATERIAL_UI_SPACING_UNIT)
   }),
 
   [theme.breakpoints.down('md')]: {
-    padding: theme.spacing(getResponsiveSpacing('md') / 8)
+    padding: theme.spacing(getResponsiveSpacing('md') / MATERIAL_UI_SPACING_UNIT)
   }
 }));
 
 // Two Column Layout
+// eslint-disable-next-line react/prop-types
 export const TwoColumnLayout = ({
   left,
   right,
@@ -145,7 +151,7 @@ export const TwoColumnLayout = ({
   <Box
     sx={{
       display: 'flex',
-      gap: getResponsiveSpacing(gap) / 8,
+      gap: getResponsiveSpacing(gap) / MATERIAL_UI_SPACING_UNIT,
       flexDirection: { xs: reverseOnMobile ? 'column-reverse' : 'column', [breakpoint]: 'row' },
 
       '& > :first-of-type': {
@@ -165,6 +171,7 @@ export const TwoColumnLayout = ({
 );
 
 // Sidebar Layout
+// eslint-disable-next-line react/prop-types
 export const SidebarLayout = ({
   sidebar,
   content,
@@ -176,7 +183,7 @@ export const SidebarLayout = ({
   <Box
     sx={{
       display: 'flex',
-      gap: getResponsiveSpacing(gap) / 8,
+      gap: getResponsiveSpacing(gap) / MATERIAL_UI_SPACING_UNIT,
       flexDirection: { xs: 'column', md: 'row' },
       minHeight: '100vh',
 
@@ -209,6 +216,7 @@ export const SidebarLayout = ({
 );
 
 // Centered Layout
+// eslint-disable-next-line react/prop-types
 export const CenteredLayout = ({
   children,
   maxWidth = 'sm',
@@ -221,7 +229,7 @@ export const CenteredLayout = ({
       alignItems: 'center',
       justifyContent: 'center',
       minHeight,
-      padding: getResponsiveSpacing(padding) / 8
+      padding: getResponsiveSpacing(padding) / MATERIAL_UI_SPACING_UNIT
     }}
   >
     <Box
@@ -236,6 +244,7 @@ export const CenteredLayout = ({
 );
 
 // Grid Layout with responsive columns
+// eslint-disable-next-line react/prop-types
 export const ResponsiveGrid = ({
   children,
   columns = { xs: 1, sm: 2, md: 3, lg: 4 },
@@ -245,7 +254,7 @@ export const ResponsiveGrid = ({
   <Box
     sx={{
       display: 'grid',
-      gap: getResponsiveSpacing(gap) / 8,
+      gap: getResponsiveSpacing(gap) / MATERIAL_UI_SPACING_UNIT,
       gridTemplateColumns: {
         xs: `repeat(${columns.xs}, 1fr)`,
         sm: `repeat(${columns.sm || columns.xs}, 1fr)`,
@@ -265,6 +274,7 @@ export const ResponsiveGrid = ({
 );
 
 // Masonry Layout (CSS Grid based)
+// eslint-disable-next-line react/prop-types
 export const MasonryGrid = ({ children, columns = { xs: 1, sm: 2, md: 3 }, gap = 'md' }) => (
   <Box
     sx={{
@@ -274,11 +284,11 @@ export const MasonryGrid = ({ children, columns = { xs: 1, sm: 2, md: 3 }, gap =
         md: columns.md || columns.sm || columns.xs,
         lg: columns.lg || columns.md || columns.sm || columns.xs
       },
-      columnGap: getResponsiveSpacing(gap) / 8,
+      columnGap: getResponsiveSpacing(gap) / MATERIAL_UI_SPACING_UNIT,
 
       '& > *': {
         breakInside: 'avoid',
-        marginBottom: getResponsiveSpacing(gap) / 8,
+        marginBottom: getResponsiveSpacing(gap) / MATERIAL_UI_SPACING_UNIT,
         display: 'inline-block',
         width: '100%'
       }
@@ -289,7 +299,8 @@ export const MasonryGrid = ({ children, columns = { xs: 1, sm: 2, md: 3 }, gap =
 );
 
 // Sticky Container
-export const StickyContainer = ({ children, top = 0, zIndex = 10 }) => (
+// eslint-disable-next-line react/prop-types
+export const StickyContainer = ({ children, top = 0, zIndex = DEFAULT_Z_INDEX }) => (
   <Box
     sx={{
       position: 'sticky',
@@ -336,7 +347,7 @@ export const layoutUtils = {
   }
 };
 
-export default {
+const layoutUtilsExports = {
   LayoutGrid,
   ResponsiveStack,
   Section,
@@ -350,3 +361,5 @@ export default {
   StickyContainer,
   layoutUtils
 };
+
+export default layoutUtilsExports;

@@ -1,3 +1,13 @@
+import logger from './logger';
+
+const IV_LENGTH = 12;
+const SECONDS_IN_MINUTE = 60;
+const MINUTES_IN_HOUR = 60;
+const MILLISECONDS_IN_SECOND = 1000;
+const HOURS_IN_DAY = 24;
+const ONE_HOUR_IN_MS = MINUTES_IN_HOUR * SECONDS_IN_MINUTE * MILLISECONDS_IN_SECOND;
+const ONE_DAY_IN_MS = HOURS_IN_DAY * ONE_HOUR_IN_MS;
+
 /**
  * Secure Storage Utilities
  * Provides secure alternatives to localStorage for sensitive data
@@ -43,7 +53,7 @@ class SecureStorage {
 
       return key;
     } catch (error) {
-      console.error('Failed to generate encryption key:', error);
+      logger.error('Failed to generate encryption key:', error);
       return null;
     }
   }
@@ -57,7 +67,7 @@ class SecureStorage {
       const key = await this.keyPromise;
       if (!key) return btoa(JSON.stringify(data));
 
-      const iv = window.crypto.getRandomValues(new Uint8Array(12));
+      const iv = window.crypto.getRandomValues(new Uint8Array(IV_LENGTH));
       const encodedData = new TextEncoder().encode(JSON.stringify(data));
 
       const encrypted = await window.crypto.subtle.encrypt(
@@ -73,7 +83,7 @@ class SecureStorage {
 
       return btoa(JSON.stringify(result));
     } catch (error) {
-      console.error('Encryption failed:', error);
+      logger.error('Encryption failed:', error);
       return btoa(JSON.stringify(data)); // Fallback
     }
   }
@@ -104,7 +114,7 @@ class SecureStorage {
       const decodedData = new TextDecoder().decode(decrypted);
       return JSON.parse(decodedData);
     } catch (error) {
-      console.error('Decryption failed:', error);
+      logger.error('Decryption failed:', error);
       try {
         return JSON.parse(atob(encryptedData)); // Fallback
       } catch {
@@ -138,7 +148,7 @@ class SecureStorage {
 
       return true;
     } catch (error) {
-      console.error('Failed to store data:', error);
+      logger.error('Failed to store data:', error);
       return false;
     }
   }
@@ -166,7 +176,7 @@ class SecureStorage {
 
       return data;
     } catch (error) {
-      console.error('Failed to retrieve data:', error);
+      logger.error('Failed to retrieve data:', error);
       return null;
     }
   }
@@ -180,7 +190,7 @@ class SecureStorage {
       storage.removeItem(storageKey);
       return true;
     } catch (error) {
-      console.error('Failed to remove data:', error);
+      logger.error('Failed to remove data:', error);
       return false;
     }
   }
@@ -202,7 +212,7 @@ class SecureStorage {
       }
       return true;
     } catch (error) {
-      console.error('Failed to clear storage:', error);
+      logger.error('Failed to clear storage:', error);
       return false;
     }
   }
@@ -225,7 +235,7 @@ export const storage = {
   setSecure: (
     key,
     value,
-    expiry = 24 * 60 * 60 * 1000 // 24 hours default
+    expiry = ONE_DAY_IN_MS // 24 hours default
   ) => secureStorage.setItem(key, value, { encrypt: true, expiry }),
 
   getSecure: key => secureStorage.getItem(key, { encrypted: true }),
@@ -236,7 +246,7 @@ export const storage = {
   setTemp: (
     key,
     value,
-    expiry = 60 * 60 * 1000 // 1 hour default
+    expiry = ONE_HOUR_IN_MS // 1 hour default
   ) => secureStorage.setItem(`temp_${key}`, value, { expiry }),
 
   getTemp: key => secureStorage.getItem(`temp_${key}`),
@@ -270,7 +280,7 @@ export const migrateFromLocalStorage = async (key, isSecure = false) => {
       return true;
     }
   } catch (error) {
-    console.error('Migration failed for key:', key, error);
+    logger.error('Migration failed for key:', key, error);
   }
   return false;
 };

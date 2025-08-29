@@ -7,7 +7,7 @@ const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const { getConfig } = require('../config');
-const { logger } = require('../logger');
+const { logger } = require('../utils/logger');
 
 const config = getConfig();
 
@@ -55,48 +55,45 @@ const authRateLimiter = rateLimit({
  * @returns {void}
  */
 const sanitizeInput = (req, res, next) => {
-  // Sanitize against NoSQL injection
-  mongoSanitize()(req, res, () => {
-    // Additional custom sanitization
-    const sanitizeValue = (value) => {
-      if (typeof value === 'string') {
-        // Remove or escape potentially dangerous characters
-        return value
-          .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') // Remove script tags
-          .replace(/javascript:/gi, '') // Remove javascript: protocol
-          .replace(/on\w+\s*=/gi, '') // Remove event handlers
-          .trim();
+  // Additional custom sanitization
+  const sanitizeValue = (value) => {
+    if (typeof value === 'string') {
+      // Remove or escape potentially dangerous characters
+      return value
+        .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') // Remove script tags
+        .replace(/javascript:/gi, '') // Remove javascript: protocol
+        .replace(/on\w+\s*=/gi, '') // Remove event handlers
+        .trim();
+    }
+    if (typeof value === 'object' && value !== null) {
+      if (Array.isArray(value)) {
+        return value.map(sanitizeValue);
       }
-      if (typeof value === 'object' && value !== null) {
-        if (Array.isArray(value)) {
-          return value.map(sanitizeValue);
-        }
-        const sanitized = {};
-        for (const [key, val] of Object.entries(value)) {
-          sanitized[key] = sanitizeValue(val);
-        }
-        return sanitized;
+      const sanitized = {};
+      for (const [key, val] of Object.entries(value)) {
+        sanitized[key] = sanitizeValue(val);
       }
-      return value;
-    };
-
-    // Sanitize request body
-    if (req.body) {
-      req.body = sanitizeValue(req.body);
+      return sanitized;
     }
+    return value;
+  };
 
-    // Sanitize query parameters
-    if (req.query) {
-      req.query = sanitizeValue(req.query);
-    }
+  // Sanitize request body
+  if (req.body) {
+    req.body = sanitizeValue(req.body);
+  }
 
-    // Sanitize URL parameters
-    if (req.params) {
-      req.params = sanitizeValue(req.params);
-    }
+  // Sanitize query parameters
+  if (req.query) {
+    req.query = sanitizeValue(req.query);
+  }
 
-    next();
-  });
+  // Sanitize URL parameters
+  if (req.params) {
+    req.params = sanitizeValue(req.params);
+  }
+
+  next();
 };
 
 /**
@@ -161,8 +158,8 @@ const securityLogger = (req, res, next) => {
 
   const isSuspicious = suspiciousPatterns.some(pattern =>
     pattern.test(req.originalUrl) ||
-        pattern.test(JSON.stringify(req.body)) ||
-        pattern.test(JSON.stringify(req.query))
+    pattern.test(JSON.stringify(req.body)) ||
+    pattern.test(JSON.stringify(req.query))
   );
 
   if (isSuspicious) {

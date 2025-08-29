@@ -14,6 +14,7 @@ jest.mock('react-router-dom', () => ({
 }));
 
 // Mock the chart components from recharts
+// eslint-disable-next-line react/display-name
 jest.mock('recharts', () => ({
   ...jest.requireActual('recharts'),
   BarChart: () => <div data-testid='bar-chart'>Bar Chart</div>,
@@ -32,6 +33,7 @@ jest.mock('recharts', () => ({
 }));
 
 // Mock the components that are imported
+// eslint-disable-next-line react/display-name, react/prop-types
 jest.mock('../components/KPICard', () => ({
   __esModule: true,
   default: ({ title, value, changeText, suffix }) => (
@@ -44,6 +46,7 @@ jest.mock('../components/KPICard', () => ({
       {changeText && <span data-testid='kpi-change'>{changeText}</span>}
     </div>
   ),
+  // eslint-disable-next-line react/prop-types
   CircularKPICard: ({ title, value }) => (
     <div data-testid='circular-kpi-card'>
       <span data-testid='circular-kpi-title'>{title}</span>
@@ -52,6 +55,7 @@ jest.mock('../components/KPICard', () => ({
   )
 }));
 
+// eslint-disable-next-line react/display-name, react/prop-types
 jest.mock('../components/AlertBanner', () => {
   return ({ message, severity, dismissible, onClose }) => (
     <div data-testid='alert-banner' data-severity={severity}>
@@ -61,10 +65,12 @@ jest.mock('../components/AlertBanner', () => {
   );
 });
 
+// eslint-disable-next-line react/display-name, react/prop-types
 jest.mock('../components/AquacultureTooltip', () => {
   return ({ children }) => <div data-testid='aquaculture-tooltip'>{children}</div>;
 });
 
+// eslint-disable-next-line react/display-name, react/prop-types
 jest.mock('../components/PredictiveInsight', () => {
   return ({ title, insight, confidence, projectedDate }) => (
     <div data-testid='predictive-insight'>
@@ -76,6 +82,7 @@ jest.mock('../components/PredictiveInsight', () => {
   );
 });
 
+// eslint-disable-next-line react/display-name, react/prop-types
 jest.mock('../components/HealthScore', () => {
   return ({ score }) => (
     <div data-testid='health-score' role='progressbar' aria-valuenow={score}>
@@ -84,6 +91,7 @@ jest.mock('../components/HealthScore', () => {
   );
 });
 
+// eslint-disable-next-line react/display-name, react/prop-types
 jest.mock('../components/PondCard', () => {
   return ({ pond }) => (
     <div data-testid='pond-card'>
@@ -95,6 +103,7 @@ jest.mock('../components/PondCard', () => {
   );
 });
 
+// eslint-disable-next-line react/display-name, react/prop-types
 jest.mock('../components/DataTrend', () => {
   return ({ title, data }) => (
     <div data-testid='data-trend'>
@@ -104,8 +113,11 @@ jest.mock('../components/DataTrend', () => {
   );
 });
 
+// eslint-disable-next-line react/display-name, react/prop-types, no-unused-vars
 jest.mock('../components/QuickActions', () => {
-  return ({ onActionClick }) => <div data-testid='quick-actions'>Quick Actions</div>;
+  return ({ onActionClick: _onActionClick }) => (
+    <div data-testid='quick-actions'>Quick Actions</div>
+  );
 });
 
 // Mock SeasonContext
@@ -215,7 +227,7 @@ describe('DashboardPage', () => {
     await waitFor(
       () => {
         expect(
-          screen.getByText((content, element) => {
+          screen.getByText((content, _element) => {
             return content.includes('Error loading dashboard data');
           })
         ).toBeInTheDocument();

@@ -1,4 +1,4 @@
-const logger = require('../logger');
+const { logger } = require('../utils/logger');
 const NurseryBatch = require('../models/NurseryBatch');
 const Season = require('../models/Season');
 const Event = require('../models/Event');
@@ -9,7 +9,7 @@ const getLanguageForUser = (req) => {
   if (req.user && req.user.language) {
     return req.user.language;
   }
-  
+
   // Priority 2: Accept-Language header
   if (req.headers['accept-language']) {
     const acceptedLanguages = req.headers['accept-language'].split(',').map(lang => lang.trim().split(';')[0]);
@@ -19,18 +19,18 @@ const getLanguageForUser = (req) => {
       }
     }
   }
-  
+
   // Priority 3: Default language
   return 'en';
 };
 
 // Helper function to translate a document with multilingual fields
 const translateDocument = (doc, language) => {
-  if (!doc) {return doc;}
-  
+  if (!doc) { return doc; }
+
   // Convert Mongoose document to plain object if needed
   const plainDoc = doc.toObject ? doc.toObject() : doc;
-  
+
   // Process batchName field if it's a Map
   if (plainDoc.batchName && typeof plainDoc.batchName === 'object' && !(plainDoc.batchName instanceof Date)) {
     if (plainDoc.batchName.get) {
@@ -45,7 +45,7 @@ const translateDocument = (doc, language) => {
       plainDoc.batchName = '';
     }
   }
-  
+
   return plainDoc;
 };
 
@@ -59,14 +59,14 @@ exports.createNurseryBatch = async (req, res) => {
   logger.info('Creating a new nursery batch', { body: req.body });
   try {
     const { batchName, startDate, initialCount, species, source, seasonId, size, capacity } = req.body;
-    
+
     // Basic validation
     if (!batchName || !startDate || !initialCount || !species || !source || !seasonId || !size || !capacity) {
-      return res.status(400).json({ 
-        message: 'Batch name, start date, initial count, species, source, season ID, size, and capacity are required' 
+      return res.status(400).json({
+        message: 'Batch name, start date, initial count, species, source, season ID, size, and capacity are required'
       });
     }
-    
+
     // Convert simple string to multilingual map if needed
     let processedBatchName = batchName;
     if (typeof batchName === 'string') {
@@ -74,29 +74,29 @@ exports.createNurseryBatch = async (req, res) => {
     } else if (typeof batchName !== 'object' || Array.isArray(batchName)) {
       return res.status(400).json({ message: 'Batch name must be a string or an object with language keys (e.g., { "en": "Batch A", "ta": "பேட்ச் ஏ" })' });
     }
-    
+
     // Check if season exists
     const season = await Season.findById(seasonId);
     if (!season) {
       return res.status(404).json({ message: 'Season not found' });
     }
-    
-    const nurseryBatch = new NurseryBatch({ 
-      batchName: processedBatchName, 
-      startDate, 
-      initialCount, 
-      species, 
-      source, 
+
+    const nurseryBatch = new NurseryBatch({
+      batchName: processedBatchName,
+      startDate,
+      initialCount,
+      species,
+      source,
       seasonId,
       size,
       capacity
     });
-    
+
     await nurseryBatch.save();
-    
+
     // Populate season name in the response
     const populatedNurseryBatch = await NurseryBatch.findById(nurseryBatch._id).populate('seasonId', 'name');
-    
+
     res.status(201).json(populatedNurseryBatch);
   } catch (error) {
     if (error.code === 11000) { // Duplicate key error
@@ -146,7 +146,7 @@ exports.updateNurseryBatch = async (req, res) => {
   logger.info(`Updating nursery batch by ID: ${req.params.id}`, { body: req.body });
   try {
     const { batchName, startDate, initialCount, species, source, seasonId, size, capacity, status } = req.body;
-    
+
     // Convert simple string to multilingual map if needed
     if (batchName !== undefined) {
       if (typeof batchName === 'string') {
@@ -157,35 +157,35 @@ exports.updateNurseryBatch = async (req, res) => {
         updateData.batchName = batchName;
       }
     }
-    
+
     // Check if season exists
     const season = await Season.findById(seasonId);
     if (!season) {
       return res.status(404).json({ message: 'Season not found' });
     }
-    
+
     // Prepare update object with only provided fields
     const updateData = {};
-    if (batchName !== undefined) {updateData.batchName = batchName;}
-    if (startDate !== undefined) {updateData.startDate = startDate;}
-    if (initialCount !== undefined) {updateData.initialCount = initialCount;}
-    if (species !== undefined) {updateData.species = species;}
-    if (source !== undefined) {updateData.source = source;}
-    if (seasonId !== undefined) {updateData.seasonId = seasonId;}
-    if (size !== undefined) {updateData.size = size;}
-    if (capacity !== undefined) {updateData.capacity = capacity;}
-    if (status !== undefined) {updateData.status = status;}
-    
+    if (batchName !== undefined) { updateData.batchName = batchName; }
+    if (startDate !== undefined) { updateData.startDate = startDate; }
+    if (initialCount !== undefined) { updateData.initialCount = initialCount; }
+    if (species !== undefined) { updateData.species = species; }
+    if (source !== undefined) { updateData.source = source; }
+    if (seasonId !== undefined) { updateData.seasonId = seasonId; }
+    if (size !== undefined) { updateData.size = size; }
+    if (capacity !== undefined) { updateData.capacity = capacity; }
+    if (status !== undefined) { updateData.status = status; }
+
     const nurseryBatch = await NurseryBatch.findByIdAndUpdate(
       req.params.id,
       updateData,
       { new: true, runValidators: true }
     ).populate('seasonId', 'name');
-    
+
     if (!nurseryBatch) {
       return res.status(404).json({ message: 'Nursery batch not found' });
     }
-    
+
     res.json(nurseryBatch);
   } catch (error) {
     if (error.code === 11000) { // Duplicate key error
@@ -204,11 +204,11 @@ exports.deleteNurseryBatch = async (req, res) => {
   logger.info(`Deleting nursery batch by ID: ${req.params.id}`);
   try {
     const nurseryBatch = await NurseryBatch.findByIdAndDelete(req.params.id);
-    
+
     if (!nurseryBatch) {
       return res.status(404).json({ message: 'Nursery batch not found' });
     }
-    
+
     res.json({ message: 'Nursery batch deleted successfully' });
   } catch (error) {
     if (error.name === 'CastError') {
@@ -225,13 +225,13 @@ exports.getNurseryBatchesBySeasonId = async (req, res) => {
   try {
     const language = getLanguageForUser(req);
     const { seasonId } = req.params;
-    
+
     // Check if season exists
     const season = await Season.findById(seasonId);
     if (!season) {
       return res.status(404).json({ message: 'Season not found' });
     }
-    
+
     const nurseryBatches = await NurseryBatch.find({ seasonId }).populate('seasonId', 'name');
     const translatedNurseryBatches = translateDocuments(nurseryBatches, language);
     res.json(translatedNurseryBatches);
@@ -249,19 +249,19 @@ exports.getEventsForNurseryBatch = async (req, res) => {
   logger.info(`Getting events for nursery batch ID: ${req.params.id}`);
   try {
     const { id } = req.params;
-    
+
     // Check if nursery batch exists
     const nurseryBatch = await NurseryBatch.findById(id);
     if (!nurseryBatch) {
       return res.status(404).json({ message: 'Nursery batch not found' });
     }
-    
+
     const events = await Event.find({ nurseryBatchId: id })
       .populate('pondId', 'name')
       .populate('nurseryBatchId', 'batchName')
       .populate('seasonId', 'name')
       .sort({ date: -1 });
-    
+
     res.json(events);
   } catch (error) {
     if (error.name === 'CastError') {

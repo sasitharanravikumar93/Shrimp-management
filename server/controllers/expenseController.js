@@ -1,6 +1,6 @@
 
 const Expense = require('../models/Expense');
-const logger = require('../logger');
+const { logger } = require('../utils/logger');
 
 // Get all expenses with filtering
 exports.getAllExpenses = async (req, res) => {

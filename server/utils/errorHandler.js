@@ -3,7 +3,7 @@
  * Provides consistent error responses and logging across the application
  */
 
-const logger = require('../logger');
+const { logger } = require('../utils/logger');
 
 /**
  * Custom error classes for different types of errors

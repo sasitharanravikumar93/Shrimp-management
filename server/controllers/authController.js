@@ -5,7 +5,7 @@
 
 const crypto = require('crypto');
 const User = require('../models/User');
-const logger = require('../logger');
+const { logger } = require('../utils/logger');
 const {
   asyncHandler,
   sendSuccessResponse,

@@ -1,10 +1,8 @@
 import {
   Lightbulb as LightbulbIcon,
   WaterDrop as WaterIcon,
-  Restaurant as FeedIcon,
   Science as GrowthIcon,
-  Build as MaintenanceIcon,
-  Warning as WarningIcon
+  Build as MaintenanceIcon
 } from '@mui/icons-material';
 import {
   Card,
@@ -23,10 +21,10 @@ import { motion } from 'framer-motion';
 import React from 'react';
 
 const EventSuggestions = ({
-  pondStatus,
+  _pondStatus,
   waterQuality,
   growthRate,
-  lastFeeding,
+  _lastFeeding,
   onSuggestionClick
 }) => {
   // Generate suggestions based on pond conditions

@@ -3,7 +3,9 @@
  * Provides consistent patterns for state management across the application
  */
 
-import React, { createContext, useContext, useReducer, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, useEffect } from 'react';
+
+import logger from './logger';
 
 // Action types
 export const ActionTypes = {
@@ -187,6 +189,7 @@ export const createStandardContext = (contextName, initialState, customActions =
     return context;
   };
 
+  // eslint-disable-next-line react/prop-types
   const Provider = ({ children, apiCall, dependencies = [] }) => {
     const { state, actions, dispatch } = useAsyncState(initialState, customActions);
 
@@ -205,7 +208,7 @@ export const createStandardContext = (contextName, initialState, customActions =
 
         fetchData();
       }
-    }, dependencies);
+    }, [actions, apiCall, ...dependencies]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const contextValue = {
       ...state,
@@ -281,7 +284,7 @@ export const createStateMiddleware = (middlewares = []) => {
 export const loggingMiddleware = (stateAction, action) => {
   if (process.env.NODE_ENV === 'development') {
     // Use logger instead of console for better control
-    const logger = require('./logger').default;
+
     logger.debug(`Action: ${action.type}`, {
       previousState: stateAction.state,
       action: action
@@ -305,7 +308,6 @@ export const createPersistenceMiddleware = (key, storage = localStorage) => {
       try {
         storage.setItem(key, JSON.stringify(stateAction.state.data));
       } catch (error) {
-        const logger = require('./logger').default;
         logger.error('Failed to persist state:', error);
       }
     }
@@ -314,7 +316,7 @@ export const createPersistenceMiddleware = (key, storage = localStorage) => {
   };
 };
 
-export default {
+const stateManagement = {
   ActionTypes,
   createAsyncState,
   createListState,
@@ -328,3 +330,5 @@ export default {
   loggingMiddleware,
   createPersistenceMiddleware
 };
+
+export default stateManagement;

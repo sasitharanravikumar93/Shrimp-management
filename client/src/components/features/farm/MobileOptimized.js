@@ -6,13 +6,6 @@
 import {
   Menu as MenuIcon,
   Close as CloseIcon,
-  Dashboard as DashboardIcon,
-  Assessment as AssessmentIcon,
-  Settings as SettingsIcon,
-  Add as AddIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  Share as ShareIcon,
   ExpandMore as ExpandMoreIcon,
   ExpandLess as ExpandLessIcon
 } from '@mui/icons-material';
@@ -20,7 +13,6 @@ import {
   AppBar,
   Toolbar,
   IconButton,
-  Drawer,
   List,
   ListItem,
   ListItemIcon,
@@ -31,7 +23,6 @@ import {
   SpeedDial,
   SpeedDialAction,
   SpeedDialIcon,
-  Fab,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -45,7 +36,15 @@ import {
   Grid
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
+import PropTypes from 'prop-types';
 import React, { useState, useEffect } from 'react';
+
+const CARD_PADDING_MOBILE = 1.5;
+const GRID_COLUMN_BASE = 12;
+const SKELETON_CARD_HEIGHT = 120;
+const KPI_CARD_HEIGHT_COMPACT = 80;
+const KPI_CARD_HEIGHT_DEFAULT = 100;
+const TOUCH_BUTTON_PADDING = 1.5;
 
 // Mobile Navigation Bar
 export const MobileNavBar = ({ title, onMenuClick, actions = [] }) => {
@@ -66,13 +65,30 @@ export const MobileNavBar = ({ title, onMenuClick, actions = [] }) => {
         </Typography>
 
         {actions.map((action, index) => (
-          <IconButton key={index} color='inherit' onClick={action.onClick} size='small'>
+          <IconButton
+            key={action.name || index}
+            color='inherit'
+            onClick={action.onClick}
+            size='small'
+          >
             {action.icon}
           </IconButton>
         ))}
       </Toolbar>
     </AppBar>
   );
+};
+
+MobileNavBar.propTypes = {
+  title: PropTypes.string,
+  onMenuClick: PropTypes.func,
+  actions: PropTypes.arrayOf(
+    PropTypes.shape({
+      name: PropTypes.string,
+      icon: PropTypes.node,
+      onClick: PropTypes.func
+    })
+  )
 };
 
 // Mobile Drawer with swipe support
@@ -97,7 +113,7 @@ export const MobileDrawer = ({ open, onClose, onOpen, menuItems = [], user }) =>
         {menuItems.map((item, index) => (
           <ListItem
             button
-            key={index}
+            key={item.text || index}
             onClick={() => {
               item.onClick?.();
               onClose();
@@ -142,6 +158,23 @@ export const MobileDrawer = ({ open, onClose, onOpen, menuItems = [], user }) =>
   );
 };
 
+MobileDrawer.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onOpen: PropTypes.func.isRequired,
+  menuItems: PropTypes.arrayOf(
+    PropTypes.shape({
+      text: PropTypes.string.isRequired,
+      icon: PropTypes.node,
+      onClick: PropTypes.func
+    })
+  ),
+  user: PropTypes.shape({
+    name: PropTypes.string,
+    email: PropTypes.string
+  })
+};
+
 // Mobile Bottom Navigation
 export const MobileBottomNav = ({ value, onChange, items = [], showLabels = false }) => {
   const theme = useTheme();
@@ -167,7 +200,7 @@ export const MobileBottomNav = ({ value, onChange, items = [], showLabels = fals
     >
       {items.map((item, index) => (
         <BottomNavigationAction
-          key={index}
+          key={item.value || index}
           label={item.label}
           icon={item.icon}
           value={item.value}
@@ -175,6 +208,19 @@ export const MobileBottomNav = ({ value, onChange, items = [], showLabels = fals
       ))}
     </BottomNavigation>
   );
+};
+
+MobileBottomNav.propTypes = {
+  value: PropTypes.any.isRequired,
+  onChange: PropTypes.func.isRequired,
+  items: PropTypes.arrayOf(
+    PropTypes.shape({
+      label: PropTypes.string,
+      icon: PropTypes.node,
+      value: PropTypes.any.isRequired
+    })
+  ),
+  showLabels: PropTypes.bool
 };
 
 // Mobile Speed Dial for quick actions
@@ -200,7 +246,7 @@ export const MobileSpeedDial = ({ actions = [] }) => {
     >
       {actions.map((action, index) => (
         <SpeedDialAction
-          key={index}
+          key={action.name || index}
           icon={action.icon}
           tooltipTitle={action.name}
           onClick={() => {
@@ -213,18 +259,28 @@ export const MobileSpeedDial = ({ actions = [] }) => {
   );
 };
 
+MobileSpeedDial.propTypes = {
+  actions: PropTypes.arrayOf(
+    PropTypes.shape({
+      name: PropTypes.string.isRequired,
+      icon: PropTypes.node,
+      onClick: PropTypes.func
+    })
+  )
+};
+
 // Mobile Card with touch-friendly interactions
 const MobileCard = styled(Card)(({ theme }) => ({
   '& .MuiCardContent-root': {
     padding: theme.spacing(2),
     [theme.breakpoints.down('sm')]: {
-      padding: theme.spacing(1.5)
+      padding: theme.spacing(CARD_PADDING_MOBILE)
     },
 
     '&:last-child': {
       paddingBottom: theme.spacing(2),
       [theme.breakpoints.down('sm')]: {
-        paddingBottom: theme.spacing(1.5)
+        paddingBottom: theme.spacing(CARD_PADDING_MOBILE)
       }
     }
   }
@@ -276,15 +332,23 @@ export const ExpandableMobileCard = ({
   );
 };
 
+ExpandableMobileCard.propTypes = {
+  title: PropTypes.string.isRequired,
+  subtitle: PropTypes.string,
+  children: PropTypes.node,
+  defaultExpanded: PropTypes.bool,
+  icon: PropTypes.node
+};
+
 // Mobile Grid with responsive columns
 export const MobileGrid = ({ children, spacing = 2, columns = { xs: 1, sm: 2, md: 3 } }) => (
   <Grid container spacing={spacing}>
     {React.Children.map(children, (child, index) => (
       <Grid
         item
-        xs={12 / columns.xs}
-        sm={12 / (columns.sm || columns.xs)}
-        md={12 / (columns.md || columns.sm || columns.xs)}
+        xs={GRID_COLUMN_BASE / columns.xs}
+        sm={GRID_COLUMN_BASE / (columns.sm || columns.xs)}
+        md={GRID_COLUMN_BASE / (columns.md || columns.sm || columns.xs)}
         key={index}
       >
         {child}
@@ -292,6 +356,16 @@ export const MobileGrid = ({ children, spacing = 2, columns = { xs: 1, sm: 2, md
     ))}
   </Grid>
 );
+
+MobileGrid.propTypes = {
+  children: PropTypes.node,
+  spacing: PropTypes.number,
+  columns: PropTypes.shape({
+    xs: PropTypes.number,
+    sm: PropTypes.number,
+    md: PropTypes.number
+  })
+};
 
 // Mobile-optimized dialog
 export const MobileDialog = ({ open, onClose, title, children, fullScreen = false }) => {
@@ -334,11 +408,19 @@ export const MobileDialog = ({ open, onClose, title, children, fullScreen = fals
   );
 };
 
+MobileDialog.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  title: PropTypes.string,
+  children: PropTypes.node,
+  fullScreen: PropTypes.bool
+};
+
 // Touch-friendly button sizes
 export const TouchButton = styled('button')(({ theme }) => ({
   minHeight: 44, // iOS recommended touch target size
   minWidth: 44,
-  padding: theme.spacing(1.5, 2),
+  padding: theme.spacing(TOUCH_BUTTON_PADDING, 2),
   fontSize: '1rem',
   fontWeight: 500,
   border: 'none',
@@ -363,7 +445,7 @@ export const TouchButton = styled('button')(({ theme }) => ({
 }));
 
 // Skeleton Card for loading states
-export const SkeletonCard = ({ height = 120, width = '100%' }) => (
+export const SkeletonCard = ({ height = SKELETON_CARD_HEIGHT, width = '100%' }) => (
   <Box
     sx={{
       height,
@@ -375,11 +457,16 @@ export const SkeletonCard = ({ height = 120, width = '100%' }) => (
   />
 );
 
+SkeletonCard.propTypes = {
+  height: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
+  width: PropTypes.oneOfType([PropTypes.number, PropTypes.string])
+};
+
 // Mobile KPI Card
 export const MobileKPICard = ({ title, value, icon, color, change, compact = false }) => (
   <Card
     sx={{
-      height: compact ? 80 : 100,
+      height: compact ? KPI_CARD_HEIGHT_COMPACT : KPI_CARD_HEIGHT_DEFAULT,
       display: 'flex',
       flexDirection: 'column',
       justifyContent: 'center',
@@ -427,6 +514,27 @@ export const MobileKPICard = ({ title, value, icon, color, change, compact = fal
   </Card>
 );
 
+MobileKPICard.propTypes = {
+  title: PropTypes.string.isRequired,
+  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+  icon: PropTypes.node,
+  color: PropTypes.string,
+  change: PropTypes.number,
+  compact: PropTypes.bool
+};
+
+// Mobile Pond Card
+
+const getPondStatusColor = status => {
+  if (status === 'Active') {
+    return 'success.main';
+  }
+  if (status === 'Maintenance') {
+    return 'warning.main';
+  }
+  return 'grey.500';
+};
+
 // Mobile Pond Card
 export const MobilePondCard = ({ pond, onPondClick }) => (
   <Card
@@ -458,12 +566,7 @@ export const MobilePondCard = ({ pond, onPondClick }) => (
             width: 12,
             height: 12,
             borderRadius: '50%',
-            bgcolor:
-              pond.status === 'Active'
-                ? 'success.main'
-                : pond.status === 'Maintenance'
-                ? 'warning.main'
-                : 'grey.500',
+            bgcolor: getPondStatusColor(pond.status),
             flexShrink: 0
           }}
         />
@@ -479,6 +582,18 @@ export const MobilePondCard = ({ pond, onPondClick }) => (
     </CardContent>
   </Card>
 );
+
+MobilePondCard.propTypes = {
+  pond: PropTypes.shape({
+    _id: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
+    status: PropTypes.string.isRequired,
+    health: PropTypes.string,
+    progress: PropTypes.number,
+    stockingDensity: PropTypes.number
+  }).isRequired,
+  onPondClick: PropTypes.func
+};
 
 // Mobile viewport helper
 export const useMobileViewport = () => {

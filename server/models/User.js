@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { getConfig } = require('../config');
+const { logger } = require('../utils/logger');
 
 const config = getConfig();
 
@@ -112,8 +113,7 @@ userSchema.virtual('isLocked').get(function () {
 });
 
 // Index for better query performance
-userSchema.index({ username: 1 });
-userSchema.index({ email: 1 });
+// Note: username and email already have unique indexes from their schema definitions
 userSchema.index({ role: 1 });
 userSchema.index({ isActive: 1 });
 

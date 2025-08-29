@@ -8,7 +8,7 @@ const router = express.Router();
 const metricsCollector = require('../utils/metricsCollector');
 const { sendSuccessResponse, sendErrorResponse, AppError } = require('../utils/errorHandler');
 const { authenticate, requireRole } = require('../middleware/auth');
-const logger = require('../logger');
+const { logger } = require('../utils/logger');
 
 // All metrics routes require admin authentication
 router.use(authenticate);

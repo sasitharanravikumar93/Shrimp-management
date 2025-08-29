@@ -117,9 +117,9 @@ export interface FormProps extends BaseComponentProps {
   /** Form validation schema or function */
   validationSchema?: any;
   /** Callback fired when form is submitted */
-  onSubmit: (values: Record<string, any>) => void | Promise<void>;
+  onSubmit: (_values: Record<string, any>) => void | Promise<void>;
   /** Callback fired when form values change */
-  onChange?: (values: Record<string, any>) => void;
+  onChange?: (_values: Record<string, any>) => void;
   /** Whether to reset form after successful submission */
   resetOnSubmit?: boolean;
 }
@@ -145,7 +145,7 @@ export interface FormFieldProps extends BaseComponentProps {
   /** Field value */
   value?: any;
   /** Change handler */
-  onChange?: (value: any) => void;
+  onChange?: (_value: any) => void;
   /** Blur handler */
   onBlur?: () => void;
 }
@@ -209,7 +209,7 @@ export interface TableColumn {
   /** Whether column is sortable */
   sortable?: boolean;
   /** Custom render function */
-  render?: (value: any, row: any, index: number) => ReactNode;
+  render?: (_value: any, _row: any, _index: number) => ReactNode;
   /** Column alignment */
   align?: 'left' | 'center' | 'right';
 }
@@ -237,9 +237,9 @@ export interface DataTableProps extends BaseComponentProps {
   /** Search placeholder */
   searchPlaceholder?: string;
   /** Row click handler */
-  onRowClick?: (row: any, index: number) => void;
+  onRowClick?: (_row: any, _index: number) => void;
   /** Selection change handler */
-  onSelectionChange?: (selectedRows: any[]) => void;
+  onSelectionChange?: (_selectedRows: any[]) => void;
 }
 
 // ===================
@@ -425,12 +425,12 @@ export interface ImageProps extends BaseComponentProps {
 /**
  * Callback function type for common events
  */
-export type EventCallback<T = any> = (event: T) => void;
+export type EventCallback<T = any> = (_event: T) => void;
 
 /**
  * Async callback function type
  */
-export type AsyncCallback<T = any> = (data: T) => Promise<void>;
+export type AsyncCallback<T = any> = (_data: T) => Promise<void>;
 
 /**
  * Component with forwarded ref

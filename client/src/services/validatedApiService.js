@@ -67,11 +67,12 @@ class ValidatedApiService {
 
     while (attempt <= retries) {
       try {
-        // Validate request data
-        if (validateRequest && data && schema) {
+        // Validate request data and create request data
+        let requestData = data;
+        if (validateRequest && requestData && schema) {
           console.log(`🔍 Validating request data for ${endpoint}`);
-          const validatedData = validateFormData(data, schema);
-          data = validatedData.data;
+          const validatedData = validateFormData(requestData, schema);
+          requestData = validatedData.data;
         }
 
         // Make API request
@@ -85,7 +86,7 @@ class ValidatedApiService {
             'Content-Type': 'application/json',
             ...options.headers
           },
-          body: data ? JSON.stringify(data) : undefined
+          body: requestData ? JSON.stringify(requestData) : undefined
         });
 
         if (!response.ok) {

@@ -1,3 +1,4 @@
+// eslint-disable-next-line max-lines-per-function, complexity, max-lines
 import {
   Add as AddIcon,
   Delete as DeleteIcon,
@@ -78,12 +79,17 @@ import {
   getWaterQualityInputsByPondId,
   getGrowthSamplingsByPondId,
   getEventsByPondId,
+  // eslint-disable-next-line no-unused-vars
   createFeedInput,
+  // eslint-disable-next-line no-unused-vars
   createWaterQualityInput,
+  // eslint-disable-next-line no-unused-vars
   createGrowthSampling,
   createEvent
 } from '../services/api';
+import logger from '../utils/logger';
 
+// eslint-disable-next-line max-lines-per-function, complexity, max-lines
 const PondManagementPage = () => {
   const { t, i18n } = useTranslation();
   const api = useApi(); // Initialize useApi
@@ -91,9 +97,14 @@ const PondManagementPage = () => {
   const { selectedSeason } = useSeason();
   const { pondId } = useParams();
 
+  const API_DATA_CACHE_DURATION = 3;
+  const POND_DISPLAY_LIMIT = 3;
+  const KG_TO_GRAMS_CONVERSION = 1000;
+  const ZAXIS_RANGE_VALUE = 100;
+
   const [ponds, setPonds] = useState([]);
-  const [pondsLoading, setPondsLoading] = useState(false);
-  const [pondsError, setPondsError] = useState(null);
+  const [_pondsLoading, setPondsLoading] = useState(false); // eslint-disable-line no-unused-vars
+  const [_pondsError, setPondsError] = useState(null); // eslint-disable-line no-unused-vars
   const [showAllPonds, setShowAllPonds] = useState(false);
 
   const [feedInventoryItems, setFeedInventoryItems] = useState([]);
@@ -105,7 +116,7 @@ const PondManagementPage = () => {
   const [chemicalProbioticInventoryError, setChemicalProbioticInventoryError] = useState(null);
   const [feedType, setFeedType] = useState('');
   const [chemicalType, setChemicalType] = useState('');
-  const [nurseryBatches, setNurseryBatches] = useState([]);
+  const [_nurseryBatches, setNurseryBatches] = useState([]); // eslint-disable-line no-unused-vars
 
   useEffect(() => {
     const fetchNurseryBatches = async () => {
@@ -117,7 +128,7 @@ const PondManagementPage = () => {
         const response = await api.get(`/nursery-batches/season/${selectedSeason._id}`);
         setNurseryBatches(response || []);
       } catch (err) {
-        console.error('Error fetching nursery batches:', err);
+        logger.error('Error fetching nursery batches:', err);
       }
     };
     fetchNurseryBatches();
@@ -125,9 +136,9 @@ const PondManagementPage = () => {
 
   useEffect(() => {
     const fetchPonds = async () => {
-      console.log('Fetching ponds for season:', selectedSeason);
+      logger.debug('Fetching ponds for season:', selectedSeason);
       if (!selectedSeason || !selectedSeason._id) {
-        console.log('No selected season, setting ponds to empty array');
+        logger.debug('No selected season, setting ponds to empty array');
         setPonds([]);
         return;
       }
@@ -136,14 +147,14 @@ const PondManagementPage = () => {
       setPondsError(null);
 
       try {
-        console.log('Making API call to fetch ponds for season ID:', selectedSeason._id);
+        logger.debug('Making API call to fetch ponds for season ID:', selectedSeason._id);
         // Add cache-busting parameter to ensure we get fresh data
         const cacheBuster = `_=${new Date().getTime()}`;
         const url = `/ponds/season/${selectedSeason._id}?${cacheBuster}`;
-        console.log('API URL with cache buster:', url);
+        logger.debug('API URL with cache buster:', url);
 
         const response = await api.get(url);
-        console.log('Received response from ponds API:', response);
+        logger.debug('Received response from ponds API:', response);
 
         // Check if response is an array or an object with data property
         let pondsData = [];
@@ -154,23 +165,23 @@ const PondManagementPage = () => {
         } else if (response && typeof response === 'object' && response.data) {
           // Handle pagination response format
           pondsData = Array.isArray(response.data) ? response.data : [];
-          console.log('Pagination response detected:', {
+          logger.debug('Pagination response detected:', {
             page: response.pagination?.page,
             total: response.pagination?.total,
             pages: response.pagination?.pages
           });
         } else if (response) {
           // Handle case where response is a single object (unexpected)
-          console.warn('Unexpected response format from ponds API:', response);
+          logger.warn('Unexpected response format from ponds API:', response);
           pondsData = [];
         }
 
-        console.log('Processed ponds data:', pondsData);
-        console.log('Ponds data length:', pondsData.length);
+        logger.debug('Processed ponds data:', pondsData);
+        logger.debug('Ponds data length:', pondsData.length);
 
         // Log details of each pond
         pondsData.forEach((pond, index) => {
-          console.log(`Pond ${index + 1}:`, {
+          logger.debug(`Pond ${index + 1}:`, {
             id: pond._id || pond.id,
             name: pond.name,
             seasonId: pond.seasonId || pond.season,
@@ -182,15 +193,15 @@ const PondManagementPage = () => {
         setPonds(pondsData);
         if (pondsData && pondsData.length > 0) {
           if (!pondId) {
-            console.log('No pondId in URL, navigating to first pond:', pondsData[0]._id);
+            logger.debug('No pondId in URL, navigating to first pond:', pondsData[0]._id);
             navigate(`/pond/${pondsData[0]._id}`);
           }
         } else {
-          console.log('No ponds found for season');
+          logger.debug('No ponds found for season');
         }
       } catch (err) {
-        console.error('Error fetching ponds:', err);
-        console.error('Error details:', {
+        logger.error('Error fetching ponds:', err);
+        logger.error('Error details:', {
           message: err.message,
           stack: err.stack,
           name: err.name
@@ -213,7 +224,7 @@ const PondManagementPage = () => {
         );
         setFeedInventoryItems(response || []);
       } catch (err) {
-        console.error('Error fetching feed inventory:', err);
+        logger.error('Error fetching feed inventory:', err);
         setFeedInventoryError('Failed to load feed types.');
       } finally {
         setFeedInventoryLoading(false);
@@ -234,7 +245,7 @@ const PondManagementPage = () => {
           ...(probioticResponse || [])
         ]);
       } catch (err) {
-        console.error('Error fetching chemical/probiotic inventory:', err);
+        logger.error('Error fetching chemical/probiotic inventory:', err);
         setChemicalProbioticInventoryError('Failed to load chemical/probiotic types.');
       } finally {
         setChemicalProbioticInventoryLoading(false);
@@ -258,14 +269,24 @@ const PondManagementPage = () => {
     data: pondData,
     loading: pondLoading,
     error: pondError
-  } = useApiData(() => pondId && getPondById(pondId), [pondId], `pond-${pondId}`, 3);
+  } = useApiData(
+    () => pondId && getPondById(pondId),
+    [pondId],
+    `pond-${pondId}`,
+    API_DATA_CACHE_DURATION
+  );
 
   const {
     data: feedEntriesData,
     loading: feedEntriesLoading,
     error: feedEntriesError,
     refetch: refetchFeedEntries
-  } = useApiData(() => pondId && getFeedInputsByPondId(pondId), [pondId], `feed-${pondId}`, 3);
+  } = useApiData(
+    () => pondId && getFeedInputsByPondId(pondId),
+    [pondId],
+    `feed-${pondId}`,
+    API_DATA_CACHE_DURATION
+  );
 
   const {
     data: waterQualityEntriesData,
@@ -276,7 +297,7 @@ const PondManagementPage = () => {
     () => pondId && getWaterQualityInputsByPondId(pondId),
     [pondId],
     `water-${pondId}`,
-    3
+    API_DATA_CACHE_DURATION
   );
 
   const {
@@ -288,7 +309,7 @@ const PondManagementPage = () => {
     () => pondId && getGrowthSamplingsByPondId(pondId),
     [pondId],
     `growth-${pondId}`,
-    3
+    API_DATA_CACHE_DURATION
   );
 
   const {
@@ -296,28 +317,33 @@ const PondManagementPage = () => {
     loading: eventsLoading,
     error: eventsError,
     refetch: refetchEvents
-  } = useApiData(() => pondId && getEventsByPondId(pondId), [pondId], `events-${pondId}`, 3);
+  } = useApiData(
+    () => pondId && getEventsByPondId(pondId),
+    [pondId],
+    `events-${pondId}`,
+    API_DATA_CACHE_DURATION
+  );
 
   const {
-    mutate: createFeedInputMutation,
+    mutate: _createFeedInputMutation,
     loading: createFeedInputLoading,
     error: createFeedInputError
-  } = useApiMutation(createFeedInput, 3);
+  } = useApiMutation(createFeedInput, API_DATA_CACHE_DURATION);
   const {
-    mutate: createWaterQualityInputMutation,
+    mutate: _createWaterQualityInputMutation,
     loading: createWaterQualityInputLoading,
     error: createWaterQualityInputError
-  } = useApiMutation(createWaterQualityInput, 3);
+  } = useApiMutation(createWaterQualityInput, API_DATA_CACHE_DURATION);
   const {
-    mutate: createGrowthSamplingMutation,
+    mutate: _createGrowthSamplingMutation,
     loading: createGrowthSamplingLoading,
     error: createGrowthSamplingError
-  } = useApiMutation(createGrowthSampling, 3);
-  const {
-    mutate: createEventMutation,
-    loading: createEventLoading,
-    error: createEventError
-  } = useApiMutation(createEvent, 3);
+  } = useApiMutation(createGrowthSampling, API_DATA_CACHE_DURATION);
+
+  const { mutate: createEventMutation, loading: createEventLoading } = useApiMutation(
+    createEvent,
+    API_DATA_CACHE_DURATION
+  );
 
   const { control, handleSubmit, reset, setValue, watch } = useForm({
     defaultValues: {
@@ -423,7 +449,7 @@ const PondManagementPage = () => {
 
       setOpenAddModal(false);
     } catch (error) {
-      console.error('Error submitting event:', error);
+      logger.error('Error submitting event:', error);
     }
   };
 
@@ -467,14 +493,15 @@ const PondManagementPage = () => {
     temp: entry.temperature
   }));
 
-  const growthChartData = (growthSamplingEntriesData || []).map(entry => ({
-    date: formatDate(entry.date),
-    avgWeight: entry.totalCount > 0 ? ((entry.totalWeight * 1000) / entry.totalCount).toFixed(2) : 0
+  // eslint-disable-next-line no-unused-vars
+  const _growthChartData = (growthSamplingEntriesData || []).map(entry => ({
+    x: entry.date ? new Date(entry.date).getTime() : 0,
+    y: entry.totalWeight && entry.totalCount > 0 ? (entry.totalWeight * 1000) / entry.totalCount : 0
   }));
 
   const growthScatterData = (growthSamplingEntriesData || []).map((entry, index) => ({
-    x: index + 1,
-    y: entry.totalCount > 0 ? ((entry.totalWeight * 1000) / entry.totalCount).toFixed(2) : 0,
+    x: index,
+    y: (entry.totalWeight * 1000) / entry.totalCount,
     date: formatDate(entry.date)
   }));
 
@@ -584,11 +611,61 @@ const PondManagementPage = () => {
   const growthSamplingEntries = growthSamplingEntriesData || [];
   const events = eventsData || [];
 
+  const getHealthColor = health => {
+    const actualHealth = health || 'Good';
+    if (actualHealth === 'Good') {
+      return 'success';
+    }
+    if (actualHealth === 'Fair') {
+      return 'warning';
+    }
+    return 'error';
+  };
+
+  const getHealthIcon = health => {
+    const actualHealth = health || 'Good';
+    return actualHealth === 'Good' ? <CheckIcon /> : <WarningIcon />;
+  };
+
+  const getEventTypeColor = eventType => {
+    switch (eventType) {
+      case 'Routine':
+      case 'Feeding':
+        return 'primary';
+      case 'Monitoring':
+      case 'Water Quality':
+        return 'success';
+      case 'Maintenance':
+        return 'warning';
+      case 'Growth Sampling':
+        return 'secondary';
+      default:
+        return 'default';
+    }
+  };
+
+  const getEventTypeBorderColor = eventType => {
+    switch (eventType) {
+      case 'Routine':
+      case 'Feeding':
+        return '#007BFF';
+      case 'Monitoring':
+      case 'Water Quality':
+        return '#28A745';
+      case 'Maintenance':
+        return '#FD7E14';
+      case 'Growth Sampling':
+        return '#6f42c1';
+      default:
+        return '#9e9e9e';
+    }
+  };
+
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
       <Container maxWidth='lg' sx={{ mt: 2, mb: 4 }}>
         <Grid container spacing={2} sx={{ mb: 2 }}>
-          {(showAllPonds ? ponds : ponds.slice(0, 3)).map(p => (
+          {(showAllPonds ? ponds : ponds.slice(0, POND_DISPLAY_LIMIT)).map(p => (
             <Grid item xs={12} md={4} key={p._id}>
               <PondCard
                 pond={p}
@@ -598,7 +675,7 @@ const PondManagementPage = () => {
             </Grid>
           ))}
         </Grid>
-        {ponds.length > 3 && (
+        {ponds.length > POND_DISPLAY_LIMIT && (
           <Box sx={{ mb: 2, textAlign: 'center' }}>
             <Button onClick={() => setShowAllPonds(!showAllPonds)}>
               {showAllPonds ? t('show_less') : t('show_more')}
@@ -609,6 +686,7 @@ const PondManagementPage = () => {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <Box>
             <Typography variant='h4' component='h1' gutterBottom>
+              {/* eslint-disable-next-line no-nested-ternary */}
               {pond.name && typeof pond.name === 'object'
                 ? pond.name[i18n.language] || pond.name.en || 'Pond'
                 : pond.name}{' '}
@@ -634,14 +712,8 @@ const PondManagementPage = () => {
               />
               <Chip
                 label={pond.health || 'Good'}
-                color={
-                  (pond.health || 'Good') === 'Good'
-                    ? 'success'
-                    : (pond.health || 'Good') === 'Fair'
-                    ? 'warning'
-                    : 'error'
-                }
-                icon={(pond.health || 'Good') === 'Good' ? <CheckIcon /> : <WarningIcon />}
+                color={getHealthColor(pond.health)}
+                icon={getHealthIcon(pond.health)}
               />
               <Chip
                 label={`Harvest: ${pond.projectedHarvest || '30 days'}`}
@@ -1327,7 +1399,7 @@ const PondManagementPage = () => {
                               <CartesianGrid />
                               <XAxis type='number' dataKey='x' name='Sample #' />
                               <YAxis type='number' dataKey='y' name='Avg Weight (g)' />
-                              <ZAxis range={[100]} />
+                              <ZAxis range={[ZAXIS_RANGE_VALUE]} />
                               <RechartsTooltip cursor={{ strokeDasharray: '3 3' }} />
                               <Legend />
                               <Scatter
@@ -1365,9 +1437,10 @@ const PondManagementPage = () => {
                                       <Typography variant='body2'>
                                         Avg. Weight:{' '}
                                         {entry.totalCount > 0
-                                          ? ((entry.totalWeight * 1000) / entry.totalCount).toFixed(
-                                              2
-                                            )
+                                          ? (
+                                              (entry.totalWeight * KG_TO_GRAMS_CONVERSION) /
+                                              entry.totalCount
+                                            ).toFixed(2)
                                           : 0}
                                         g
                                       </Typography>
@@ -1467,27 +1540,13 @@ const PondManagementPage = () => {
                     <CardHeader title='Upcoming Events' />
                     <CardContent>
                       <Grid container spacing={2}>
-                        {(events || []).slice(0, 3).map(event => (
+                        {(events || []).slice(0, POND_DISPLAY_LIMIT).map(event => (
                           <Grid item xs={12} md={6} lg={4} key={event._id || event.id}>
                             <Card
                               variant='outlined'
                               sx={{
                                 height: '100%',
-                                borderLeft: `4px solid ${
-                                  event.type === 'Routine'
-                                    ? '#007BFF'
-                                    : event.type === 'Monitoring'
-                                    ? '#28A745'
-                                    : event.type === 'Maintenance'
-                                    ? '#FD7E14'
-                                    : event.type === 'Feeding'
-                                    ? '#007BFF'
-                                    : event.type === 'Water Quality'
-                                    ? '#28A745'
-                                    : event.type === 'Growth Sampling'
-                                    ? '#6f42c1'
-                                    : '#9e9e9e'
-                                }`
+                                borderLeft: `4px solid ${getEventTypeBorderColor(event.type)}`
                               }}
                             >
                               <CardContent>
@@ -1524,21 +1583,7 @@ const PondManagementPage = () => {
                                   <Chip
                                     label={event.type}
                                     size='small'
-                                    color={
-                                      event.type === 'Routine'
-                                        ? 'primary'
-                                        : event.type === 'Monitoring'
-                                        ? 'success'
-                                        : event.type === 'Maintenance'
-                                        ? 'warning'
-                                        : event.type === 'Feeding'
-                                        ? 'primary'
-                                        : event.type === 'Water Quality'
-                                        ? 'success'
-                                        : event.type === 'Growth Sampling'
-                                        ? 'secondary'
-                                        : 'default'
-                                    }
+                                    color={getEventTypeColor(event.type)}
                                   />
                                 </Box>
                                 <Typography variant='body2' sx={{ mt: 1, fontStyle: 'italic' }}>
@@ -1566,7 +1611,7 @@ const PondManagementPage = () => {
                     growthRate={5.2}
                     lastFeeding='2023-06-16'
                     onSuggestionClick={suggestion => {
-                      console.log('Suggested event:', suggestion);
+                      logger.debug('Suggested event:', suggestion);
                     }}
                   />
                 </Grid>

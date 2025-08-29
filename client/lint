@@ -1,8 +1,4 @@
 
-> shrimp-farm-management-system@2.0.0 lint
-> cd client && npm run lint && cd ../server && npm run lint
-
-
 > client@0.1.0 lint
 > eslint src --ext .js,.jsx,.ts,.tsx --max-warnings 0
 
@@ -145,7 +141,6 @@
   156:27  warning  Do not nest ternary expressions                                                no-nested-ternary
 
 /Users/sasi/operation/client/src/components/features/farm/FarmOverview.js
-   89:9   warning  'handleCloseAlert' is assigned a value but never used. Allowed unused vars must match /^_/u                                                                                                                                                               no-unused-vars
   159:14  error    'seasonFilteredPonds' is not defined                                                                                                                                                                                                                      no-undef
   161:12  error    'seasonFilteredPonds' is not defined                                                                                                                                                                                                                      no-undef
   174:32  warning  Replace `(sum,·pond)·=>·sum·+·(pond.growthRate·||·DEFAULT_AVG_GROWTH_RATE),·0)·/` with `⏎············(sum,·pond)·=>·sum·+·(pond.growthRate·||·DEFAULT_AVG_GROWTH_RATE),⏎············0`                                                                    prettier/prettier
@@ -155,8 +150,18 @@
   186:32  warning  Replace `(sum,·pond)·=>·sum·+·(pond.waterQualityScore·||·DEFAULT_WATER_QUALITY_SCORE),·0)·/` with `⏎············(sum,·pond)·=>·sum·+·(pond.waterQualityScore·||·DEFAULT_WATER_QUALITY_SCORE),⏎············0`                                              prettier/prettier
   187:10  warning  Insert `·)·/`                                                                                                                                                                                                                                             prettier/prettier
   192:32  warning  Replace `(sum,·pond)·=>·sum·+·(pond.feedConsumption·||·DEFAULT_FEED_CONSUMPTION),·0` with `⏎············(sum,·pond)·=>·sum·+·(pond.feedConsumption·||·DEFAULT_FEED_CONSUMPTION),⏎············0⏎··········`                                                prettier/prettier
+  263:10  error    'waterQualityData' is not defined                                                                                                                                                                                                                         no-undef
+  263:36  error    'waterQualityData' is not defined                                                                                                                                                                                                                         no-undef
   267:10  warning  Replace `·date:·'Pond·B',·pH:·FALLBACK_POND_B_PH,·do:·FALLBACK_POND_B_DO,·temp:·FALLBACK_POND_B_TEMP` with `⏎··········date:·'Pond·B',⏎··········pH:·FALLBACK_POND_B_PH,⏎··········do:·FALLBACK_POND_B_DO,⏎··········temp:·FALLBACK_POND_B_TEMP⏎·······`  prettier/prettier
   268:10  warning  Replace `·date:·'Pond·C',·pH:·FALLBACK_POND_C_PH,·do:·FALLBACK_POND_C_DO,·temp:·FALLBACK_POND_C_TEMP` with `⏎··········date:·'Pond·C',⏎··········pH:·FALLBACK_POND_C_PH,⏎··········do:·FALLBACK_POND_C_DO,⏎··········temp:·FALLBACK_POND_C_TEMP⏎·······`  prettier/prettier
+  272:12  error    'waterQualityData' is not defined                                                                                                                                                                                                                         no-undef
+  278:6   warning  React Hook useMemo has an unnecessary dependency: 'waterQualityData'. Either exclude it or remove the dependency array. Outer scope values like 'waterQualityData' aren't valid dependencies because mutating them doesn't re-render the component        react-hooks/exhaustive-deps
+  278:7   error    'waterQualityData' is not defined                                                                                                                                                                                                                         no-undef
+  282:10  error    'feedData' is not defined                                                                                                                                                                                                                                 no-undef
+  282:28  error    'feedData' is not defined                                                                                                                                                                                                                                 no-undef
+  296:25  error    'feedData' is not defined                                                                                                                                                                                                                                 no-undef
+  306:6   warning  React Hook useMemo has an unnecessary dependency: 'feedData'. Either exclude it or remove the dependency array. Outer scope values like 'feedData' aren't valid dependencies because mutating them doesn't re-render the component                        react-hooks/exhaustive-deps
+  306:7   error    'feedData' is not defined                                                                                                                                                                                                                                 no-undef
   458:33  error    'CheckIcon' is not defined                                                                                                                                                                                                                                react/jsx-no-undef
 
 /Users/sasi/operation/client/src/components/features/farm/MobileFarmOverview.js
@@ -327,7 +332,7 @@
   216:11  warning  Delete `··`                                                                                                                                                                                   prettier/prettier
   217:1   warning  Delete `··`                                                                                                                                                                                   prettier/prettier
   218:11  warning  Delete `··`                                                                                                                                                                                   prettier/prettier
-  219:1   warning  Replace `············` with `··········`                                                                                                                                                      prettier/prettier
+  219:1   warning  Delete `··`                                                                                                                                                                                   prettier/prettier
   220:9   warning  Delete `··`                                                                                                                                                                                   prettier/prettier
   221:1   warning  Delete `··`                                                                                                                                                                                   prettier/prettier
   230:26  warning  Delete `,`                                                                                                                                                                                    prettier/prettier
@@ -340,6 +345,7 @@
   387:26  warning  Delete `,`                                                                                                                                                                                    prettier/prettier
   407:26  warning  Delete `,`                                                                                                                                                                                    prettier/prettier
   427:26  warning  Delete `,`                                                                                                                                                                                    prettier/prettier
+  430:34  warning  Insert `⏎`                                                                                                                                                                                    prettier/prettier
 
 /Users/sasi/operation/client/src/components/features/shared/FilterPanel.js
    63:25  warning  Component definition is missing display name                     react/display-name
@@ -641,10 +647,10 @@
   319:30  warning  No magic number: 3                                                            no-magic-numbers
 
 /Users/sasi/operation/client/src/components/features/shared/ui/StyledComponents.js
-  398:5   warning  'theme' is defined but never used. Allowed unused args must match /^_/u  no-unused-vars
-  439:12  error    'theme' is not defined                                                   no-undef
-  448:19  error    'theme' is not defined                                                   no-undef
-  501:1   warning  File has too many lines (501). Maximum allowed is 500                    max-lines
+   11:17  warning  'spacing' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+  439:12  error    'theme' is not defined                                                              no-undef
+  448:19  error    'theme' is not defined                                                              no-undef
+  501:1   warning  File has too many lines (501). Maximum allowed is 500                               max-lines
 
 /Users/sasi/operation/client/src/components/features/shared/ui/Widget.js
   4:19  warning  'title' is missing in props validation     react/prop-types
@@ -693,108 +699,73 @@
   501:1   warning  File has too many lines (578). Maximum allowed is 500         max-lines
 
 /Users/sasi/operation/client/src/constants/index.js
-   16:20  warning  No magic number: 30                                    no-magic-numbers
-   16:25  error    'TIME_UNITS' is not defined                            no-undef
-   16:46  error    'TIME_UNITS' is not defined                            no-undef
-   17:16  error    'TIME_UNITS' is not defined                            no-undef
-   17:37  error    'TIME_UNITS' is not defined                            no-undef
-   22:12  warning  No magic number: 30                                    no-magic-numbers
-   22:17  error    'TIME_UNITS' is not defined                            no-undef
-   22:38  error    'TIME_UNITS' is not defined                            no-undef
-   23:13  warning  No magic number: 5                                     no-magic-numbers
-   23:17  error    'TIME_UNITS' is not defined                            no-undef
-   23:38  error    'TIME_UNITS' is not defined                            no-undef
-   23:59  error    'TIME_UNITS' is not defined                            no-undef
-   24:11  warning  No magic number: 30                                    no-magic-numbers
-   24:16  error    'TIME_UNITS' is not defined                            no-undef
-   24:37  error    'TIME_UNITS' is not defined                            no-undef
-   24:58  error    'TIME_UNITS' is not defined                            no-undef
-   26:7   warning  No magic number: 24                                    no-magic-numbers
-   26:12  error    'TIME_UNITS' is not defined                            no-undef
-   26:31  error    'TIME_UNITS' is not defined                            no-undef
-   26:52  error    'TIME_UNITS' is not defined                            no-undef
-   26:73  error    'TIME_UNITS' is not defined                            no-undef
-  108:23  warning  No magic number: 5                                     no-magic-numbers
-  108:27  error    'TIME_UNITS' is not defined                            no-undef
-  108:48  error    'TIME_UNITS' is not defined                            no-undef
-  109:27  error    'TIME_UNITS' is not defined                            no-undef
-  109:48  error    'TIME_UNITS' is not defined                            no-undef
-  112:18  warning  No magic number: 10                                    no-magic-numbers
-  112:23  error    'SIZE_UNITS' is not defined                            no-undef
-  112:39  error    'SIZE_UNITS' is not defined                            no-undef
-  112:55  error    'SIZE_UNITS' is not defined                            no-undef
-  308:11  error    'TIME_UNITS' is not defined                            no-undef
-  308:32  error    'TIME_UNITS' is not defined                            no-undef
-  309:11  error    'TIME_UNITS' is not defined                            no-undef
-  309:32  error    'TIME_UNITS' is not defined                            no-undef
-  309:53  error    'TIME_UNITS' is not defined                            no-undef
-  310:9   error    'TIME_UNITS' is not defined                            no-undef
-  310:28  error    'TIME_UNITS' is not defined                            no-undef
-  310:49  error    'TIME_UNITS' is not defined                            no-undef
-  310:70  error    'TIME_UNITS' is not defined                            no-undef
-  312:5   error    'TIME_UNITS' is not defined                            no-undef
-  313:5   error    'TIME_UNITS' is not defined                            no-undef
-  314:5   error    'TIME_UNITS' is not defined                            no-undef
-  315:5   error    'TIME_UNITS' is not defined                            no-undef
-  316:5   error    'TIME_UNITS' is not defined                            no-undef
-  318:5   error    'TIME_UNITS' is not defined                            no-undef
-  319:5   error    'TIME_UNITS' is not defined                            no-undef
-  320:5   error    'TIME_UNITS' is not defined                            no-undef
-  321:5   error    'TIME_UNITS' is not defined                            no-undef
-  322:5   error    'TIME_UNITS' is not defined                            no-undef
-  323:5   error    'TIME_UNITS' is not defined                            no-undef
-  325:5   error    'TIME_UNITS' is not defined                            no-undef
-  326:5   error    'TIME_UNITS' is not defined                            no-undef
-  327:5   error    'TIME_UNITS' is not defined                            no-undef
-  328:5   error    'TIME_UNITS' is not defined                            no-undef
-  329:5   error    'TIME_UNITS' is not defined                            no-undef
-  330:5   error    'TIME_UNITS' is not defined                            no-undef
-  332:5   error    'TIME_UNITS' is not defined                            no-undef
-  333:5   error    'TIME_UNITS' is not defined                            no-undef
-  334:5   error    'TIME_UNITS' is not defined                            no-undef
-  335:5   error    'TIME_UNITS' is not defined                            no-undef
-  336:5   error    'TIME_UNITS' is not defined                            no-undef
-  337:5   error    'TIME_UNITS' is not defined                            no-undef
-  413:23  error    'TIME_UNITS' is not defined                            no-undef
-  413:44  error    'TIME_UNITS' is not defined                            no-undef
-  414:28  warning  No magic number: 3                                     no-magic-numbers
-  414:32  error    'TIME_UNITS' is not defined                            no-undef
-  414:53  error    'TIME_UNITS' is not defined                            no-undef
-  417:24  error    'SIZE_UNITS' is not defined                            no-undef
-  417:40  error    'SIZE_UNITS' is not defined                            no-undef
-  417:56  error    'SIZE_UNITS' is not defined                            no-undef
-  418:24  error    'SIZE_UNITS' is not defined                            no-undef
-  418:40  error    'SIZE_UNITS' is not defined                            no-undef
-  418:56  error    'SIZE_UNITS' is not defined                            no-undef
-  421:21  warning  No magic number: 100                                   no-magic-numbers
-  421:27  error    'SIZE_UNITS' is not defined                            no-undef
-  421:43  error    'SIZE_UNITS' is not defined                            no-undef
-  421:59  error    'SIZE_UNITS' is not defined                            no-undef
-  425:19  warning  No magic number: 50                                    no-magic-numbers
-  425:24  error    'SIZE_UNITS' is not defined                            no-undef
-  425:40  error    'SIZE_UNITS' is not defined                            no-undef
-  425:56  error    'SIZE_UNITS' is not defined                            no-undef
-  465:5   warning  No magic number: 24                                    no-magic-numbers
-  465:10  error    'TIME_UNITS' is not defined                            no-undef
-  465:29  error    'TIME_UNITS' is not defined                            no-undef
-  465:50  error    'TIME_UNITS' is not defined                            no-undef
-  465:71  error    'TIME_UNITS' is not defined                            no-undef
-  467:5   warning  No magic number: 7                                     no-magic-numbers
-  468:5   error    'TIME_UNITS' is not defined                            no-undef
-  469:5   error    'TIME_UNITS' is not defined                            no-undef
-  470:5   error    'TIME_UNITS' is not defined                            no-undef
-  471:5   error    'TIME_UNITS' is not defined                            no-undef
-  472:5   error    'TIME_UNITS' is not defined                            no-undef
-  483:21  warning  No magic number: 15                                    no-magic-numbers
-  483:26  error    'TIME_UNITS' is not defined                            no-undef
-  483:47  error    'TIME_UNITS' is not defined                            no-undef
-  483:68  error    'TIME_UNITS' is not defined                            no-undef
-  486:20  warning  No magic number: 30                                    no-magic-numbers
-  486:25  error    'TIME_UNITS' is not defined                            no-undef
-  486:46  error    'TIME_UNITS' is not defined                            no-undef
-  486:67  error    'TIME_UNITS' is not defined                            no-undef
-  501:1   warning  File has too many lines (599). Maximum allowed is 500  max-lines
-  595:3   error    'REGEX' is not defined                                 no-undef
+   20:12  warning  No magic number: 30                                    no-magic-numbers
+   20:17  warning  No magic number: 1000                                  no-magic-numbers
+   21:13  warning  No magic number: 5                                     no-magic-numbers
+   21:17  warning  No magic number: 60                                    no-magic-numbers
+   21:22  warning  No magic number: 1000                                  no-magic-numbers
+   22:11  warning  No magic number: 30                                    no-magic-numbers
+   22:16  warning  No magic number: 60                                    no-magic-numbers
+   22:21  warning  No magic number: 1000                                  no-magic-numbers
+   23:16  warning  No magic number: 24                                    no-magic-numbers
+   23:21  warning  No magic number: 60                                    no-magic-numbers
+   23:26  warning  No magic number: 60                                    no-magic-numbers
+   23:31  warning  No magic number: 1000                                  no-magic-numbers
+  109:18  warning  No magic number: 10                                    no-magic-numbers
+  109:23  warning  No magic number: 1024                                  no-magic-numbers
+  109:30  warning  No magic number: 1024                                  no-magic-numbers
+  306:11  warning  No magic number: 60                                    no-magic-numbers
+  306:16  warning  No magic number: 1000                                  no-magic-numbers
+  307:9   warning  No magic number: 60                                    no-magic-numbers
+  307:14  warning  No magic number: 60                                    no-magic-numbers
+  307:19  warning  No magic number: 1000                                  no-magic-numbers
+  308:8   warning  No magic number: 24                                    no-magic-numbers
+  308:13  warning  No magic number: 60                                    no-magic-numbers
+  308:18  warning  No magic number: 60                                    no-magic-numbers
+  308:23  warning  No magic number: 1000                                  no-magic-numbers
+  309:9   warning  No magic number: 7                                     no-magic-numbers
+  309:13  warning  No magic number: 24                                    no-magic-numbers
+  309:18  warning  No magic number: 60                                    no-magic-numbers
+  309:23  warning  No magic number: 60                                    no-magic-numbers
+  309:28  warning  No magic number: 1000                                  no-magic-numbers
+  310:10  warning  No magic number: 30                                    no-magic-numbers
+  310:15  warning  No magic number: 24                                    no-magic-numbers
+  310:20  warning  No magic number: 60                                    no-magic-numbers
+  310:25  warning  No magic number: 60                                    no-magic-numbers
+  310:30  warning  No magic number: 1000                                  no-magic-numbers
+  311:9   warning  No magic number: 365                                   no-magic-numbers
+  311:15  warning  No magic number: 24                                    no-magic-numbers
+  311:20  warning  No magic number: 60                                    no-magic-numbers
+  311:25  warning  No magic number: 60                                    no-magic-numbers
+  311:30  warning  No magic number: 1000                                  no-magic-numbers
+  391:24  warning  No magic number: 1024                                  no-magic-numbers
+  391:31  warning  No magic number: 1024                                  no-magic-numbers
+  392:28  warning  No magic number: 1024                                  no-magic-numbers
+  392:35  warning  No magic number: 1024                                  no-magic-numbers
+  395:21  warning  No magic number: 100                                   no-magic-numbers
+  395:27  warning  No magic number: 1024                                  no-magic-numbers
+  395:34  warning  No magic number: 1024                                  no-magic-numbers
+  399:19  warning  No magic number: 50                                    no-magic-numbers
+  399:24  warning  No magic number: 1024                                  no-magic-numbers
+  399:31  warning  No magic number: 1024                                  no-magic-numbers
+  438:17  warning  No magic number: 24                                    no-magic-numbers
+  438:22  warning  No magic number: 60                                    no-magic-numbers
+  438:27  warning  No magic number: 60                                    no-magic-numbers
+  438:32  warning  No magic number: 1000                                  no-magic-numbers
+  439:25  warning  No magic number: 7                                     no-magic-numbers
+  439:29  warning  No magic number: 24                                    no-magic-numbers
+  439:34  warning  No magic number: 60                                    no-magic-numbers
+  439:39  warning  No magic number: 60                                    no-magic-numbers
+  439:44  warning  No magic number: 1000                                  no-magic-numbers
+  450:21  warning  No magic number: 15                                    no-magic-numbers
+  450:26  warning  No magic number: 60                                    no-magic-numbers
+  450:31  warning  No magic number: 1000                                  no-magic-numbers
+  453:20  warning  No magic number: 30                                    no-magic-numbers
+  453:25  warning  No magic number: 60                                    no-magic-numbers
+  453:30  warning  No magic number: 1000                                  no-magic-numbers
+  501:1   warning  File has too many lines (579). Maximum allowed is 500  max-lines
+  520:45  warning  Unnecessary escape character: \+                       no-useless-escape
+  520:98  warning  Unnecessary escape character: \+                       no-useless-escape
 
 /Users/sasi/operation/client/src/context/OfflineSyncContext.js
    9:36  warning  Arrow function has too many lines (117). Maximum allowed is 100                                                  max-lines-per-function
@@ -1271,6 +1242,14 @@
   301:9   warning  Unexpected `await` inside a loop  no-await-in-loop
   319:9   warning  Unexpected `await` inside a loop  no-await-in-loop
 
-✖ 1032 problems (95 errors, 937 warnings)
-  0 errors and 44 warnings potentially fixable with the `--fix` option.
+✖ 1007 problems (16 errors, 991 warnings)
+  0 errors and 45 warnings potentially fixable with the `--fix` option.
+
+
+> client@0.1.0 lint
+> eslint src --ext .js,.jsx,.ts,.tsx --max-warnings 0
+
+
+> client@0.1.0 lint
+> eslint src --ext .js,.jsx,.ts,.tsx --max-warnings 0
 

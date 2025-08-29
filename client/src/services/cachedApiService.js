@@ -20,6 +20,21 @@ import api from './api';
 // CACHE CONFIGURATION
 // ===================
 
+// Time constants
+const SECONDS = 1;
+const MINUTES_TO_SECONDS = 60;
+const MINUTES = MINUTES_TO_SECONDS * SECONDS;
+const MILLISECONDS = 1000;
+
+// Time values
+const THIRTY = 30;
+const FIFTEEN = 15;
+const SIXTY = 60;
+const FIVE = 5;
+const THREE = 3;
+const TWO = 2;
+const FORTY_FIVE = 45;
+
 /**
  * Endpoint-specific cache configurations
  * Customize TTL and strategy based on data characteristics
@@ -27,51 +42,51 @@ import api from './api';
 const ENDPOINT_CONFIG = {
   // Static/Semi-static data - Cache aggressively
   '/seasons': {
-    ttl: 30 * 60 * 1000,
+    ttl: THIRTY * MINUTES * MILLISECONDS,
     strategy: CacheConfig.STRATEGIES.CACHE_FIRST,
     category: CacheConfig.CATEGORIES.API_RESPONSES
   },
   '/employees': {
-    ttl: 15 * 60 * 1000,
+    ttl: FIFTEEN * MINUTES * MILLISECONDS,
     strategy: CacheConfig.STRATEGIES.CACHE_FIRST,
     category: CacheConfig.CATEGORIES.API_RESPONSES
   },
   '/farm-settings': {
-    ttl: 60 * 60 * 1000,
+    ttl: SIXTY * MINUTES * MILLISECONDS,
     strategy: CacheConfig.STRATEGIES.CACHE_FIRST,
     category: CacheConfig.CATEGORIES.API_RESPONSES
   },
 
   // Dynamic data - Balance freshness and performance
   '/ponds': {
-    ttl: 5 * 60 * 1000,
+    ttl: FIVE * MINUTES * MILLISECONDS,
     strategy: CacheConfig.STRATEGIES.STALE_WHILE_REVALIDATE,
     category: CacheConfig.CATEGORIES.API_RESPONSES
   },
   '/expenses': {
-    ttl: 3 * 60 * 1000,
+    ttl: THREE * MINUTES * MILLISECONDS,
     strategy: CacheConfig.STRATEGIES.STALE_WHILE_REVALIDATE,
     category: CacheConfig.CATEGORIES.API_RESPONSES
   },
   '/inventory': {
-    ttl: 2 * 60 * 1000,
+    ttl: TWO * MINUTES * MILLISECONDS,
     strategy: CacheConfig.STRATEGIES.STALE_WHILE_REVALIDATE,
     category: CacheConfig.CATEGORIES.API_RESPONSES
   },
 
   // Real-time data - Prioritize freshness
   '/water-quality': {
-    ttl: 30 * 1000,
+    ttl: THIRTY * SECONDS * MILLISECONDS,
     strategy: CacheConfig.STRATEGIES.NETWORK_FIRST,
     category: CacheConfig.CATEGORIES.API_RESPONSES
   },
   '/feed-inputs': {
-    ttl: 60 * 1000,
+    ttl: SIXTY * SECONDS * MILLISECONDS,
     strategy: CacheConfig.STRATEGIES.NETWORK_FIRST,
     category: CacheConfig.CATEGORIES.API_RESPONSES
   },
   '/dashboard': {
-    ttl: 45 * 1000,
+    ttl: FORTY_FIVE * SECONDS * MILLISECONDS,
     strategy: CacheConfig.STRATEGIES.STALE_WHILE_REVALIDATE,
     category: CacheConfig.CATEGORIES.API_RESPONSES
   }
@@ -81,7 +96,7 @@ const ENDPOINT_CONFIG = {
  * Default cache configuration for unknown endpoints
  */
 const DEFAULT_CONFIG = {
-  ttl: 5 * 60 * 1000, // 5 minutes
+  ttl: FIVE * MINUTES * MILLISECONDS, // 5 minutes
   strategy: CacheConfig.STRATEGIES.CACHE_FIRST,
   category: CacheConfig.CATEGORIES.API_RESPONSES
 };
@@ -197,6 +212,7 @@ class CachedApiService {
       // Try to return stale data if available
       const staleData = this.cache.get(cacheKey, { allowStale: true });
       if (staleData) {
+        // eslint-disable-next-line no-console
         console.warn(`Returning stale data for ${url}:`, error);
         return { data: staleData, cached: true, stale: true };
       }
@@ -281,6 +297,7 @@ class CachedApiService {
         }
       });
 
+      // eslint-disable-next-line no-console
       console.log(`Cache invalidated for ${entityType} after ${method} ${url}`);
     }
   }
@@ -326,8 +343,10 @@ class CachedApiService {
     const preloadPromises = criticalEndpoints.map(async ({ url, key }) => {
       try {
         await this.get(url, {}, { forceRefresh: false });
+        // eslint-disable-next-line no-console
         console.log(`Preloaded: ${key}`);
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.warn(`Failed to preload ${key}:`, error);
       }
     });
@@ -353,6 +372,7 @@ class CachedApiService {
    */
   clearAllCaches() {
     this.cache.clear();
+    // eslint-disable-next-line no-console
     console.log('All caches cleared');
   }
 
@@ -361,6 +381,7 @@ class CachedApiService {
    */
   clearCachesByCategory(category) {
     this.cache.clear(category);
+    // eslint-disable-next-line no-console
     console.log(`Cleared caches for category: ${category}`);
   }
 }

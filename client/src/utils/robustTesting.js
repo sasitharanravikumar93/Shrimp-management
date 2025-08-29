@@ -6,6 +6,10 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+const DEFAULT_WAIT_TIMEOUT = 3000; // milliseconds
+const DEFAULT_MAX_RETRIES = 3;
+const DEFAULT_RETRY_DELAY = 100; // milliseconds
+
 // Robust selectors that don't rely on implementation details
 export const robustSelectors = {
   // Semantic selectors (preferred)
@@ -113,7 +117,7 @@ export const robustAssertions = {
   },
 
   // State assertions that handle async state changes
-  hasState: async (element, expectedState, timeout = 3000) => {
+  hasState: async (element, expectedState, timeout = DEFAULT_WAIT_TIMEOUT) => {
     await waitFor(
       () => {
         switch (expectedState) {
@@ -174,7 +178,7 @@ export const robustAssertions = {
 export const robustInteractions = {
   // Click with proper waiting and error handling
   click: async (element, options = {}) => {
-    const { waitForEnable = true, timeout = 3000 } = options;
+    const { waitForEnable = true, timeout = DEFAULT_WAIT_TIMEOUT } = options;
 
     if (waitForEnable) {
       await waitFor(
@@ -360,6 +364,7 @@ export const createPageObject = containerSelector => {
 
       for (const [field, value] of Object.entries(formData)) {
         const input = within(container).getByLabelText(new RegExp(field, 'i'));
+        // eslint-disable-next-line no-await-in-loop
         await robustInteractions.type(input, String(value));
       }
     },
@@ -400,17 +405,23 @@ export const createPageObject = containerSelector => {
 };
 
 // Retry mechanisms for flaky assertions
-export const retryAssertion = async (assertion, maxRetries = 3, delay = 100) => {
+export const retryAssertion = async (
+  assertion,
+  maxRetries = DEFAULT_MAX_RETRIES,
+  delay = DEFAULT_RETRY_DELAY
+) => {
   let lastError;
 
   for (let i = 0; i < maxRetries; i++) {
     try {
+      // eslint-disable-next-line no-await-in-loop
       await assertion();
       return; // Success
     } catch (error) {
       lastError = error;
 
       if (i < maxRetries - 1) {
+        // eslint-disable-next-line no-await-in-loop
         await new Promise(resolve => setTimeout(resolve, delay * (i + 1)));
       }
     }
@@ -419,7 +430,7 @@ export const retryAssertion = async (assertion, maxRetries = 3, delay = 100) => 
   throw lastError;
 };
 
-export default {
+const robustTesting = {
   robustSelectors,
   robustAssertions,
   robustInteractions,
@@ -427,3 +438,5 @@ export default {
   createPageObject,
   retryAssertion
 };
+
+export default robustTesting;

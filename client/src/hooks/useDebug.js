@@ -112,7 +112,6 @@ export const usePerformanceDebug = (componentName, options = {}) => {
   } = options;
 
   const renderMarkRef = useRef(null);
-  const effectMarksRef = useRef(new Map());
 
   useEffect(() => {
     if (!DEBUG_CONFIG.enabled || !trackRenderTime) return;
@@ -439,7 +438,7 @@ export const useEffectDebug = (effect, deps, effectName, componentName) => {
     mark.end();
 
     return cleanup;
-  }, deps);
+  }, [effect, deps, effectName, componentName]);
 
   return {
     executionCount: executionCountRef.current
@@ -498,7 +497,7 @@ export const useDebug = (componentName, props = {}, state = null, options = {}) 
 // EXPORTS
 // ===================
 
-export default {
+const DebugHooks = {
   useComponentDebug,
   usePerformanceDebug,
   useUserActionDebug,
@@ -508,3 +507,5 @@ export default {
   useEffectDebug,
   useDebug
 };
+
+export default DebugHooks;

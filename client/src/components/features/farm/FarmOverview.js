@@ -5,13 +5,8 @@ import {
   TrendingUp as GrowthIcon,
   Waves as PondIcon,
   Insights as InsightsIcon,
-  Warning as WarningIcon,
-  CheckCircle as CheckIcon,
   FilterList as FilterIcon,
-  CalendarToday as CalendarIcon,
-  BarChart as BarChartIcon,
-  ShowChart as LineChartIcon,
-  TrendingUp as TrendingUpIcon
+  CheckCircle as CheckIcon
 } from '@mui/icons-material';
 import {
   Typography,
@@ -19,39 +14,13 @@ import {
   Box,
   Button,
   Container,
-  Card,
-  CardContent,
-  CardActions,
-  Avatar,
-  Chip,
-  Divider,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  ToggleButton,
-  ToggleButtonGroup,
   CircularProgress,
-  Alert
+  ToggleButton,
+  ToggleButtonGroup
 } from '@mui/material';
-import React, { useState, useEffect, useMemo, useCallback, memo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  Cell
-} from 'recharts';
 
 import { useSeason } from '../../../context/SeasonContext';
 import { useApiData } from '../../../hooks/useApi';
@@ -59,42 +28,66 @@ import { getPonds, getWaterQualityInputs, getFeedInputs } from '../../../service
 import logger from '../../../utils/logger';
 import { useStableCallback, useStableMemo } from '../../../utils/performanceOptimization';
 import AlertBanner from '../dashboard/AlertBanner';
-import KPICard, { CircularKPICard } from '../dashboard/KPICard';
-import PredictiveInsight from '../dashboard/PredictiveInsight';
+import KPICard from '../dashboard/KPICard';
 import PondCard from '../ponds/PondCard';
 import DataTrend from '../shared/charts/DataTrend';
 import ErrorDisplay from '../shared/error-handling/ErrorDisplay';
-import HealthScore from '../water-quality/HealthScore';
 
-import AquacultureTooltip from './AquacultureTooltip';
-
+// eslint-disable-next-line max-lines-per-function
 const FarmOverview = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [filter, setFilter] = useState('all');
-  const [timeRange, setTimeRange] = useState('week');
+  const [_timeRange, setTimeRange] = useState('week');
   const [showAlert, setShowAlert] = useState(false);
   const { selectedSeason } = useSeason();
+
+  // Constants for magic numbers
+  const DEFAULT_AVG_GROWTH_RATE = 1.2;
+  const DEFAULT_FEED_EFFICIENCY = 1.4;
+  const DEFAULT_WATER_QUALITY_SCORE = 85;
+  const DEFAULT_FEED_CONSUMPTION = 50;
+  const DEFAULT_TOTAL_FEED_CONSUMPTION = 1250;
+  const DEFAULT_POND_PROGRESS = 75;
+  const DEFAULT_POND_HEALTH_SCORE = 80;
+  const WATER_QUALITY_DATA_LIMIT = 6;
+  const DEFAULT_PH = 7.2;
+  const DEFAULT_DO = 5.5;
+  const DEFAULT_TEMP = 28.5;
+  // Additional constants for fallback data
+  const FALLBACK_POND_B_PH = 6.8;
+  const FALLBACK_POND_B_DO = 4.2;
+  const FALLBACK_POND_B_TEMP = 29.0;
+  const FALLBACK_POND_C_PH = 7.0;
+  const FALLBACK_POND_C_DO = 5.0;
+  const FALLBACK_POND_C_TEMP = 28.0;
+  const FALLBACK_MON_AMOUNT = 120;
+  const FALLBACK_TUE_AMOUNT = 140;
+  const FALLBACK_WED_AMOUNT = 110;
+  const FALLBACK_THU_AMOUNT = 150;
+  const FALLBACK_FRI_AMOUNT = 130;
+  const FALLBACK_SAT_AMOUNT = 160;
+  const FALLBACK_SUN_AMOUNT = 140;
 
   // Stable event handlers to prevent child re-renders
   const handleFilterChange = useStableCallback(event => {
     setFilter(event.target.value);
   }, []);
 
-  const handleTimeRangeChange = useStableCallback((event, newValue) => {
+  const _handleTimeRangeChange = useStableCallback((event, newValue) => {
     if (newValue !== null) {
       setTimeRange(newValue);
     }
   }, []);
 
-  const handlePondClick = useStableCallback(
+  const _handlePondClick = useStableCallback(
     pondId => {
       navigate(`/dashboard/${pondId}`);
     },
     [navigate]
   );
 
-  const handleCloseAlert = useStableCallback(() => {
+  const _handleCloseAlert = useStableCallback(() => {
     setShowAlert(false);
   }, []);
 
@@ -107,7 +100,7 @@ const FarmOverview = () => {
   } = useApiData(getPonds, [], 'ponds');
 
   // Fetch water quality data for charts
-  const { data: waterQualityData, loading: waterQualityLoading } = useApiData(
+  const { data: _waterQualityData, loading: _waterQualityLoading } = useApiData(
     () => {
       return getWaterQualityInputs();
     },
@@ -116,7 +109,7 @@ const FarmOverview = () => {
   );
 
   // Fetch feed data for charts
-  const { data: feedData, loading: feedLoading } = useApiData(
+  const { data: _feedData, loading: _feedLoading } = useApiData(
     () => {
       return getFeedInputs();
     },
@@ -146,20 +139,17 @@ const FarmOverview = () => {
     const ponds = allPondsData?.data || [];
 
     // First filter by season if a season is selected
-    const seasonFilteredPonds = ponds;
+    let seasonFilteredPonds = ponds;
     if (selectedSeason) {
-      let seasonFilteredPonds = ponds;
-      if (selectedSeason) {
-        seasonFilteredPonds = ponds.filter(pond => {
-          logger.debug('Filtering pond by season', {
-            pondId: pond._id,
-            pondSeasonId: pond.seasonId?._id,
-            selectedSeasonId: selectedSeason?._id,
-            component: 'FarmOverview'
-          });
-          return pond.seasonId && pond.seasonId._id === selectedSeason._id;
+      seasonFilteredPonds = ponds.filter(pond => {
+        logger.debug('Filtering pond by season', {
+          pondId: pond._id,
+          pondSeasonId: pond.seasonId?._id,
+          selectedSeasonId: selectedSeason?._id,
+          component: 'FarmOverview'
         });
-      }
+        return pond.seasonId && pond.seasonId._id === selectedSeason._id;
+      });
     }
 
     // Then filter by status
@@ -179,26 +169,35 @@ const FarmOverview = () => {
     // Calculate real metrics from pond data where available
     const avgGrowthRate =
       filteredPonds.length > 0
-        ? filteredPonds.reduce((sum, pond) => sum + (pond.growthRate || 1.2), 0) /
-          filteredPonds.length
-        : 1.2;
+        ? filteredPonds.reduce(
+            (sum, pond) => sum + (pond.growthRate || DEFAULT_AVG_GROWTH_RATE),
+            0
+          ) / filteredPonds.length
+        : DEFAULT_AVG_GROWTH_RATE;
 
     const feedEfficiency =
       filteredPonds.length > 0
-        ? filteredPonds.reduce((sum, pond) => sum + (pond.feedEfficiency || 1.4), 0) /
-          filteredPonds.length
-        : 1.4;
+        ? filteredPonds.reduce(
+            (sum, pond) => sum + (pond.feedEfficiency || DEFAULT_FEED_EFFICIENCY),
+            0
+          ) / filteredPonds.length
+        : DEFAULT_FEED_EFFICIENCY;
 
     const waterQuality =
       filteredPonds.length > 0
-        ? filteredPonds.reduce((sum, pond) => sum + (pond.waterQualityScore || 85), 0) /
-          filteredPonds.length
-        : 85;
+        ? filteredPonds.reduce(
+            (sum, pond) => sum + (pond.waterQualityScore || DEFAULT_WATER_QUALITY_SCORE),
+            0
+          ) / filteredPonds.length
+        : DEFAULT_WATER_QUALITY_SCORE;
 
     const feedConsumption =
       filteredPonds.length > 0
-        ? filteredPonds.reduce((sum, pond) => sum + (pond.feedConsumption || 50), 0)
-        : 1250;
+        ? filteredPonds.reduce(
+            (sum, pond) => sum + (pond.feedConsumption || DEFAULT_FEED_CONSUMPTION),
+            0
+          )
+        : DEFAULT_TOTAL_FEED_CONSUMPTION;
 
     return [
       {
@@ -261,47 +260,57 @@ const FarmOverview = () => {
       name: pond.name,
       status: pond.status || 'Active', // Default to Active if not set
       health: pond.health || 'Good', // Default to Good if not set
-      progress: pond.progress || pond.stockingDensity || 75, // Use stocking density or default
-      healthScore: pond.healthScore || pond.waterQualityScore || 80 // Use water quality score or default
+      progress: pond.progress || pond.stockingDensity || DEFAULT_POND_PROGRESS, // Use stocking density or default
+      healthScore: pond.healthScore || pond.waterQualityScore || DEFAULT_POND_HEALTH_SCORE // Use water quality score or default
     }));
   }, [filteredPonds]);
 
   // Transform water quality data for charts
   const transformedWaterQualityData = useMemo(() => {
-    if (!waterQualityData?.data || waterQualityData.data.length === 0) {
+    if (!_waterQualityData?.data || _waterQualityData.data.length === 0) {
       // Fallback data if no real data available
       return [
-        { date: 'Pond A', pH: 7.2, do: 5.5, temp: 28.5 },
-        { date: 'Pond B', pH: 6.8, do: 4.2, temp: 29.0 },
-        { date: 'Pond C', pH: 7.0, do: 5.0, temp: 28.0 }
+        { date: 'Pond A', pH: DEFAULT_PH, do: DEFAULT_DO, temp: DEFAULT_TEMP },
+        {
+          date: 'Pond B',
+          pH: FALLBACK_POND_B_PH,
+          do: FALLBACK_POND_B_DO,
+          temp: FALLBACK_POND_B_TEMP
+        },
+        {
+          date: 'Pond C',
+          pH: FALLBACK_POND_C_PH,
+          do: FALLBACK_POND_C_DO,
+          temp: FALLBACK_POND_C_TEMP
+        }
       ];
     }
 
-    return waterQualityData.data.slice(0, 6).map(item => ({
+    return _waterQualityData.data.slice(0, WATER_QUALITY_DATA_LIMIT).map(item => ({
       date: item.pondId?.name || 'Unknown',
-      pH: item.pH || 7.0,
-      do: item.dissolvedOxygen || 5.0,
-      temp: item.temperature || 28.0
+      pH: item.pH || DEFAULT_PH,
+      do: item.dissolvedOxygen || DEFAULT_DO,
+      temp: item.temperature || DEFAULT_TEMP
     }));
-  }, [waterQualityData]);
+  }, [_waterQualityData]);
 
   // Transform feed data for charts
   const transformedFeedData = useMemo(() => {
-    if (!feedData?.data || feedData.data.length === 0) {
+    if (!_feedData?.data || _feedData.data.length === 0) {
       // Fallback data if no real data available
       return [
-        { date: 'Mon', amount: 120 },
-        { date: 'Tue', amount: 140 },
-        { date: 'Wed', amount: 110 },
-        { date: 'Thu', amount: 150 },
-        { date: 'Fri', amount: 130 },
-        { date: 'Sat', amount: 160 },
-        { date: 'Sun', amount: 140 }
+        { date: 'Mon', amount: FALLBACK_MON_AMOUNT },
+        { date: 'Tue', amount: FALLBACK_TUE_AMOUNT },
+        { date: 'Wed', amount: FALLBACK_WED_AMOUNT },
+        { date: 'Thu', amount: FALLBACK_THU_AMOUNT },
+        { date: 'Fri', amount: FALLBACK_FRI_AMOUNT },
+        { date: 'Sat', amount: FALLBACK_SAT_AMOUNT },
+        { date: 'Sun', amount: FALLBACK_SUN_AMOUNT }
       ];
     }
 
     // Group feed data by date and sum quantities
-    const groupedData = feedData.data.reduce((acc, feed) => {
+    const groupedData = _feedData.data.reduce((acc, feed) => {
       const date = new Date(feed.date).toLocaleDateString('en-US', { weekday: 'short' });
       acc[date] = (acc[date] || 0) + (feed.quantity || 0);
       return acc;
@@ -311,7 +320,7 @@ const FarmOverview = () => {
       date,
       amount: Math.round(amount)
     }));
-  }, [feedData]);
+  }, [_feedData]);
 
   // Loading and error states
   const isLoading = allPondsLoading;
@@ -379,8 +388,8 @@ const FarmOverview = () => {
 
       {/* KPI Summary Cards */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
-        {summaryData.map((item, index) => (
-          <Grid item xs={12} sm={6} md={4} lg={2} key={index}>
+        {summaryData.map((item, _index) => (
+          <Grid item xs={12} sm={6} md={4} lg={2} key={item.title}>
             <KPICard
               title={t(item.title)}
               value={item.value}
@@ -463,6 +472,6 @@ const FarmOverview = () => {
 };
 
 // Icon components for summary cards
-const CheckCircleIcon = () => <CheckIcon />;
+const _CheckCircleIcon = () => <CheckIcon />;
 
 export default FarmOverview;

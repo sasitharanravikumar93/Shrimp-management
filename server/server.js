@@ -33,6 +33,12 @@ const config = getConfig();
 const app = express();
 const PORT = config.server.port;
 
+logger.info(`Starting server with configuration:`, {
+  port: PORT,
+  env: config.server.env,
+  dbUri: config.database.uri
+});
+
 // Security middleware (applied early)
 app.use(securityHeaders);
 app.use(requestIdMiddleware); // Add request ID for tracking
@@ -58,15 +64,10 @@ app.use(express.json({ limit: '10mb' })); // For parsing application/json
 app.use(express.urlencoded({ extended: true, limit: '10mb' })); // For parsing form data
 app.use(sanitizeInput); // Sanitize all inputs
 
-// MongoDB connection
-mongoose.connect(config.database.uri, config.database.options)
-  .then(() => {
-    logger.info('Connected to MongoDB');
-  })
-  .catch((err) => {
-    logger.error('Error connecting to MongoDB:', err.message);
-    throw new Error('Error connecting to MongoDB');
-  });
+// Add a simple test route before MongoDB connection to see if the server can start
+app.get('/test', (req, res) => {
+  res.json({ message: 'Server is running' });
+});
 
 // Routes
 app.use('/api/auth', require('./routes/auth')); // Authentication routes
@@ -90,6 +91,7 @@ app.use('/api/metrics', require('./routes/metrics')); // Application metrics
 
 // Basic route for testing
 app.get('/', (req, res) => {
+  logger.info('Root endpoint accessed');
   res.json({ message: 'Shrimp Farm Management API' });
 });
 
@@ -112,8 +114,23 @@ app.use(errorMetricsMiddleware);
 // Global error handling middleware (should be last)
 app.use(globalErrorHandler);
 
-app.listen(PORT, () => {
-  logger.info(`Server is running on port ${PORT}`);
-});
+// MongoDB connection
+logger.info('Connecting to MongoDB...');
+mongoose.connect(config.database.uri, config.database.options)
+  .then(() => {
+    logger.info('Connected to MongoDB successfully');
+
+    // Start the server after successful MongoDB connection
+    app.listen(PORT, () => {
+      logger.info(`Server is running on port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    logger.error('Error connecting to MongoDB:', {
+      message: err.message,
+      stack: err.stack
+    });
+    process.exit(1); // Exit if we can't connect to the database
+  });
 
 module.exports = app; // Export the app for testing

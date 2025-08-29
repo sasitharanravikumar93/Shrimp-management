@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const logger = require('../logger');
+const { logger } = require('../utils/logger');
 const Season = require('../models/Season');
 const {
   asyncHandler,
@@ -46,7 +46,7 @@ const getLanguageForUser = (req) => {
  * @returns {object} Translated document with string fields instead of Maps
  */
 const translateDocument = (doc, language) => {
-  if (!doc) {return doc;}
+  if (!doc) { return doc; }
 
   // Convert Mongoose document to plain object if needed
   const plainDoc = doc.toObject ? doc.toObject() : doc;
@@ -191,9 +191,9 @@ exports.updateSeason = async (req, res) => {
         updateData.name = name;
       }
     }
-    if (startDate !== undefined) {updateData.startDate = startDate;}
-    if (endDate !== undefined) {updateData.endDate = endDate;}
-    if (status !== undefined) {updateData.status = status;}
+    if (startDate !== undefined) { updateData.startDate = startDate; }
+    if (endDate !== undefined) { updateData.endDate = endDate; }
+    if (status !== undefined) { updateData.status = status; }
 
     const season = await Season.findByIdAndUpdate(
       req.params.id,

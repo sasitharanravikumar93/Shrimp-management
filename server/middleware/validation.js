@@ -278,6 +278,74 @@ const waterQualityValidation = {
       .isFloat({ min: 0, max: 500 })
       .withMessage('Alkalinity must be between 0 and 500 mg/L'),
     handleValidationErrors
+  ],
+
+  update: [
+    param('id').custom(customValidators.isObjectId),
+    body('date')
+      .optional()
+      .isISO8601()
+      .withMessage('Date must be a valid ISO 8601 date'),
+    body('time')
+      .optional()
+      .custom(customValidators.isValidTime)
+      .withMessage('Time must be in HH:MM format'),
+    body('pondId')
+      .optional()
+      .custom(customValidators.isObjectId)
+      .withMessage('Pond ID must be a valid ObjectId'),
+    body('seasonId')
+      .optional()
+      .custom(customValidators.isObjectId)
+      .withMessage('Season ID must be a valid ObjectId'),
+    body('pH')
+      .optional()
+      .isFloat({ min: 0, max: 14 })
+      .withMessage('pH must be between 0 and 14'),
+    body('dissolvedOxygen')
+      .optional()
+      .isFloat({ min: 0, max: 20 })
+      .withMessage('Dissolved oxygen must be between 0 and 20 mg/L'),
+    body('temperature')
+      .optional()
+      .isFloat({ min: 0, max: 50 })
+      .withMessage('Temperature must be between 0 and 50°C'),
+    body('salinity')
+      .optional()
+      .isFloat({ min: 0, max: 50 })
+      .withMessage('Salinity must be between 0 and 50 ppt'),
+    body('ammonia')
+      .optional()
+      .isFloat({ min: 0, max: 10 })
+      .withMessage('Ammonia must be between 0 and 10 mg/L'),
+    body('nitrite')
+      .optional()
+      .isFloat({ min: 0, max: 10 })
+      .withMessage('Nitrite must be between 0 and 10 mg/L'),
+    body('alkalinity')
+      .optional()
+      .isFloat({ min: 0, max: 500 })
+      .withMessage('Alkalinity must be between 0 and 500 mg/L'),
+    handleValidationErrors
+  ],
+
+  getByDateRange: [
+    query('startDate')
+      .isISO8601()
+      .withMessage('Start date must be a valid ISO 8601 date'),
+    query('endDate')
+      .isISO8601()
+      .withMessage('End date must be a valid ISO 8601 date')
+      .custom((endDate, { req }) => {
+        if (new Date(endDate) <= new Date(req.query.startDate)) {
+          throw new Error('End date must be after start date');
+        }
+        return true;
+      }),
+    query('pondId')
+      .optional()
+      .custom(customValidators.isObjectId),
+    handleValidationErrors
   ]
 };
 

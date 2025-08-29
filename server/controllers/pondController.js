@@ -1,4 +1,4 @@
-const logger = require('../logger');
+const { logger } = require('../utils/logger');
 const Pond = require('../models/Pond');
 const Season = require('../models/Season');
 const { clearCache } = require('../middleware/cache');
@@ -41,7 +41,7 @@ const getLanguageForUser = (req) => {
  * @returns {object} Translated document with string fields instead of Maps
  */
 const translateDocument = (doc, language) => {
-  if (!doc) {return doc;}
+  if (!doc) { return doc; }
 
   // Convert Mongoose document to plain object if needed
   const plainDoc = doc.toObject ? doc.toObject() : doc;

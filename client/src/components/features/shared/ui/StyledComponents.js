@@ -3,38 +3,34 @@
  * Consistent UI components following design system guidelines
  */
 
-import {
-  Box,
-  Card,
-  Button,
-  Typography,
-  Container,
-  Stack,
-  Chip,
-  Avatar,
-  IconButton,
-  Paper
-} from '@mui/material';
+import { Box, Card, Button, Typography, Container, Chip, Paper } from '@mui/material';
 import { styled } from '@mui/material/styles';
-import React from 'react';
 
 import { designTokens } from '../../theme/designTokens';
 
-const { colors, spacing, borderRadius, shadows, typography } = designTokens;
+const { colors, borderRadius, shadows, typography } = designTokens;
+
+const SPACING_UNIT = 3;
+const SECTION_MARGIN_BOTTOM = 4;
+const METRIC_CARD_GAP = 0.5;
+const BADGE_DOT_OFFSET = -4;
+const BADGE_DOT_SIZE = 8;
+const BADGE_VARIANT_SIZE = 16;
+const SECTION_PADDING = 6;
 
 // Layout Components
 export const AppContainer = styled(Container)(({ theme }) => ({
   maxWidth: designTokens.layout.container.maxWidth.xl,
   padding: theme.spacing(0, 2),
   [theme.breakpoints.up('md')]: {
-    padding: theme.spacing(0, 3)
+    padding: theme.spacing(0, SPACING_UNIT)
   }
 }));
 
 export const PageHeader = styled(Box)(({ theme }) => ({
-  padding: theme.spacing(3, 0),
+  padding: theme.spacing(SPACING_UNIT, 0),
   borderBottom: `1px solid ${colors.grey[200]}`,
-  marginBottom: theme.spacing(3),
+  marginBottom: theme.spacing(SPACING_UNIT),
 
   '& h1, & h2': {
     margin: 0,
@@ -48,7 +44,7 @@ export const PageHeader = styled(Box)(({ theme }) => ({
 }));
 
 export const ContentSection = styled(Box)(({ theme }) => ({
-  marginBottom: theme.spacing(4),
+  marginBottom: theme.spacing(SECTION_MARGIN_BOTTOM),
 
   '&:last-child': {
     marginBottom: 0
@@ -125,7 +121,7 @@ export const StyledCard = styled(Card)(({ theme, variant = 'default' }) => ({
 }));
 
 export const MetricCard = styled(StyledCard)(({ theme }) => ({
-  padding: theme.spacing(3),
+  padding: theme.spacing(SPACING_UNIT),
   textAlign: 'center',
 
   '& .metric-value': {
@@ -151,12 +147,12 @@ export const MetricCard = styled(StyledCard)(({ theme }) => ({
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: theme.spacing(0.5)
+    gap: theme.spacing(METRIC_CARD_GAP)
   }
 }));
 
 // Button Components
-export const PrimaryButton = styled(Button)(({ theme }) => ({
+export const PrimaryButton = styled(Button)(({ ..._ }) => ({
   backgroundColor: colors.primary.main,
   color: colors.primary.contrastText,
   borderRadius: borderRadius.md,
@@ -179,7 +175,7 @@ export const PrimaryButton = styled(Button)(({ theme }) => ({
   }
 }));
 
-export const SecondaryButton = styled(Button)(({ theme }) => ({
+export const SecondaryButton = styled(Button)(({ ..._ }) => ({
   backgroundColor: 'transparent',
   color: colors.primary.main,
   border: `1px solid ${colors.primary.main}`,
@@ -193,7 +189,7 @@ export const SecondaryButton = styled(Button)(({ theme }) => ({
   }
 }));
 
-export const GhostButton = styled(Button)(({ theme }) => ({
+export const GhostButton = styled(Button)(({ ..._ }) => ({
   backgroundColor: 'transparent',
   color: colors.text.secondary,
   borderRadius: borderRadius.md,
@@ -207,7 +203,7 @@ export const GhostButton = styled(Button)(({ theme }) => ({
 }));
 
 // Status Components
-export const StatusChip = styled(Chip)(({ theme, status = 'default' }) => {
+export const StatusChip = styled(Chip)(({ status = 'default' }) => {
   const statusColors = {
     success: {
       backgroundColor: colors.success[100],
@@ -245,17 +241,17 @@ export const StatusChip = styled(Chip)(({ theme, status = 'default' }) => {
   };
 });
 
-export const Badge = styled(Box)(({ theme, variant = 'dot', color = 'primary' }) => ({
+export const Badge = styled(Box)(({ variant = 'dot', color = 'primary', ..._ }) => ({
   position: 'relative',
   display: 'inline-block',
 
   '&::after': {
     content: '""',
     position: 'absolute',
-    top: variant === 'dot' ? 0 : -4,
-    right: variant === 'dot' ? 0 : -4,
-    width: variant === 'dot' ? 8 : 16,
-    height: variant === 'dot' ? 8 : 16,
+    top: variant === 'dot' ? 0 : BADGE_DOT_OFFSET,
+    right: variant === 'dot' ? 0 : BADGE_DOT_OFFSET,
+    width: variant === 'dot' ? BADGE_DOT_SIZE : BADGE_VARIANT_SIZE,
+    height: variant === 'dot' ? BADGE_DOT_SIZE : BADGE_VARIANT_SIZE,
     borderRadius: '50%',
     backgroundColor: colors[color]?.main || colors.primary.main,
     border: `2px solid ${colors.background.paper}`
@@ -275,7 +271,7 @@ export const SectionSubtitle = styled(Typography)(({ theme }) => ({
   fontSize: typography.fontSize.lg,
   fontWeight: typography.fontWeight.medium,
   color: colors.text.secondary,
-  marginBottom: theme.spacing(3),
+  marginBottom: theme.spacing(SPACING_UNIT),
   lineHeight: typography.lineHeight.normal
 }));
 
@@ -290,11 +286,11 @@ export const Label = styled(Typography)(({ theme }) => ({
 
 // Form Components
 export const FormSection = styled(Box)(({ theme }) => ({
-  padding: theme.spacing(3),
+  padding: theme.spacing(SPACING_UNIT),
   backgroundColor: colors.background.paper,
   borderRadius: borderRadius.lg,
   border: `1px solid ${colors.grey[200]}`,
-  marginBottom: theme.spacing(3),
+  marginBottom: theme.spacing(SPACING_UNIT),
 
   '& .form-title': {
     fontSize: typography.fontSize.lg,
@@ -306,7 +302,7 @@ export const FormSection = styled(Box)(({ theme }) => ({
   '& .form-description': {
     fontSize: typography.fontSize.sm,
     color: colors.text.secondary,
-    marginBottom: theme.spacing(3)
+    marginBottom: theme.spacing(SPACING_UNIT)
   }
 }));
 
@@ -314,7 +310,7 @@ export const FieldGroup = styled(Box)(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
   gap: theme.spacing(2),
-  marginBottom: theme.spacing(3),
+  marginBottom: theme.spacing(SPACING_UNIT),
 
   '&.horizontal': {
     flexDirection: 'row',
@@ -329,7 +325,7 @@ export const FieldGroup = styled(Box)(({ theme }) => ({
 // Loading and Empty States
 export const EmptyState = styled(Box)(({ theme }) => ({
   textAlign: 'center',
-  padding: theme.spacing(6),
+  padding: theme.spacing(SECTION_PADDING),
 
   '& .empty-icon': {
     fontSize: '3rem',
@@ -347,7 +343,7 @@ export const EmptyState = styled(Box)(({ theme }) => ({
   '& .empty-description': {
     fontSize: typography.fontSize.base,
     color: colors.text.secondary,
-    marginBottom: theme.spacing(3)
+    marginBottom: theme.spacing(SPACING_UNIT)
   }
 }));
 
@@ -356,7 +352,7 @@ export const LoadingBox = styled(Box)(({ theme }) => ({
   flexDirection: 'column',
   alignItems: 'center',
   justifyContent: 'center',
-  padding: theme.spacing(6),
+  padding: theme.spacing(SECTION_PADDING),
   minHeight: 200,
 
   '& .loading-text': {
@@ -385,11 +381,11 @@ export const Divider = styled(Box)(({ theme, variant = 'horizontal' }) => ({
 
 export const Spacer = styled(Box)(({ theme, size = 'md' }) => {
   const sizes = {
-    xs: spacing.xs,
-    sm: spacing.sm,
-    md: spacing.md,
-    lg: spacing.lg,
-    xl: spacing.xl
+    xs: theme.spacing.xs,
+    sm: theme.spacing.sm,
+    md: theme.spacing.md,
+    lg: theme.spacing.lg,
+    xl: theme.spacing.xl
   };
 
   return {
@@ -399,6 +395,7 @@ export const Spacer = styled(Box)(({ theme, size = 'md' }) => {
 
 export const FlexContainer = styled(Box)(
   ({
+    theme,
     direction = 'row',
     justify = 'flex-start',
     align = 'stretch',
@@ -406,11 +403,11 @@ export const FlexContainer = styled(Box)(
     gap = 'md'
   }) => {
     const gapSizes = {
-      xs: spacing.xs,
-      sm: spacing.sm,
-      md: spacing.md,
-      lg: spacing.lg,
-      xl: spacing.xl
+      xs: theme.spacing.xs,
+      sm: theme.spacing.sm,
+      md: theme.spacing.md,
+      lg: theme.spacing.lg,
+      xl: theme.spacing.xl
     };
 
     return {
@@ -425,7 +422,7 @@ export const FlexContainer = styled(Box)(
 );
 
 // Surface Components
-export const SurfaceCard = styled(Paper)(({ theme, level = 1 }) => ({
+export const SurfaceCard = styled(Paper)(({ level = 1, ..._ }) => ({
   borderRadius: borderRadius.lg,
   border: `1px solid ${colors.grey[200]}`,
   ...(level === 1 && {
@@ -438,7 +435,7 @@ export const SurfaceCard = styled(Paper)(({ theme, level = 1 }) => ({
   })
 }));
 
-export const HighlightBox = styled(Box)(({ theme, color = 'primary' }) => ({
+export const HighlightBox = styled(Box)(({ theme, color = 'primary', ..._ }) => ({
   padding: theme.spacing(2),
   borderRadius: borderRadius.md,
   backgroundColor: colors[color]?.[50] || colors.primary[50],

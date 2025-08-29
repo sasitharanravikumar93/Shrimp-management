@@ -14,6 +14,8 @@ const path = require('path');
 
 const glob = require('glob');
 
+const logger = require('../utils/logger');
+
 // Configuration
 const CONFIG = {
   componentsDir: 'src/components',
@@ -90,16 +92,17 @@ class PropInterfaceAnalyzer {
    * Main analysis function
    */
   async analyze() {
-    console.log('🔍 Analyzing component prop interfaces...\n');
+    logger.debug('🔍 Analyzing component prop interfaces...\n');
 
     const files = this.getComponentFiles();
     this.results.summary.totalFiles = files.length;
 
     for (const file of files) {
+      // eslint-disable-line no-await-in-loop
       try {
         await this.analyzeFile(file);
       } catch (error) {
-        console.error(`Error analyzing ${file}:`, error.message);
+        logger.error(`Error analyzing ${file}:`, error.message);
       }
     }
 
@@ -376,25 +379,26 @@ class PropInterfaceAnalyzer {
   printSummary() {
     const { summary, recommendations } = this.results;
 
-    console.log('📊 Analysis Summary');
-    console.log('==================');
-    console.log(`Total files scanned: ${summary.totalFiles}`);
-    console.log(`Components analyzed: ${summary.componentsAnalyzed}`);
-    console.log(`Issues found: ${summary.issuesFound}`);
-    console.log(`Standard compliant: ${summary.standardCompliant}`);
-    console.log(
+    logger.debug('📊 Analysis Summary');
+    logger.debug('==================');
+    logger.debug(`Total files scanned: ${summary.totalFiles}`);
+    logger.debug(`Components analyzed: ${summary.componentsAnalyzed}`);
+    logger.debug(`Issues found: ${summary.issuesFound}`);
+    logger.debug(`Standard compliant: ${summary.standardCompliant}`);
+    logger.debug(
       `Compliance rate: ${Math.round(
         (summary.standardCompliant / summary.componentsAnalyzed) * 100
       )}%\n`
     );
 
     if (recommendations.length > 0) {
-      console.log('🎯 Recommendations');
-      console.log('=================');
+      logger.debug('🎯 Recommendations');
+      logger.debug('=================');
       recommendations.forEach((rec, index) => {
-        console.log(`${index + 1}. [${rec.priority.toUpperCase()}] ${rec.title}`);
-        console.log(`   ${rec.description}`);
-        console.log(`   Action: ${rec.action}\n`);
+        logger.debug(`${index + 1}. [${rec.priority.toUpperCase()}] ${rec.title}`);
+        logger.debug(`   ${rec.description}`);
+        logger.debug(`   Action: ${rec.action}
+`);
       });
     }
 
@@ -405,14 +409,14 @@ class PropInterfaceAnalyzer {
       .slice(0, 5);
 
     if (issuesByComponent.length > 0) {
-      console.log('⚠️  Components with Most Issues');
-      console.log('=============================');
+      logger.debug('⚠️  Components with Most Issues');
+      logger.debug('=============================');
       issuesByComponent.forEach(component => {
-        console.log(`${component.file} (${component.analysis.issues.length} issues)`);
+        logger.debug(`${component.file} (${component.analysis.issues.length} issues)`);
         component.analysis.issues.slice(0, 3).forEach(issue => {
-          console.log(`  - ${issue.prop}: ${issue.message}`);
+          logger.debug(`  - ${issue.prop}: ${issue.message}`);
         });
-        console.log('');
+        logger.debug('');
       });
     }
   }
@@ -423,14 +427,14 @@ class PropInterfaceAnalyzer {
   saveResults() {
     const outputPath = path.join(process.cwd(), CONFIG.outputFile);
     fs.writeFileSync(outputPath, JSON.stringify(this.results, null, 2));
-    console.log(`📄 Detailed results saved to: ${outputPath}`);
+    logger.debug(`📄 Detailed results saved to: ${outputPath}`);
   }
 }
 
 // Run the analyzer
 if (require.main === module) {
   const analyzer = new PropInterfaceAnalyzer();
-  analyzer.analyze().catch(console.error);
+  analyzer.analyze().catch(logger.error);
 }
 
 module.exports = PropInterfaceAnalyzer;

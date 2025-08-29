@@ -5,7 +5,8 @@
 
 import createCache from '@emotion/cache';
 import { CacheProvider } from '@emotion/react';
-import { styled, createTheme, ThemeProvider } from '@mui/material/styles';
+import { styled, createTheme } from '@mui/material/styles';
+import PropTypes from 'prop-types';
 import React, { createContext, useContext, useEffect } from 'react';
 import { prefixer } from 'stylis';
 import rtlPlugin from 'stylis-plugin-rtl';
@@ -40,7 +41,7 @@ const RTLContext = createContext({
 
 // RTL Provider Component
 export const RTLProvider = ({ children }) => {
-  const { currentLanguage, isRTL: languageIsRTL } = useLanguage();
+  const { isRTL: languageIsRTL } = useLanguage();
   const [isRTL, setIsRTL] = React.useState(languageIsRTL);
   const [direction, setDirection] = React.useState(languageIsRTL ? 'rtl' : 'ltr');
 
@@ -91,6 +92,10 @@ export const RTLProvider = ({ children }) => {
       <CacheProvider value={cache}>{children}</CacheProvider>
     </RTLContext.Provider>
   );
+};
+
+RTLProvider.propTypes = {
+  children: PropTypes.node.isRequired
 };
 
 // Hook to use RTL context
@@ -362,6 +367,10 @@ export const RTLContainer = ({ children, ...props }) => {
   );
 };
 
+RTLContainer.propTypes = {
+  children: PropTypes.node.isRequired
+};
+
 // Language switcher with RTL support
 export const LanguageSwitcherRTL = ({ languages, currentLanguage, onLanguageChange }) => {
   const { setDirection } = useRTL();
@@ -387,7 +396,19 @@ export const LanguageSwitcherRTL = ({ languages, currentLanguage, onLanguageChan
   );
 };
 
-export default {
+LanguageSwitcherRTL.propTypes = {
+  languages: PropTypes.arrayOf(
+    PropTypes.shape({
+      code: PropTypes.string.isRequired,
+      flag: PropTypes.string.isRequired,
+      nativeName: PropTypes.string.isRequired
+    })
+  ).isRequired,
+  currentLanguage: PropTypes.string.isRequired,
+  onLanguageChange: PropTypes.func.isRequired
+};
+
+const rtlUtilsModule = {
   RTLProvider,
   useRTL,
   createRTLTheme,
@@ -398,3 +419,5 @@ export default {
   rtlCSS,
   rtlLanguages
 };
+
+export default rtlUtilsModule;

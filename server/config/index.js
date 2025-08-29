@@ -4,7 +4,8 @@
 
 require('dotenv').config();
 
-const { logger } = require('../utils/logger');
+// Note: We can't require logger here due to circular dependency issues
+// The logger requires this config, so we can't require the logger in this file
 
 const config = {
   // Server Configuration
@@ -90,6 +91,8 @@ function validateConfig() {
   const missing = requiredConfigs.filter(cfg => !cfg.value);
 
   if (missing.length > 0) {
+    // We need to require logger here to avoid the circular dependency at the top level
+    const { logger } = require('../utils/logger');
     logger.error('Missing required configuration:', {
       missingConfigs: missing.map(cfg => ({
         name: cfg.name,

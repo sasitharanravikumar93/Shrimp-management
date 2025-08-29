@@ -1,8 +1,9 @@
-const logger = require('../logger');
+const { logger } = require('../utils/logger');
 const WaterQualityInput = require('../models/WaterQualityInput');
 const Pond = require('../models/Pond');
 const Season = require('../models/Season');
-const { createInventoryAdjustment } = require('../controllers/inventoryController'); // Import inventory adjustment function
+const InventoryAdjustment = require('../models/InventoryAdjustment');
+const InventoryItem = require('../models/InventoryItem');
 const {
   asyncHandler,
   sendSuccessResponse,
@@ -84,16 +85,19 @@ exports.createWaterQualityInput = async (req, res) => {
     // Create inventory adjustment if an item was used
     if (inventoryItemId && quantityUsed) {
       try {
-        await createInventoryAdjustment({
-          body: {
+        // Check if inventory item exists and is active
+        const inventoryItem = await InventoryItem.findById(inventoryItemId);
+        if (inventoryItem && inventoryItem.isActive) {
+          const inventoryAdjustment = new InventoryAdjustment({
             inventoryItemId: inventoryItemId,
             adjustmentType: 'Usage',
             quantityChange: -Math.abs(quantityUsed), // Ensure it's a negative value for depletion
             reason: `Water treatment for pond ${pond.name}`,
             relatedDocument: waterQualityInput._id,
             relatedDocumentModel: 'WaterQualityInput'
-          }
-        }, null); // Pass null for res and req objects as it's an internal call
+          });
+          await inventoryAdjustment.save();
+        }
       } catch (adjError) {
         logger.error('Error creating inventory adjustment for water quality:', adjError);
         // For now, we'll just log and proceed with water quality input creation
@@ -227,17 +231,21 @@ exports.createWaterQualityInputsBatch = async (req, res) => {
         // Create inventory adjustment if an item was used
         if (inventoryItemId && quantityUsed) {
           try {
+            // Check if inventory item exists and is active
             // eslint-disable-next-line no-await-in-loop
-            await createInventoryAdjustment({
-              body: {
+            const inventoryItem = await InventoryItem.findById(inventoryItemId);
+            if (inventoryItem && inventoryItem.isActive) {
+              const inventoryAdjustment = new InventoryAdjustment({
                 inventoryItemId: inventoryItemId,
                 adjustmentType: 'Usage',
                 quantityChange: -Math.abs(quantityUsed), // Ensure it's a negative value for depletion
                 reason: `Water treatment for pond ${pond.name}`,
                 relatedDocument: waterQualityInput._id,
                 relatedDocumentModel: 'WaterQualityInput'
-              }
-            }, null); // Pass null for res and req objects as it's an internal call
+              });
+              // eslint-disable-next-line no-await-in-loop
+              await inventoryAdjustment.save();
+            }
           } catch (adjError) {
             logger.error('Error creating inventory adjustment for water quality:', adjError);
             // For now, we'll just log and proceed with water quality input creation

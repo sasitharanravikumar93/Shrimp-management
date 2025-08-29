@@ -3,12 +3,10 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   FileCopy as CopyIcon,
-  Event as EventIcon,
   Search as SearchIcon,
   Agriculture as SeasonIcon,
   Waves as PondIcon,
-  CloudDownload as ExportIcon,
-  FilterList as FilterIcon
+  CloudDownload as ExportIcon
 } from '@mui/icons-material';
 import {
   Typography,
@@ -21,18 +19,11 @@ import {
   DialogActions,
   DialogContent,
   DialogTitle,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Container,
   Grid,
   Card,
   CardContent,
   CardHeader,
-  Divider,
   Chip,
   IconButton,
   Tooltip,
@@ -45,9 +36,7 @@ import {
   Alert,
   FormControl,
   InputLabel,
-  Select,
-  FormControlLabel,
-  Checkbox
+  Select
 } from '@mui/material';
 import { format } from 'date-fns';
 import Papa from 'papaparse';
@@ -95,9 +84,11 @@ const AdminPage = () => {
 
   // Log component mount/unmount for debugging
   useEffect(() => {
+    // eslint-disable-next-line no-console
     console.log('AdminPage mounted');
 
     return () => {
+      // eslint-disable-next-line no-console
       console.log('AdminPage unmounted');
     };
   }, []);
@@ -145,6 +136,7 @@ const AdminPage = () => {
   const handleTabChange = (event, newValue) => {
     // If the removed tab (index 3) was selected, default to the first tab (index 0)
     if (newValue === 3) {
+      // This refers to a removed tab index
       setActiveTab(0);
     } else {
       setActiveTab(newValue);
@@ -287,14 +279,17 @@ const AdminPage = () => {
           status: formData.status
         };
 
+        // eslint-disable-next-line no-console
         console.log('Submitting season data:', seasonData);
 
         if (editingItem) {
           // Update existing season
+          // eslint-disable-next-line no-console
           console.log('Updating existing season:', editingItem._id || editingItem.id);
           await updateSeasonMutation(editingItem._id || editingItem.id, seasonData);
         } else {
           // Create new season
+          // eslint-disable-next-line no-console
           console.log('Creating new season');
           await createSeasonMutation(seasonData);
         }

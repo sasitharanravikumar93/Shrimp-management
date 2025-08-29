@@ -5,13 +5,25 @@
 
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { render, renderHook, act } from '@testing-library/react';
+import PropTypes from 'prop-types';
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
+
+// Constants for timing values
+const DEFAULT_TIMEOUT = 5000;
+const DEFAULT_POLLING_INTERVAL = 10;
+const STATE_UPDATE_TIMEOUT = 3000;
+const STABLE_TIME = 100;
+const ELEMENT_WAIT_INTERVAL = 50;
+const RETRY_INTERVAL_BASE = 100;
+const MEMORY_LEAK_THRESHOLD_BYTES = 1024;
+const MEMORY_LEAK_THRESHOLD = MEMORY_LEAK_THRESHOLD_BYTES * MEMORY_LEAK_THRESHOLD_BYTES; // 1MB
+const MAX_RETRIES = 3;
 
 // Enhanced wait utilities to fix timing issues
 export const waitUtils = {
   // Wait for async operations with timeout
-  waitForAsync: async (callback, timeout = 5000) => {
+  waitForAsync: async (callback, timeout = DEFAULT_TIMEOUT) => {
     const startTime = Date.now();
 
     while (Date.now() - startTime < timeout) {
@@ -26,7 +38,8 @@ export const waitUtils = {
       }
 
       // Wait a small amount before trying again
-      await new Promise(resolve => setTimeout(resolve, 10));
+      // eslint-disable-next-line no-await-in-loop
+      await new Promise(resolve => setTimeout(resolve, DEFAULT_POLLING_INTERVAL));
     }
 
     throw new Error(`Timeout after ${timeout}ms`);
@@ -40,21 +53,22 @@ export const waitUtils = {
   },
 
   // Wait for state updates
-  waitForStateUpdate: async (checkFn, timeout = 3000) => {
+  waitForStateUpdate: async (checkFn, timeout = STATE_UPDATE_TIMEOUT) => {
     const startTime = Date.now();
 
     while (Date.now() - startTime < timeout) {
       if (checkFn()) {
         return true;
       }
-      await new Promise(resolve => setTimeout(resolve, 10));
+      // eslint-disable-next-line no-await-in-loop
+      await new Promise(resolve => setTimeout(resolve, DEFAULT_POLLING_INTERVAL));
     }
 
     throw new Error(`State update timeout after ${timeout}ms`);
   },
 
   // Debounced wait for rapid changes
-  waitForStable: async (checkFn, stableTime = 100, timeout = 3000) => {
+  waitForStable: async (checkFn, stableTime = STABLE_TIME, timeout = STATE_UPDATE_TIMEOUT) => {
     const startTime = Date.now();
     let lastChangeTime = Date.now();
     let lastValue = checkFn();
@@ -72,7 +86,8 @@ export const waitUtils = {
         return currentValue;
       }
 
-      await new Promise(resolve => setTimeout(resolve, 10));
+      // eslint-disable-next-line no-await-in-loop
+      await new Promise(resolve => setTimeout(resolve, DEFAULT_POLLING_INTERVAL));
     }
 
     throw new Error(`Value did not stabilize within ${timeout}ms`);
@@ -186,6 +201,11 @@ export const renderUtils = {
       return wrapped;
     };
 
+    // Add prop types for Providers component
+    Providers.propTypes = {
+      children: PropTypes.node.isRequired
+    };
+
     return render(ui, { wrapper: Providers, ...renderOptions });
   },
 
@@ -194,6 +214,11 @@ export const renderUtils = {
     const { theme = createTheme(), ...hookOptions } = options;
 
     const wrapper = ({ children }) => <ThemeProvider theme={theme}>{children}</ThemeProvider>;
+
+    // Add prop types for wrapper component
+    wrapper.propTypes = {
+      children: PropTypes.node.isRequired
+    };
 
     return renderHook(hook, { wrapper, ...hookOptions });
   }
@@ -248,7 +273,7 @@ export const testDataFactories = {
 // Assertion helpers for better test reliability
 export const assertionHelpers = {
   // Wait for element to appear
-  waitForElement: async (getElement, timeout = 3000) => {
+  waitForElement: async (getElement, timeout = STATE_UPDATE_TIMEOUT) => {
     const startTime = Date.now();
 
     while (Date.now() - startTime < timeout) {
@@ -259,14 +284,15 @@ export const assertionHelpers = {
         // Element not found yet, continue waiting
       }
 
-      await new Promise(resolve => setTimeout(resolve, 50));
+      // eslint-disable-next-line no-await-in-loop
+      await new Promise(resolve => setTimeout(resolve, ELEMENT_WAIT_INTERVAL));
     }
 
     throw new Error(`Element not found within ${timeout}ms`);
   },
 
   // Assert async conditions
-  assertEventually: async (assertion, timeout = 3000) => {
+  assertEventually: async (assertion, timeout = STATE_UPDATE_TIMEOUT) => {
     const startTime = Date.now();
     let lastError;
 
@@ -276,7 +302,8 @@ export const assertionHelpers = {
         return; // Success
       } catch (error) {
         lastError = error;
-        await new Promise(resolve => setTimeout(resolve, 50));
+        // eslint-disable-next-line no-await-in-loop
+        await new Promise(resolve => setTimeout(resolve, ELEMENT_WAIT_INTERVAL));
       }
     }
 
@@ -284,7 +311,7 @@ export const assertionHelpers = {
   },
 
   // Assert with retry for flaky conditions
-  assertWithRetry: async (assertion, maxRetries = 3) => {
+  assertWithRetry: async (assertion, maxRetries = MAX_RETRIES) => {
     let lastError;
 
     for (let i = 0; i < maxRetries; i++) {
@@ -294,7 +321,8 @@ export const assertionHelpers = {
       } catch (error) {
         lastError = error;
         if (i < maxRetries - 1) {
-          await new Promise(resolve => setTimeout(resolve, 100 * (i + 1)));
+          // eslint-disable-next-line no-await-in-loop
+          await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL_BASE * (i + 1)));
         }
       }
     }
@@ -395,14 +423,15 @@ export const performanceUtils = {
           initialMemory,
           finalMemory,
           memoryIncrease,
-          hasLeak: memoryIncrease > 1024 * 1024 // 1MB threshold
+          hasLeak: memoryIncrease > MEMORY_LEAK_THRESHOLD // 1MB threshold
         };
       }
     };
   }
 };
 
-export default {
+// Export all utilities as named exports
+const testUtils = {
   waitUtils,
   mockUtils,
   renderUtils,
@@ -411,3 +440,5 @@ export default {
   testSetup,
   performanceUtils
 };
+
+export default testUtils;

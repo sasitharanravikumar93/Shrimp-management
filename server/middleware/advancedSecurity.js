@@ -3,7 +3,7 @@
  * Additional security features for threat detection and IP management
  */
 
-const logger = require('../logger');
+const { logger } = require('../utils/logger');
 const { ForbiddenError } = require('../utils/errorHandler');
 
 // In-memory stores (in production, use Redis or database)

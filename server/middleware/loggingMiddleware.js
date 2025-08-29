@@ -3,7 +3,7 @@
  * Automatically logs important application events and operations
  */
 
-const logger = require('../logger');
+const { logger } = require('../utils/logger');
 
 /**
  * HTTP Request/Response Logging Middleware
@@ -30,7 +30,7 @@ const requestLoggingMiddleware = (req, res, next) => {
   };
 
   // Log incoming request
-  logger.http('Incoming request', {
+  logger.info('Incoming request', {
     requestId,
     userId,
     method: req.method,
@@ -49,11 +49,8 @@ const requestLoggingMiddleware = (req, res, next) => {
     const responseTime = endTime - startTime;
 
     // Log response
-    logger.apiRequest(
-      req.method,
-      req.originalUrl,
-      res.statusCode,
-      responseTime,
+    logger.info(
+      `${req.method} ${req.originalUrl} ${res.statusCode} ${responseTime}ms`,
       {
         requestId,
         userId,
@@ -65,7 +62,7 @@ const requestLoggingMiddleware = (req, res, next) => {
 
     // Log slow requests
     if (responseTime > 1000) {
-      logger.performance('Slow request detected', {
+      logger.warn('Slow request detected', {
         requestId,
         userId,
         method: req.method,
@@ -87,7 +84,8 @@ const requestLoggingMiddleware = (req, res, next) => {
  */
 const authEventLogger = {
   loginAttempt: (username, ip, userAgent) => {
-    logger.auth('login_attempt', username, {
+    logger.info('login_attempt', {
+      username,
       ip,
       userAgent,
       timestamp: new Date().toISOString()
@@ -95,14 +93,15 @@ const authEventLogger = {
   },
 
   loginSuccess: (userId, username, ip, userAgent) => {
-    logger.auth('login_success', userId, {
+    logger.info('login_success', {
+      userId,
       username,
       ip,
       userAgent,
       timestamp: new Date().toISOString()
     });
 
-    logger.audit('User logged in', {
+    logger.info('User logged in', {
       auditType: 'authentication',
       userId,
       username,
@@ -112,14 +111,15 @@ const authEventLogger = {
   },
 
   loginFailure: (username, reason, ip, userAgent) => {
-    logger.auth('login_failed', username, {
+    logger.warn('login_failed', {
+      username,
       reason,
       ip,
       userAgent,
       timestamp: new Date().toISOString()
     });
 
-    logger.security('Failed login attempt', {
+    logger.warn('Failed login attempt', {
       severity: 'medium',
       username,
       reason,
@@ -129,13 +129,14 @@ const authEventLogger = {
   },
 
   logout: (userId, username, ip) => {
-    logger.auth('logout', userId, {
+    logger.info('logout', {
+      userId,
       username,
       ip,
       timestamp: new Date().toISOString()
     });
 
-    logger.audit('User logged out', {
+    logger.info('User logged out', {
       auditType: 'authentication',
       userId,
       username,
@@ -145,14 +146,15 @@ const authEventLogger = {
   },
 
   registration: (userId, username, email, ip) => {
-    logger.auth('registration', userId, {
+    logger.info('registration', {
+      userId,
       username,
       email,
       ip,
       timestamp: new Date().toISOString()
     });
 
-    logger.audit('New user registered', {
+    logger.info('New user registered', {
       auditType: 'user_management',
       userId,
       username,
@@ -163,13 +165,14 @@ const authEventLogger = {
   },
 
   passwordChange: (userId, username, ip) => {
-    logger.auth('password_change', userId, {
+    logger.info('password_change', {
+      userId,
       username,
       ip,
       timestamp: new Date().toISOString()
     });
 
-    logger.audit('Password changed', {
+    logger.info('Password changed', {
       auditType: 'security',
       userId,
       username,
@@ -185,7 +188,7 @@ const authEventLogger = {
  */
 const businessOperationLogger = {
   pondOperation: (operation, pondId, pondName, userId, seasonId) => {
-    logger.business(`Pond ${operation}`, {
+    logger.info(`Pond ${operation}`, {
       operation,
       pondId,
       pondName,
@@ -194,7 +197,7 @@ const businessOperationLogger = {
       timestamp: new Date().toISOString()
     });
 
-    logger.audit(`Pond ${operation}`, {
+    logger.info(`Pond ${operation}`, {
       auditType: 'pond_management',
       entityType: 'pond',
       entityId: pondId,
@@ -206,7 +209,7 @@ const businessOperationLogger = {
   },
 
   seasonOperation: (operation, seasonId, seasonName, userId) => {
-    logger.business(`Season ${operation}`, {
+    logger.info(`Season ${operation}`, {
       operation,
       seasonId,
       seasonName,
@@ -214,7 +217,7 @@ const businessOperationLogger = {
       timestamp: new Date().toISOString()
     });
 
-    logger.audit(`Season ${operation}`, {
+    logger.info(`Season ${operation}`, {
       auditType: 'season_management',
       entityType: 'season',
       entityId: seasonId,
@@ -225,7 +228,7 @@ const businessOperationLogger = {
   },
 
   feedInput: (operation, feedInputId, pondId, quantity, userId) => {
-    logger.business(`Feed input ${operation}`, {
+    logger.info(`Feed input ${operation}`, {
       operation,
       feedInputId,
       pondId,
@@ -234,7 +237,7 @@ const businessOperationLogger = {
       timestamp: new Date().toISOString()
     });
 
-    logger.audit(`Feed input ${operation}`, {
+    logger.info(`Feed input ${operation}`, {
       auditType: 'feeding',
       entityType: 'feed_input',
       entityId: feedInputId,
@@ -246,7 +249,7 @@ const businessOperationLogger = {
   },
 
   waterQualityInput: (operation, inputId, pondId, userId, parameters) => {
-    logger.business(`Water quality input ${operation}`, {
+    logger.info(`Water quality input ${operation}`, {
       operation,
       inputId,
       pondId,
@@ -255,7 +258,7 @@ const businessOperationLogger = {
       timestamp: new Date().toISOString()
     });
 
-    logger.audit(`Water quality input ${operation}`, {
+    logger.info(`Water quality input ${operation}`, {
       auditType: 'water_management',
       entityType: 'water_quality_input',
       entityId: inputId,
@@ -266,7 +269,7 @@ const businessOperationLogger = {
   },
 
   inventoryOperation: (operation, itemId, itemName, quantityChange, userId) => {
-    logger.business(`Inventory ${operation}`, {
+    logger.info(`Inventory ${operation}`, {
       operation,
       itemId,
       itemName,
@@ -275,7 +278,7 @@ const businessOperationLogger = {
       timestamp: new Date().toISOString()
     });
 
-    logger.audit(`Inventory ${operation}`, {
+    logger.info(`Inventory ${operation}`, {
       auditType: 'inventory_management',
       entityType: 'inventory_item',
       entityId: itemId,
@@ -311,18 +314,19 @@ const errorLogger = {
     };
 
     if (error.statusCode >= 500 || !error.statusCode) {
-      logger.errorWithStack(error, `Critical error: ${error.message}`, errorContext);
+      logger.error(`Critical error: ${error.message}`, errorContext);
     } else {
       logger.warn(`Client error: ${error.message}`, errorContext);
     }
   },
 
   logDatabaseError: (error, operation, collection, query = {}) => {
-    logger.errorWithStack(error, `Database error during ${operation}`, {
+    logger.error(`Database error during ${operation}`, {
       category: 'database_error',
       operation,
       collection,
-      query: sanitizeQuery(query)
+      query: sanitizeQuery(query),
+      stack: error.stack
     });
   },
 
@@ -347,7 +351,7 @@ const errorLogger = {
  */
 const securityLogger = {
   suspiciousActivity: (type, ip, userAgent, details = {}) => {
-    logger.security(`Suspicious activity: ${type}`, {
+    logger.warn(`Suspicious activity: ${type}`, {
       severity: 'high',
       type,
       ip,
@@ -358,7 +362,7 @@ const securityLogger = {
   },
 
   rateLimitExceeded: (ip, userAgent, endpoint) => {
-    logger.security('Rate limit exceeded', {
+    logger.warn('Rate limit exceeded', {
       severity: 'medium',
       ip,
       userAgent,
@@ -368,7 +372,7 @@ const securityLogger = {
   },
 
   unauthorizedAccess: (ip, userAgent, endpoint, userId = null) => {
-    logger.security('Unauthorized access attempt', {
+    logger.warn('Unauthorized access attempt', {
       severity: 'high',
       ip,
       userAgent,
@@ -379,7 +383,7 @@ const securityLogger = {
   },
 
   blockedRequest: (ip, reason, userAgent) => {
-    logger.security('Request blocked', {
+    logger.warn('Request blocked', {
       severity: 'medium',
       ip,
       reason,
@@ -394,7 +398,7 @@ const securityLogger = {
  */
 const performanceLogger = {
   slowQuery: (collection, operation, executionTime, query = {}) => {
-    logger.performance('Slow database query', {
+    logger.warn('Slow database query', {
       collection,
       operation,
       executionTime,
@@ -404,7 +408,7 @@ const performanceLogger = {
   },
 
   memoryUsageHigh: (memoryUsage) => {
-    logger.performance('High memory usage detected', {
+    logger.warn('High memory usage detected', {
       heapUsed: Math.round(memoryUsage.heapUsed / 1024 / 1024),
       heapTotal: Math.round(memoryUsage.heapTotal / 1024 / 1024),
       external: Math.round(memoryUsage.external / 1024 / 1024),

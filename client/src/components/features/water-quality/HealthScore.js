@@ -8,24 +8,33 @@ import PropTypes from 'prop-types';
 import React from 'react';
 
 const HealthScore = ({ score, size = 80, showLabel = true }) => {
+  // Constants for magic numbers
+  const HEALTH_SCORE_GOOD_THRESHOLD = 80;
+  const HEALTH_SCORE_FAIR_THRESHOLD = 60;
+  const CIRCULAR_PROGRESS_MAX = 100;
+  const CIRCULAR_PROGRESS_THICKNESS = 4;
+  const ICON_SIZE_DIVIDER = 3;
+
   // Determine color based on score
   const getColor = () => {
-    if (score >= 80) return '#28A745'; // Green
-    if (score >= 60) return '#FFC107'; // Yellow
+    if (score >= HEALTH_SCORE_GOOD_THRESHOLD) return '#28A745'; // Green
+    if (score >= HEALTH_SCORE_FAIR_THRESHOLD) return '#FFC107'; // Yellow
     return '#DC3545'; // Red
   };
 
   // Determine icon based on score
   const getIcon = () => {
-    if (score >= 80) return <CheckCircleIcon sx={{ color: '#28A745', fontSize: size / 3 }} />;
-    if (score >= 60) return <WarningIcon sx={{ color: '#FFC107', fontSize: size / 3 }} />;
-    return <ErrorIcon sx={{ color: '#DC3545', fontSize: size / 3 }} />;
+    if (score >= HEALTH_SCORE_GOOD_THRESHOLD)
+      return <CheckCircleIcon sx={{ color: '#28A745', fontSize: size / ICON_SIZE_DIVIDER }} />;
+    if (score >= HEALTH_SCORE_FAIR_THRESHOLD)
+      return <WarningIcon sx={{ color: '#FFC107', fontSize: size / ICON_SIZE_DIVIDER }} />;
+    return <ErrorIcon sx={{ color: '#DC3545', fontSize: size / ICON_SIZE_DIVIDER }} />;
   };
 
   // Determine status text based on score
   const getStatusText = () => {
-    if (score >= 80) return 'Good';
-    if (score >= 60) return 'Fair';
+    if (score >= HEALTH_SCORE_GOOD_THRESHOLD) return 'Good';
+    if (score >= HEALTH_SCORE_FAIR_THRESHOLD) return 'Fair';
     return 'Poor';
   };
 
@@ -34,9 +43,9 @@ const HealthScore = ({ score, size = 80, showLabel = true }) => {
       <Box sx={{ position: 'relative', display: 'inline-flex' }}>
         <CircularProgress
           variant='determinate'
-          value={100}
+          value={CIRCULAR_PROGRESS_MAX}
           size={size}
-          thickness={4}
+          thickness={CIRCULAR_PROGRESS_THICKNESS}
           sx={{
             color: 'rgba(0, 0, 0, 0.08)'
           }}
@@ -45,7 +54,7 @@ const HealthScore = ({ score, size = 80, showLabel = true }) => {
           variant='determinate'
           value={score}
           size={size}
-          thickness={4}
+          thickness={CIRCULAR_PROGRESS_THICKNESS}
           sx={{
             color: getColor(),
             position: 'absolute',

@@ -1,11 +1,43 @@
 
-> shrimp-farm-management-system@2.0.0 lint
-> cd client && npm run lint && cd ../server && npm run lint
-
-
 > client@0.1.0 lint
 > eslint src --ext .js,.jsx,.ts,.tsx --max-warnings 0
 
+
+Error while parsing /Users/sasi/operation/client/src/components/features/shared/ui/StyledComponents.js
+Line 424, column 13: Identifier 'FlexContainer' has already been declared. (424:13)
+`parseForESLint` from parser `/Users/sasi/operation/client/node_modules/@babel/eslint-parser/lib/index.cjs` is invalid and will just be ignored
+
+Error while parsing /Users/sasi/operation/client/src/components/features/shared/ui/StyledComponents.js
+Line 424, column 13: Identifier 'FlexContainer' has already been declared. (424:13)
+`parseForESLint` from parser `/Users/sasi/operation/client/node_modules/@babel/eslint-parser/lib/index.cjs` is invalid and will just be ignored
+
+Error while parsing /Users/sasi/operation/client/src/components/features/shared/ui/StyledComponents.js
+Line 424, column 13: Identifier 'FlexContainer' has already been declared. (424:13)
+`parseForESLint` from parser `/Users/sasi/operation/client/node_modules/@babel/eslint-parser/lib/index.cjs` is invalid and will just be ignored
+
+Error while parsing /Users/sasi/operation/client/src/components/features/shared/ui/StyledComponents.js
+Line 424, column 13: Identifier 'FlexContainer' has already been declared. (424:13)
+`parseForESLint` from parser `/Users/sasi/operation/client/node_modules/@babel/eslint-parser/lib/index.cjs` is invalid and will just be ignored
+
+Error while parsing /Users/sasi/operation/client/src/components/features/shared/ui/StyledComponents.js
+Line 424, column 13: Identifier 'FlexContainer' has already been declared. (424:13)
+`parseForESLint` from parser `/Users/sasi/operation/client/node_modules/@babel/eslint-parser/lib/index.cjs` is invalid and will just be ignored
+
+Error while parsing /Users/sasi/operation/client/src/pages/PondManagementPage.js
+Line 499, column 2: Unexpected token (499:2)
+`parseForESLint` from parser `/Users/sasi/operation/client/node_modules/@babel/eslint-parser/lib/index.cjs` is invalid and will just be ignored
+
+Error while parsing /Users/sasi/operation/client/src/pages/PondManagementPage.js
+Line 499, column 2: Unexpected token (499:2)
+`parseForESLint` from parser `/Users/sasi/operation/client/node_modules/@babel/eslint-parser/lib/index.cjs` is invalid and will just be ignored
+
+Error while parsing /Users/sasi/operation/client/src/pages/PondManagementPage.js
+Line 499, column 2: Unexpected token (499:2)
+`parseForESLint` from parser `/Users/sasi/operation/client/node_modules/@babel/eslint-parser/lib/index.cjs` is invalid and will just be ignored
+
+Error while parsing /Users/sasi/operation/client/src/pages/PondManagementPage.js
+Line 499, column 2: Unexpected token (499:2)
+`parseForESLint` from parser `/Users/sasi/operation/client/node_modules/@babel/eslint-parser/lib/index.cjs` is invalid and will just be ignored
 
 /Users/sasi/operation/client/src/components/__tests__/KPICard.typescript.test.tsx
    3:1   warning  `@testing-library/react` import should occur before import of `react`                                    import/order
@@ -630,21 +662,19 @@
   8:14  warning  No magic number: 0.5                            no-magic-numbers
 
 /Users/sasi/operation/client/src/components/features/shared/ui/RTLDemo.js
-   19:3   warning  'Card' is defined but never used. Allowed unused vars must match /^_/u        no-unused-vars
-   46:17  warning  Arrow function has too many lines (284). Maximum allowed is 100               max-lines-per-function
-   46:17  warning  Arrow function has a complexity of 17. Maximum allowed is 15                  complexity
-   47:11  warning  't' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
-  168:36  warning  Do not use Array index in keys                                                react/no-array-index-key
-  232:28  warning  Do not use Array index in keys                                                react/no-array-index-key
-  240:36  warning  No magic number: 3                                                            no-magic-numbers
-  314:37  warning  Do not use Array index in keys                                                react/no-array-index-key
-  319:30  warning  No magic number: 3                                                            no-magic-numbers
+   19:3   warning  'Card' is defined but never used. Allowed unused vars must match /^_/u                                                             no-unused-vars
+   44:55  error    Parse errors in imported module '../ui/StyledComponents': Identifier 'FlexContainer' has already been declared. (424:13) (424:13)  import/namespace
+   46:17  warning  Arrow function has too many lines (284). Maximum allowed is 100                                                                    max-lines-per-function
+   46:17  warning  Arrow function has a complexity of 17. Maximum allowed is 15                                                                       complexity
+   47:11  warning  't' is assigned a value but never used. Allowed unused vars must match /^_/u                                                       no-unused-vars
+  168:36  warning  Do not use Array index in keys                                                                                                     react/no-array-index-key
+  232:28  warning  Do not use Array index in keys                                                                                                     react/no-array-index-key
+  240:36  warning  No magic number: 3                                                                                                                 no-magic-numbers
+  314:37  warning  Do not use Array index in keys                                                                                                     react/no-array-index-key
+  319:30  warning  No magic number: 3                                                                                                                 no-magic-numbers
 
 /Users/sasi/operation/client/src/components/features/shared/ui/StyledComponents.js
-  398:5   warning  'theme' is defined but never used. Allowed unused args must match /^_/u  no-unused-vars
-  439:12  error    'theme' is not defined                                                   no-undef
-  448:19  error    'theme' is not defined                                                   no-undef
-  501:1   warning  File has too many lines (501). Maximum allowed is 500                    max-lines
+  424:13  error  Parsing error: Identifier 'FlexContainer' has already been declared. (424:13)
 
 /Users/sasi/operation/client/src/components/features/shared/ui/Widget.js
   4:19  warning  'title' is missing in props validation     react/prop-types
@@ -1271,6 +1301,6 @@
   301:9   warning  Unexpected `await` inside a loop  no-await-in-loop
   319:9   warning  Unexpected `await` inside a loop  no-await-in-loop
 
-✖ 1032 problems (95 errors, 937 warnings)
+✖ 1030 problems (95 errors, 935 warnings)
   0 errors and 44 warnings potentially fixable with the `--fix` option.
 

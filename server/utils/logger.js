@@ -3,7 +3,7 @@
  */
 
 const winston = require('winston');
-const config = require('../config');
+const { config } = require('../config');
 
 // Define log levels
 const LOG_LEVELS = {
@@ -15,7 +15,7 @@ const LOG_LEVELS = {
 
 // Create logger instance
 const logger = winston.createLogger({
-  level: config.config.logging.level,
+  level: config.logging.level,
   format: winston.format.combine(
     winston.format.timestamp(),
     winston.format.errors({ stack: true }),
@@ -25,14 +25,14 @@ const logger = winston.createLogger({
   transports: [
     // File transport for all environments
     new winston.transports.File({
-      filename: config.config.logging.filePath,
-      level: config.config.logging.level
+      filename: config.logging.filePath,
+      level: config.logging.level
     })
   ]
 });
 
 // Add console transport for development and when explicitly enabled
-if (config.config.logging.enableConsole || config.config.server.env === 'development') {
+if (config.logging.enableConsole || config.server.env === 'development') {
   logger.add(new winston.transports.Console({
     format: winston.format.combine(
       winston.format.colorize(),
@@ -44,7 +44,7 @@ if (config.config.logging.enableConsole || config.config.server.env === 'develop
 // Create logger factory for specific contexts
 const createLogger = (context) => {
   return winston.createLogger({
-    level: config.config.logging.level,
+    level: config.logging.level,
     format: winston.format.combine(
       winston.format.timestamp(),
       winston.format.errors({ stack: true }),

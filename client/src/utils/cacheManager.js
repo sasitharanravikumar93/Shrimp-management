@@ -18,13 +18,37 @@
 // CACHE CONFIGURATION
 // ===================
 
+// Time constants
+const SECONDS_TO_MS = 1000;
+const MINUTES_TO_SECONDS = 60;
+const MINUTES_TO_MS = MINUTES_TO_SECONDS * SECONDS_TO_MS;
+const _HOURS_TO_MS = 60 * MINUTES_TO_MS; // Not currently used but kept for completeness
+
+// Size constants
+const BYTES = 1;
+const KB_TO_BYTES = 1024 * BYTES;
+const MB_TO_BYTES = 1024 * KB_TO_BYTES;
+
+// Multipliers
+const FIVE = 5;
+const ONE = 1;
+const FIFTY = 50;
+const TEN = 10;
+const THOUSAND = 1000;
+
+// Compression ratio estimate
+const COMPRESSION_RATIO = 0.7;
+
+// Stale tolerance
+const STALE_TOLERANCE_MS = 30000; // 30 seconds
+
 export const CacheConfig = {
   // Default cache settings
-  DEFAULT_TTL: 5 * 60 * 1000, // 5 minutes
-  MAX_MEMORY_SIZE: 50 * 1024 * 1024, // 50MB
-  MAX_ENTRIES: 1000,
-  CLEANUP_INTERVAL: 60 * 1000, // 1 minute
-  COMPRESSION_THRESHOLD: 10 * 1024, // 10KB
+  DEFAULT_TTL: FIVE * MINUTES_TO_MS, // 5 minutes
+  MAX_MEMORY_SIZE: FIFTY * MB_TO_BYTES, // 50MB
+  MAX_ENTRIES: THOUSAND,
+  CLEANUP_INTERVAL: ONE * MINUTES_TO_MS, // 1 minute
+  COMPRESSION_THRESHOLD: TEN * KB_TO_BYTES, // 10KB
 
   // Cache levels
   LEVELS: {
@@ -89,7 +113,7 @@ class CacheEntry {
       // Simple compression using JSON stringification
       this.data = JSON.stringify(this.data);
       this.compressed = true;
-      this.size = this.data.length * 0.7; // Estimate compression ratio
+      this.size = this.data.length * COMPRESSION_RATIO; // Estimate compression ratio
     } catch (error) {
       console.warn('Failed to compress cache entry:', error);
     }
@@ -121,7 +145,7 @@ class CacheEntry {
     return Date.now() > this.expiresAt;
   }
 
-  isStale(staleTolerance = 30000) {
+  isStale(staleTolerance = STALE_TOLERANCE_MS) {
     // 30 seconds
     return Date.now() > this.expiresAt - staleTolerance;
   }
@@ -198,6 +222,10 @@ export class CacheManager {
         break;
       case CacheConfig.LEVELS.LOCAL:
         this._setInLocalStorage(key, entry);
+        break;
+      default:
+        // Default to memory cache
+        this._setInMemory(key, entry);
         break;
     }
 
@@ -550,7 +578,7 @@ export class CacheManager {
   }
 
   _performCleanup() {
-    const now = Date.now();
+    const _now = Date.now(); // Used in isExpired() method
     const expiredKeys = [];
 
     // Find expired entries
@@ -677,7 +705,7 @@ export class CacheStrategy {
     return cached;
   }
 
-  async _networkOnly(fetcher, options) {
+  async _networkOnly(fetcher, _options) {
     return await fetcher();
   }
 

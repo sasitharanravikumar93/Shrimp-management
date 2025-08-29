@@ -9,6 +9,16 @@ import { designTokens } from '../theme/designTokens';
 
 const { breakpoints } = designTokens;
 
+const BREAKPOINT_ADJUSTMENT_VALUE = 0.05;
+const BASE_SPACING_UNIT = 8;
+const SPACING_MULTIPLIER_XS = 0.5;
+const SPACING_MULTIPLIER_LG = 3;
+const SPACING_MULTIPLIER_XL = 4;
+const SPACING_MULTIPLIER_XXL = 6;
+const SPACING_MULTIPLIER_XXXL = 8;
+const DEFAULT_GRID_COLUMNS = 12;
+const PERCENTAGE_MULTIPLIER = 100;
+
 // Responsive utilities
 export const responsiveUtils = {
   // Breakpoint helpers
@@ -23,10 +33,11 @@ export const responsiveUtils = {
   // Media query generators
   mediaQuery: {
     up: breakpoint => `(min-width: ${breakpoints.values[breakpoint]}px)`,
-    down: breakpoint => `(max-width: ${breakpoints.values[breakpoint] - 0.05}px)`,
+    down: breakpoint =>
+      `(max-width: ${breakpoints.values[breakpoint] - BREAKPOINT_ADJUSTMENT_VALUE}px)`,
     between: (start, end) =>
       `(min-width: ${breakpoints.values[start]}px) and (max-width: ${
-        breakpoints.values[end] - 0.05
+        breakpoints.values[end] - BREAKPOINT_ADJUSTMENT_VALUE
       }px)`,
     only: breakpoint => {
       const keys = Object.keys(breakpoints.values);
@@ -69,11 +80,11 @@ export const responsiveUtils = {
   // Responsive spacing
   getResponsiveSpacing: breakpoint => {
     const spacing = {
-      xs: 8,
-      sm: 12,
-      md: 16,
-      lg: 24,
-      xl: 32
+      xs: BASE_SPACING_UNIT,
+      sm: BASE_SPACING_UNIT * (SPACING_MULTIPLIER_XS + 1), // Assuming a step of 4 for sm
+      md: BASE_SPACING_UNIT * 2,
+      lg: BASE_SPACING_UNIT * SPACING_MULTIPLIER_LG,
+      xl: BASE_SPACING_UNIT * SPACING_MULTIPLIER_XL
     };
     return spacing[breakpoint] || spacing.md;
   },
@@ -174,18 +185,18 @@ export const useMobileDetection = () => {
 };
 
 // Responsive spacing system
-export const createResponsiveSpacing = (base = 8) => ({
-  xs: base * 0.5, // 4px
+export const createResponsiveSpacing = (base = BASE_SPACING_UNIT) => ({
+  xs: base * SPACING_MULTIPLIER_XS, // 4px
   sm: base, // 8px
   md: base * 2, // 16px
-  lg: base * 3, // 24px
-  xl: base * 4, // 32px
-  xxl: base * 6, // 48px
-  xxxl: base * 8 // 64px
+  lg: base * SPACING_MULTIPLIER_LG, // 24px
+  xl: base * SPACING_MULTIPLIER_XL, // 32px
+  xxl: base * SPACING_MULTIPLIER_XXL, // 48px
+  xxxl: base * SPACING_MULTIPLIER_XXXL // 64px
 });
 
 // Responsive grid system
-export const createResponsiveGrid = (columns = 12) => ({
+export const createResponsiveGrid = (columns = DEFAULT_GRID_COLUMNS) => ({
   container: {
     display: 'flex',
     flexWrap: 'wrap',
@@ -193,8 +204,8 @@ export const createResponsiveGrid = (columns = 12) => ({
   },
 
   item: size => ({
-    flex: `0 0 ${(size / columns) * 100}%`,
-    maxWidth: `${(size / columns) * 100}%`
+    flex: `0 0 ${(size / columns) * PERCENTAGE_MULTIPLIER}%`,
+    maxWidth: `${(size / columns) * PERCENTAGE_MULTIPLIER}%`
   }),
 
   responsive: sizes => {
@@ -204,8 +215,8 @@ export const createResponsiveGrid = (columns = 12) => ({
     breakpointOrder.forEach(bp => {
       if (sizes[bp]) {
         styles[`@media ${responsiveUtils.mediaQuery.up(bp)}`] = {
-          flex: `0 0 ${(sizes[bp] / columns) * 100}%`,
-          maxWidth: `${(sizes[bp] / columns) * 100}%`
+          flex: `0 0 ${(sizes[bp] / columns) * PERCENTAGE_MULTIPLIER}%`,
+          maxWidth: `${(sizes[bp] / columns) * PERCENTAGE_MULTIPLIER}%`
         };
       }
     });
@@ -314,7 +325,6 @@ export const responsivePatterns = {
 
   // Show element only on specific breakpoints
   showOnlyOn: breakpoint => {
-    const allBreakpoints = ['xs', 'sm', 'md', 'lg', 'xl'];
     const styles = { display: 'none' };
 
     styles[`@media ${responsiveUtils.mediaQuery.only(breakpoint)}`] = {
@@ -349,7 +359,7 @@ export const responsivePatterns = {
   })
 };
 
-export default {
+const responsiveExports = {
   responsiveUtils,
   useResponsive,
   useResponsiveValue,
@@ -362,3 +372,5 @@ export default {
   viewport,
   responsivePatterns
 };
+
+export default responsiveExports;

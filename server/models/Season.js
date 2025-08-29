@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { logger } = require('../logger');
+const { logger } = require('../utils/logger');
 
 const seasonSchema = new mongoose.Schema({
   name: {

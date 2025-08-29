@@ -238,37 +238,6 @@ export const WATER_QUALITY = {
 };
 
 // ===================
-// INVENTORY CONSTANTS
-// ===================
-
-export const INVENTORY = {
-  // Categories
-  CATEGORIES: {
-    FEED: 'Feed',
-    MEDICINE: 'Medicine',
-    EQUIPMENT: 'Equipment',
-    CHEMICALS: 'Chemicals',
-    SUPPLIES: 'Supplies'
-  },
-
-  // Units
-  UNITS: {
-    KG: 'kg',
-    GRAMS: 'g',
-    LITERS: 'L',
-    PIECES: 'pcs',
-    BOXES: 'boxes'
-  },
-
-  // Stock levels
-  STOCK_LEVELS: {
-    LOW_THRESHOLD: 10, // percentage
-    CRITICAL_THRESHOLD: 5, // percentage
-    REORDER_POINT: 20 // percentage
-  }
-};
-
-// ===================
 // FINANCIAL CONSTANTS
 // ===================
 
@@ -309,6 +278,17 @@ export const TIME = {
   WEEK: 7 * 24 * 60 * 60 * 1000,
   MONTH: 30 * 24 * 60 * 60 * 1000,
   YEAR: 365 * 24 * 60 * 60 * 1000,
+
+  // Time units for calculations
+  UNITS: {
+    SECOND: 1,
+    MINUTE: 60,
+    HOUR: 3600,
+    DAY: 86400,
+    WEEK: 604800,
+    MONTH: 2592000,
+    YEAR: 31536000
+  },
 
   // Date formats
   DATE_FORMATS: {
@@ -511,45 +491,65 @@ export const DEFAULTS = {
 
 export const REGEX = {
   EMAIL: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-  PHONE: /^\+?[\d\s-()]+$/,
+  PHONE: /^[+]?[\d\s-()]+$/,
   PASSWORD: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
   NUMERIC: /^\d+$/,
   DECIMAL: /^\d+(\.\d+)?$/,
   ALPHA: /^[A-Za-z]+$/,
   ALPHANUMERIC: /^[A-Za-z0-9]+$/,
-  URL: /^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/
+  URL: /^https:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&.-=]*)$/
 };
 
 // ===================
-// MESSAGES
+// INVENTORY CONSTANTS
 // ===================
 
-export const MESSAGES = {
-  // Success messages
-  SUCCESS: {
-    SAVE: 'Data saved successfully',
-    UPDATE: 'Data updated successfully',
-    DELETE: 'Data deleted successfully',
-    UPLOAD: 'File uploaded successfully'
+export const INVENTORY = {
+  // Size units for measurements
+  SIZE_UNITS: {
+    BYTE: 1,
+    KILOBYTE: 1024,
+    MEGABYTE: 1024 * 1024,
+    GIGABYTE: 1024 * 1024 * 1024,
+    TERABYTE: 1024 * 1024 * 1024 * 1024,
+    KB: 'KB',
+    MB: 'MB',
+    GB: 'GB',
+    TB: 'TB'
   },
 
-  // Error messages
-  ERROR: {
-    GENERIC: 'An error occurred. Please try again.',
-    NETWORK: 'Network error. Please check your connection.',
-    VALIDATION: 'Please check your input and try again.',
-    UNAUTHORIZED: 'You are not authorized to perform this action.',
-    NOT_FOUND: 'The requested resource was not found.'
+  // Categories
+  CATEGORIES: {
+    FEED: 'Feed',
+    MEDICINE: 'Medicine',
+    EQUIPMENT: 'Equipment',
+    CHEMICALS: 'Chemicals',
+    SUPPLIES: 'Supplies'
   },
 
-  // Loading messages
-  LOADING: {
-    GENERIC: 'Loading...',
-    SAVING: 'Saving...',
-    UPLOADING: 'Uploading...',
-    DELETING: 'Deleting...'
+  // Units
+  UNITS: {
+    KG: 'kg',
+    GRAMS: 'g',
+    LITERS: 'L',
+    PIECES: 'pcs',
+    BOXES: 'boxes'
+  },
+
+  // Stock levels
+  STOCK_LEVELS: {
+    LOW_THRESHOLD: 10, // percentage
+    CRITICAL_THRESHOLD: 5, // percentage
+    REORDER_POINT: 20 // percentage
   }
 };
+
+// ===================
+// LEGACY CONSTANTS (for backward compatibility)
+// ===================
+
+export const TIME_UNITS = TIME.UNITS;
+export const SIZE_UNITS = INVENTORY.SIZE_UNITS;
 
 // ===================
 // EXPORT ALL CONSTANTS
@@ -562,7 +562,6 @@ const AppConstants = {
   POND,
   FEED,
   WATER_QUALITY,
-  INVENTORY,
   FINANCE,
   TIME,
   SEASON,
@@ -573,7 +572,7 @@ const AppConstants = {
   ERROR,
   DEFAULTS,
   REGEX,
-  MESSAGES
+  INVENTORY
 };
 
 export default AppConstants;

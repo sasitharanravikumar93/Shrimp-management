@@ -32,6 +32,7 @@ import {
   DialogActions
 } from '@mui/material';
 import { format } from 'date-fns';
+import PropTypes from 'prop-types';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -58,8 +59,11 @@ import {
   deleteEvent,
   getInventoryItems
 } from '../services/api';
+import logger from '../utils/logger';
 
-const DataForm = ({ eventType, nurseryBatch, refetchEvents, inventoryItems }) => {
+const GRAMS_PER_KILOGRAM = 1000;
+
+const DataForm = ({ eventType, _nurseryBatch, refetchEvents, inventoryItems }) => {
   const { t } = useTranslation();
   const { id } = useParams();
   const { selectedSeason } = useSeason();
@@ -98,7 +102,7 @@ const DataForm = ({ eventType, nurseryBatch, refetchEvents, inventoryItems }) =>
       refetchEvents();
       setFormData({ date: new Date(), details: {} });
     } catch (error) {
-      console.error('Error saving event:', error);
+      logger.error('Error saving event:', error);
     }
   };
 
@@ -251,6 +255,12 @@ const DataForm = ({ eventType, nurseryBatch, refetchEvents, inventoryItems }) =>
   );
 };
 
+DataForm.propTypes = {
+  eventType: PropTypes.string.isRequired,
+  refetchEvents: PropTypes.func.isRequired,
+  inventoryItems: PropTypes.array.isRequired
+};
+
 const DataHistory = ({ eventType, events, handleDeleteEvent, handleEditEvent }) => {
   const { t } = useTranslation();
 
@@ -288,7 +298,7 @@ const DataHistory = ({ eventType, events, handleDeleteEvent, handleEditEvent }) 
               date: format(new Date(e.date), 'MM/dd'),
               avgWeight:
                 e.details.totalCount > 0
-                  ? ((e.details.totalWeight * 1000) / e.details.totalCount).toFixed(2)
+                  ? ((e.details.totalWeight * GRAMS_PER_KILOGRAM) / e.details.totalCount).toFixed(2)
                   : 0
             }))}
           >
@@ -369,6 +379,13 @@ const DataHistory = ({ eventType, events, handleDeleteEvent, handleEditEvent }) 
   );
 };
 
+DataHistory.propTypes = {
+  eventType: PropTypes.string.isRequired,
+  events: PropTypes.array.isRequired,
+  handleDeleteEvent: PropTypes.func.isRequired,
+  handleEditEvent: PropTypes.func.isRequired
+};
+
 const NurseryBatchDetailPage = () => {
   const { t } = useTranslation();
   const { id } = useParams();
@@ -379,6 +396,11 @@ const NurseryBatchDetailPage = () => {
   const [calendarView, setCalendarView] = useState('month');
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [openEventModal, setOpenEventModal] = useState(false);
+
+  const getSeasonName = seasonId => {
+    if (!seasonId) return 'N/A';
+    return typeof seasonId.name === 'object' ? seasonId.name.en : seasonId.name;
+  };
 
   const { selectedSeason } = useSeason();
   const {
@@ -409,12 +431,12 @@ const NurseryBatchDetailPage = () => {
         await deleteEventMutation(eventId);
         refetchEvents();
       } catch (error) {
-        console.error('Error deleting event:', error);
+        logger.error('Error deleting event:', error);
       }
     }
   };
 
-  const handleEditEvent = event => {
+  const handleEditEvent = _event => {
     alert('Edit functionality not yet implemented in this view.');
   };
 
@@ -541,13 +563,7 @@ const NurseryBatchDetailPage = () => {
                   <Typography variant='subtitle2' color='textSecondary'>
                     {t('season')}
                   </Typography>
-                  <Typography variant='body1'>
-                    {nurseryBatch.seasonId
-                      ? typeof nurseryBatch.seasonId.name === 'object'
-                        ? nurseryBatch.seasonId.name.en
-                        : nurseryBatch.seasonId.name
-                      : 'N/A'}
-                  </Typography>
+                  <Typography variant='body1'>{getSeasonName(nurseryBatch.seasonId)}</Typography>
                 </Grid>
               </Grid>
             </CardContent>

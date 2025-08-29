@@ -3,7 +3,7 @@ const Season = require('../models/Season');
 const WaterQualityInput = require('../models/WaterQualityInput');
 const FeedInput = require('../models/FeedInput');
 const GrowthSampling = require('../models/GrowthSampling');
-const logger = require('../logger');
+const { logger } = require('../utils/logger');
 
 // Helper function to get the appropriate language for a user
 const getLanguageForUser = (req) => {
@@ -641,7 +641,7 @@ const calculateDifferences = (dataA, dataB) => {
 
   // Get all unique dates
   const allDates = new Set([...dataA.map(item => item.timestamp.toISOString().split('T')[0]),
-    ...dataB.map(item => item.timestamp.toISOString().split('T')[0])]);
+  ...dataB.map(item => item.timestamp.toISOString().split('T')[0])]);
 
   // Calculate differences for each date
   allDates.forEach(date => {

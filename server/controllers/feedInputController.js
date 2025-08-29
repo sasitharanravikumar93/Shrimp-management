@@ -1,4 +1,4 @@
-const logger = require('../logger');
+const { logger } = require('../utils/logger');
 const FeedInput = require('../models/FeedInput');
 const Pond = require('../models/Pond');
 const Season = require('../models/Season');

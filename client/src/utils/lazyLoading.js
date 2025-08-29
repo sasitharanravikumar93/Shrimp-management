@@ -4,10 +4,17 @@
  */
 
 import { CircularProgress, Box } from '@mui/material';
+import PropTypes from 'prop-types';
 import React, { Suspense, lazy } from 'react';
 
+import logger from './logger';
+
+const DEFAULT_LOADER_SIZE = 40;
+const DEFAULT_RETRY_COUNT = 3;
+const MILLISECONDS_IN_SECOND = 1000;
+
 // Default loading component
-const DefaultLoader = ({ size = 40, text = 'Loading...' }) => (
+const DefaultLoader = ({ size = DEFAULT_LOADER_SIZE, text = 'Loading...' }) => (
   <Box
     display='flex'
     flexDirection='column'
@@ -21,6 +28,11 @@ const DefaultLoader = ({ size = 40, text = 'Loading...' }) => (
   </Box>
 );
 
+DefaultLoader.propTypes = {
+  size: PropTypes.number,
+  text: PropTypes.string
+};
+
 // Enhanced lazy loading with error boundary and custom loader
 export const createLazyComponent = (importFunc, options = {}) => {
   const {
@@ -28,7 +40,7 @@ export const createLazyComponent = (importFunc, options = {}) => {
     fallback = null,
     errorBoundary = true,
     preload = false,
-    retryCount = 3
+    retryCount = DEFAULT_RETRY_COUNT
   } = options;
 
   // Create the lazy component with retry logic
@@ -42,7 +54,7 @@ export const createLazyComponent = (importFunc, options = {}) => {
         retries++;
         if (retries <= retryCount) {
           // Wait before retrying (exponential backoff)
-          await new Promise(resolve => setTimeout(resolve, 1000 * retries));
+          await new Promise(resolve => setTimeout(resolve, MILLISECONDS_IN_SECOND * retries));
           return loadWithRetry();
         }
         throw error;
@@ -90,15 +102,15 @@ export const createLazyComponent = (importFunc, options = {}) => {
 class LazyErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError(error) {
-    return { hasError: true, error };
+  static getDerivedStateFromError(_error) {
+    return { hasError: true };
   }
 
   componentDidCatch(error, errorInfo) {
-    console.error('Lazy loading error:', error, errorInfo);
+    logger.error('Lazy loading error:', error, errorInfo);
   }
 
   render() {
@@ -118,7 +130,7 @@ class LazyErrorBoundary extends React.Component {
         >
           <div>Failed to load component</div>
           <button
-            onClick={() => this.setState({ hasError: false, error: null })}
+            onClick={() => this.setState({ hasError: false })}
             style={{
               padding: '8px 16px',
               backgroundColor: '#1976d2',
@@ -137,6 +149,11 @@ class LazyErrorBoundary extends React.Component {
     return this.props.children;
   }
 }
+
+LazyErrorBoundary.propTypes = {
+  fallback: PropTypes.node,
+  children: PropTypes.node.isRequired
+};
 
 // Route-based code splitting utilities
 export const createLazyRoute = (importFunc, options = {}) => {
@@ -241,7 +258,7 @@ export const optimizeImports = {
   }
 };
 
-export default {
+const lazyLoadingExports = {
   createLazyComponent,
   createLazyRoute,
   createLazyModal,
@@ -251,3 +268,5 @@ export default {
   optimizeImports,
   DefaultLoader
 };
+
+export default lazyLoadingExports;
