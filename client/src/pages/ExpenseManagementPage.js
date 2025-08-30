@@ -3,6 +3,7 @@ import AssessmentIcon from '@mui/icons-material/Assessment';
 import BusinessCenterIcon from '@mui/icons-material/BusinessCenter';
 import PeopleIcon from '@mui/icons-material/People';
 import { Container, Typography, Box, Tabs, Tab } from '@mui/material';
+import PropTypes from 'prop-types';
 import React, { useState } from 'react';
 
 import ExpenseDashboard from '../components/features/expenses/ExpenseDashboard';
@@ -23,6 +24,12 @@ const TabPanel = props => {
       {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
     </div>
   );
+};
+
+TabPanel.propTypes = {
+  children: PropTypes.node,
+  index: PropTypes.number.isRequired,
+  value: PropTypes.number.isRequired
 };
 
 const ExpenseManagementPage = () => {

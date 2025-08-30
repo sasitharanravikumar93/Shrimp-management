@@ -68,7 +68,7 @@ const InventoryManagementPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedSeason?._id, api, t]);
+  }, [selectedSeason, api, t]);
 
   useEffect(() => {
     if (view === 'bought') {
@@ -126,7 +126,7 @@ const InventoryManagementPage = () => {
     fetchInventoryItems(); // Refresh data after form submission
   };
 
-  const handleSaveForm = savedItem => {
+  const handleSaveForm = _savedItem => {
     fetchInventoryItems(); // Refresh data
   };
 

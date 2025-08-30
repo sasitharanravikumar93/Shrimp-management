@@ -18,6 +18,7 @@ import {
   Button
 } from '@mui/material';
 import { motion } from 'framer-motion';
+import PropTypes from 'prop-types';
 import React from 'react';
 
 const EventSuggestions = ({
@@ -27,13 +28,25 @@ const EventSuggestions = ({
   _lastFeeding,
   onSuggestionClick
 }) => {
+  const WATER_QUALITY_THRESHOLDS = {
+    DO_MIN: 5,
+    PH_MIN: 6.5,
+    PH_MAX: 8.5,
+    TEMP_MAX: 32
+  };
+
+  const GROWTH_RATE_THRESHOLDS = {
+    SLOW: 4,
+    FAST: 6
+  };
+
   // Generate suggestions based on pond conditions
   const getSuggestions = () => {
     const suggestions = [];
 
     // Water quality based suggestions
     if (waterQuality) {
-      if (waterQuality.do < 5) {
+      if (waterQuality.do < WATER_QUALITY_THRESHOLDS.DO_MIN) {
         suggestions.push({
           id: 1,
           title: 'Low Dissolved Oxygen',
@@ -44,7 +57,10 @@ const EventSuggestions = ({
         });
       }
 
-      if (waterQuality.pH < 6.5 || waterQuality.pH > 8.5) {
+      if (
+        waterQuality.pH < WATER_QUALITY_THRESHOLDS.PH_MIN ||
+        waterQuality.pH > WATER_QUALITY_THRESHOLDS.PH_MAX
+      ) {
         suggestions.push({
           id: 2,
           title: 'pH Imbalance',
@@ -55,7 +71,7 @@ const EventSuggestions = ({
         });
       }
 
-      if (waterQuality.temp > 32) {
+      if (waterQuality.temp > WATER_QUALITY_THRESHOLDS.TEMP_MAX) {
         suggestions.push({
           id: 3,
           title: 'High Temperature',
@@ -69,7 +85,7 @@ const EventSuggestions = ({
 
     // Growth rate based suggestions
     if (growthRate) {
-      if (growthRate < 4) {
+      if (growthRate < GROWTH_RATE_THRESHOLDS.SLOW) {
         suggestions.push({
           id: 4,
           title: 'Slow Growth Rate',
@@ -78,7 +94,7 @@ const EventSuggestions = ({
           priority: 'medium',
           icon: <GrowthIcon />
         });
-      } else if (growthRate > 6) {
+      } else if (growthRate > GROWTH_RATE_THRESHOLDS.FAST) {
         suggestions.push({
           id: 5,
           title: 'Fast Growth Rate',
@@ -183,3 +199,15 @@ const EventSuggestions = ({
 };
 
 export default EventSuggestions;
+
+EventSuggestions.propTypes = {
+  _pondStatus: PropTypes.object,
+  waterQuality: PropTypes.shape({
+    do: PropTypes.number,
+    pH: PropTypes.number,
+    temp: PropTypes.number
+  }),
+  growthRate: PropTypes.number,
+  _lastFeeding: PropTypes.object,
+  onSuggestionClick: PropTypes.func
+};

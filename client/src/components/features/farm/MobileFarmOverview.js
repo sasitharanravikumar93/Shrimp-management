@@ -12,27 +12,13 @@ import {
   WaterDrop as WaterIcon,
   Waves as PondIcon
 } from '@mui/icons-material';
-import {
-  Typography,
-  Box,
-  Grid,
-  Card,
-  CardContent,
-  CardHeader,
-  Avatar,
-  Chip,
-  Tabs,
-  Tab,
-  Collapse,
-  Stack,
-  useTheme
-} from '@mui/material';
+import { Typography, Box, Chip, Tabs, Tab, Collapse, Stack, useTheme } from '@mui/material';
 import React, { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useSeason } from '../../../context/SeasonContext';
 import { useApiData } from '../../../hooks/useApi';
-import { getPonds, getWaterQualityInputs, getFeedInputs } from '../../../services/api';
+import { getPonds } from '../../../services/api';
 import logger from '../../../utils/logger';
 import { useMobileDetection } from '../../../utils/responsiveUtils';
 
@@ -48,7 +34,6 @@ import {
 // Default values for calculations
 const DEFAULT_GROWTH_RATE = 1.2;
 const DEFAULT_WATER_QUALITY_SCORE = 85;
-const DEFAULT_FEED_EFFICIENCY = 1.5;
 const SKELETON_CARD_COUNT = 6;
 
 const MobileFarmOverview = () => {
@@ -62,22 +47,6 @@ const MobileFarmOverview = () => {
 
   // API calls
   const { data: allPondsData, loading: pondsLoading } = useApiData(getPonds, [], 'ponds');
-
-  const { data: waterQualityData } = useApiData(
-    () => {
-      return getWaterQualityInputs();
-    },
-    [selectedSeason],
-    'waterQuality'
-  );
-
-  const { data: feedData } = useApiData(
-    () => {
-      return getFeedInputs();
-    },
-    [selectedSeason],
-    'feedData'
-  );
 
   // Filter ponds
   const filteredPonds = useMemo(() => {
@@ -108,14 +77,6 @@ const MobileFarmOverview = () => {
         ? filteredPonds.reduce((sum, pond) => sum + (pond.growthRate || DEFAULT_GROWTH_RATE), 0) /
           filteredPonds.length
         : DEFAULT_GROWTH_RATE;
-
-    const feedEfficiency =
-      filteredPonds.length > 0
-        ? filteredPonds.reduce(
-            (sum, pond) => sum + (pond.feedEfficiency || DEFAULT_FEED_EFFICIENCY),
-            0
-          ) / filteredPonds.length
-        : DEFAULT_FEED_EFFICIENCY;
 
     const waterQuality =
       filteredPonds.length > 0

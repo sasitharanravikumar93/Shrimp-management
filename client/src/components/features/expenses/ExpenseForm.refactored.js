@@ -9,10 +9,11 @@ import {
   Grid,
   Alert
 } from '@mui/material';
+import PropTypes from 'prop-types';
 import React, { useEffect } from 'react';
 
 import { useSeason } from '../context/SeasonContext';
-import { useFormState, useModal } from '../hooks';
+import { useFormState } from '../hooks';
 import { useApiData } from '../hooks/useApi';
 import { getPonds, getEmployees } from '../services/api';
 
@@ -278,6 +279,27 @@ const ExpenseForm = ({ open, onClose, onSave, expense }) => {
 };
 
 export default ExpenseForm;
+
+ExpenseForm.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onSave: PropTypes.func.isRequired,
+  expense: PropTypes.shape({
+    _id: PropTypes.string,
+    date: PropTypes.string,
+    amount: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    mainCategory: PropTypes.string,
+    subCategory: PropTypes.string,
+    pond: PropTypes.string,
+    employee: PropTypes.string,
+    description: PropTypes.string,
+    season: PropTypes.string
+  })
+};
+
+ExpenseForm.defaultProps = {
+  expense: null
+};
 
 /**
  * Benefits of this refactoring:

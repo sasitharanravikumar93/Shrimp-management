@@ -150,6 +150,7 @@ class AdvancedCache {
     });
 
     if (CACHE_CONFIG.ENABLE_METRICS && expiredKeys.length > 0) {
+      // eslint-disable-next-line no-console
       console.log(`🧹 Cache cleanup: removed ${expiredKeys.length} expired entries`);
     }
   }
@@ -170,6 +171,7 @@ class AdvancedCache {
     });
 
     if (CACHE_CONFIG.ENABLE_METRICS) {
+      // eslint-disable-next-line no-console
       console.log(
         `🗑️ Invalidated ${keysToRemove.length} cache entries matching pattern: ${pattern}`
       );
@@ -277,6 +279,7 @@ export const cachedApiCall = async (endpoint, options = {}, cacheOptions = {}) =
     const cachedData = globalCache.get(cacheKey);
     if (cachedData) {
       if (CACHE_CONFIG.ENABLE_METRICS) {
+        // eslint-disable-next-line no-console
         console.log(`🎯 Cache hit: ${endpoint}`);
       }
       return cachedData;
@@ -338,6 +341,7 @@ export const cachedApiCall = async (endpoint, options = {}, cacheOptions = {}) =
     if (useCache && method === 'GET' && result) {
       globalCache.set(cacheKey, result, cacheDuration);
       if (CACHE_CONFIG.ENABLE_METRICS) {
+        // eslint-disable-next-line no-console
         console.log(`💾 Cached: ${endpoint}`);
       }
     }

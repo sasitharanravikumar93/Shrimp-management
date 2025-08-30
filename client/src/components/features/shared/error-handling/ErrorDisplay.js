@@ -19,21 +19,18 @@ import {
   Paper,
   Stack,
   Collapse,
-  IconButton,
   Chip
 } from '@mui/material';
+import PropTypes from 'prop-types';
 import React from 'react';
 
 import { useErrorHandler } from '../../../../utils/errorHandling';
 
-/**
- * Enhanced Error Display Component
- * Shows user-friendly error messages with recovery actions
- */
+/**\n * Enhanced Error Display Component\n * Shows user-friendly error messages with recovery actions\n */
 const ErrorDisplay = ({
   error,
   context = {},
-  showDetails = false,
+  showDetails: _showDetails = false, // Prefixed with _ as it's not used
   variant = 'standard', // 'standard', 'minimal', 'detailed'
   onRetry,
   onDismiss,
@@ -71,7 +68,7 @@ const ErrorDisplay = ({
 
     return (
       <Stack direction='row' spacing={1} sx={{ mt: 2 }}>
-        {errorInfo.recoveryActions.map((action, index) => (
+        {errorInfo.recoveryActions.map((action, _index) => (
           <Button
             key={action.name}
             variant={action.primary ? 'contained' : 'outlined'}
@@ -244,6 +241,12 @@ export const ErrorFallback = ({ error, resetErrorBoundary, context = {} }) => {
   );
 };
 
+ErrorFallback.propTypes = {
+  error: PropTypes.object,
+  resetErrorBoundary: PropTypes.func,
+  context: PropTypes.object
+};
+
 /**
  * Inline Error Component for form fields and small sections
  */
@@ -251,4 +254,19 @@ export const InlineError = ({ error, onRetry, ...props }) => {
   return <ErrorDisplay error={error} onRetry={onRetry} variant='minimal' {...props} />;
 };
 
+InlineError.propTypes = {
+  error: PropTypes.object,
+  onRetry: PropTypes.func
+};
+
 export default ErrorDisplay;
+
+ErrorDisplay.propTypes = {
+  error: PropTypes.object,
+  context: PropTypes.object,
+  showDetails: PropTypes.bool,
+  variant: PropTypes.oneOf(['standard', 'minimal', 'detailed']),
+  onRetry: PropTypes.func,
+  onDismiss: PropTypes.func,
+  className: PropTypes.string
+};

@@ -17,11 +17,12 @@ import {
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import PropTypes from 'prop-types';
 import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useSeason } from '../context/SeasonContext';
-import { useFormState, useApiData } from '../hooks';
+import { useFormState } from '../hooks';
 import useApi from '../hooks/useApi';
 
 const itemTypes = ['Feed', 'Chemical', 'Probiotic', 'Other'];
@@ -318,6 +319,31 @@ const InventoryForm = ({ open, onClose, item, onSave }) => {
 };
 
 export default InventoryForm;
+
+InventoryForm.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onSave: PropTypes.func.isRequired,
+  item: PropTypes.shape({
+    _id: PropTypes.string,
+    itemName: PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.shape({
+        en: PropTypes.string
+      })
+    ]),
+    itemType: PropTypes.string,
+    supplier: PropTypes.string,
+    purchaseDate: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]),
+    unit: PropTypes.string,
+    costPerUnit: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    quantityBought: PropTypes.oneOfType([PropTypes.string, PropTypes.number])
+  })
+};
+
+InventoryForm.defaultProps = {
+  item: null
+};
 
 /**
  * Benefits of this refactoring:

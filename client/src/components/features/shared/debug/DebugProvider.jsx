@@ -5,6 +5,7 @@
 
 import { Box, CssBaseline } from '@mui/material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
+import PropTypes from 'prop-types';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
 import {
@@ -80,6 +81,11 @@ const createDebugTheme = baseTheme => {
   });
 };
 
+// Constants for magic numbers
+const FPS_INTERVAL = 1000; // 1 second
+const HEAP_SIZE_DIVISOR = 1048576; // 1024 * 1024 (1 MB)
+const XHR_READY_STATE_DONE = 4; // XMLHttpRequest readyState value for DONE
+
 // Network Call Interceptor
 class NetworkInterceptor {
   constructor() {
@@ -115,7 +121,7 @@ class NetworkInterceptor {
 
     // Intercept XMLHttpRequest
     const self = this;
-    window.XMLHttpRequest = function () {
+    window.XMLHttpRequest = () => {
       const xhr = new self.originalXMLHttpRequest();
       let requestId;
 
@@ -137,7 +143,7 @@ class NetworkInterceptor {
 
         const originalOnReadyStateChange = this.onreadystatechange;
         this.onreadystatechange = function () {
-          if (this.readyState === 4) {
+          if (this.readyState === XHR_READY_STATE_DONE) {
             NetworkDebugger.trackResponse(requestId, {
               status: this.status,
               statusText: this.statusText,
@@ -312,7 +318,7 @@ const DebugProvider = ({ children, theme }) => {
                   top: 0,
                   left: 0,
                   right: 0,
-                  height: 4,
+                  height: 4, // Height of debug indicator bar
                   background:
                     'linear-gradient(90deg, #ff9800, #f44336, #9c27b0, #3f51b5, #2196f3, #00bcd4, #009688, #4caf50, #8bc34a, #cddc39, #ffeb3b, #ff9800)',
                   backgroundSize: '200% 100%',
@@ -337,6 +343,11 @@ const DebugProvider = ({ children, theme }) => {
   );
 };
 
+DebugProvider.propTypes = {
+  children: PropTypes.node.isRequired,
+  theme: PropTypes.object.isRequired
+};
+
 // Performance Monitor Component
 const PerformanceMonitor = () => {
   const [fps, setFps] = useState(0);
@@ -351,7 +362,7 @@ const PerformanceMonitor = () => {
       frameCount++;
       const currentTime = performance.now();
 
-      if (currentTime - lastTime >= 1000) {
+      if (currentTime - lastTime >= FPS_INTERVAL) {
         setFps(frameCount);
         frameCount = 0;
         lastTime = currentTime;
@@ -359,8 +370,8 @@ const PerformanceMonitor = () => {
         // Update memory info if available
         if (performance.memory) {
           setMemory({
-            used: Math.round(performance.memory.usedJSHeapSize / 1048576),
-            total: Math.round(performance.memory.totalJSHeapSize / 1048576)
+            used: Math.round(performance.memory.usedJSHeapSize / HEAP_SIZE_DIVISOR),
+            total: Math.round(performance.memory.totalJSHeapSize / HEAP_SIZE_DIVISOR)
           });
         }
       }

@@ -79,6 +79,7 @@ class Logger {
       };
 
       if (process.env.NODE_ENV !== 'production' || process.env.ENABLE_LOGGING === 'true') {
+        // eslint-disable-next-line no-console
         console.info(JSON.stringify(logEntry, null, 2));
       }
     }
@@ -100,6 +101,7 @@ class Logger {
       };
 
       if (process.env.NODE_ENV !== 'production' || process.env.ENABLE_LOGGING === 'true') {
+        // eslint-disable-next-line no-console
         console.log(JSON.stringify(logEntry, null, 2));
       }
     }

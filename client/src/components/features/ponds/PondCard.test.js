@@ -1,6 +1,7 @@
 import { createTheme, ThemeProvider } from '@mui/material';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import PropTypes from 'prop-types';
 import React from 'react';
 
 import PondCard from './PondCard';
@@ -10,6 +11,10 @@ const theme = createTheme();
 // Wrapper component to provide theme
 const WithTheme = ({ children }) => <ThemeProvider theme={theme}>{children}</ThemeProvider>;
 
+WithTheme.propTypes = {
+  children: PropTypes.node.isRequired
+};
+
 // Mock HealthScore component
 jest.mock('./HealthScore', () => {
   const HealthScore = ({ score }) => (
@@ -17,6 +22,10 @@ jest.mock('./HealthScore', () => {
       Health Score: {score}
     </div>
   );
+  HealthScore.propTypes = {
+    score: PropTypes.number.isRequired
+  };
+  HealthScore.displayName = 'HealthScore';
   return HealthScore;
 });
 

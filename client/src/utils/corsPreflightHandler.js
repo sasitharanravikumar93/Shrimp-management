@@ -10,7 +10,8 @@ import { safeNavigateHome } from './safeNavigation';
 
 // Configuration constants
 const MAX_RETRY_ATTEMPTS = 3;
-const RETRY_DELAY_BASE = 1000; // 1 second
+const ONE_SECOND_MS = 1000;
+const RETRY_DELAY_BASE = ONE_SECOND_MS; // 1 second
 const MAX_RETRY_DELAY = 8000; // 8 seconds max
 const PREFLIGHT_TIMEOUT = 10000; // 10 seconds
 const CORS_ERROR_THRESHOLD = 5; // Show error page after 5 consecutive CORS failures

@@ -131,7 +131,7 @@ export const useAsyncOperation = (asyncFunction, options = {}) => {
  * @param {Object} options - Configuration options
  * @returns {Object} State for all operations and control functions
  */
-export const useAsyncOperations = (operations = {}, options = {}) => {
+export const useAsyncOperations = (operations = {}, _options = {}) => {
   const [states, setStates] = useState({});
 
   const updateState = useCallback((operationName, updates) => {
@@ -312,10 +312,10 @@ export const useCancellation = () => {
   const abortControllersRef = useRef(new Map());
 
   useEffect(() => {
-    // Cleanup all controllers on unmount
+    const currentControllers = abortControllersRef.current; // Capture current value
     return () => {
-      abortControllersRef.current.forEach(controller => controller.abort());
-      abortControllersRef.current.clear();
+      currentControllers.forEach(controller => controller.abort());
+      currentControllers.clear();
     };
   }, []);
 

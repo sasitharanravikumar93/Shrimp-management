@@ -243,7 +243,7 @@ export const treeShakingOptimization = {
   }
 };
 
-export default {
+const optimizedImports = {
   createOptimizedMUIImports,
   createOptimizedIconImports,
   createOptimizedRechartsImports,
@@ -252,3 +252,5 @@ export default {
   bundleAnalyzer,
   treeShakingOptimization
 };
+
+export default optimizedImports;

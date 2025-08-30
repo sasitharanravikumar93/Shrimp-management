@@ -16,7 +16,6 @@ import {
 } from '@mui/icons-material';
 import {
   Box,
-  Card,
   CardContent,
   Typography,
   Button,
@@ -42,6 +41,9 @@ import { useTranslation } from 'react-i18next';
 
 import { useRTL, RTLContainer, LanguageSwitcherRTL } from '../../utils/rtlUtils';
 import { StyledCard, PrimaryButton, StatusChip } from '../ui/StyledComponents';
+
+const TEXTFIELD_ROWS = 3;
+const DEFAULT_MASONRY_COLUMNS = 3;
 
 const RTLDemo = () => {
   const { t, i18n } = useTranslation();
@@ -203,7 +205,7 @@ const RTLDemo = () => {
                     label={content.form.message}
                     variant='outlined'
                     multiline
-                    rows={3}
+                    rows={TEXTFIELD_ROWS}
                     placeholder={content.form.message}
                   />
                   <PrimaryButton

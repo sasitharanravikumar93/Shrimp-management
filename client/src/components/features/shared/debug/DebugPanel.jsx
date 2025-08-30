@@ -13,7 +13,6 @@ import {
   Speed,
   NetworkCheck,
   Person,
-  Memory,
   Error as ErrorIcon,
   Info,
   Warning,

@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
 import { processSyncQueue, getSyncQueueItems } from '../utils/offlineSync';
@@ -45,7 +46,7 @@ export const OfflineSyncProvider = ({ children }) => {
 
       return () => clearTimeout(timer);
     }
-  }, [isOnline, syncQueue, isSyncing]);
+  }, [isOnline, syncQueue, isSyncing, processQueue]);
 
   // Process sync queue
   const processQueue = async () => {
@@ -78,6 +79,7 @@ export const OfflineSyncProvider = ({ children }) => {
       const result = await processSyncQueue(apiCall);
 
       if (result.success) {
+        // eslint-disable-next-line no-console
         console.log(`Sync completed: ${result.processed} processed, ${result.failed} failed`);
 
         // Refresh queue items
@@ -122,6 +124,10 @@ export const OfflineSyncProvider = ({ children }) => {
   };
 
   return <OfflineSyncContext.Provider value={value}>{children}</OfflineSyncContext.Provider>;
+};
+
+OfflineSyncProvider.propTypes = {
+  children: PropTypes.node.isRequired
 };
 
 // Hook to use the context

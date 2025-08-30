@@ -40,7 +40,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     };
   }
 
-  static getDerivedStateFromError(error: Error): Partial<ErrorBoundaryState> {
+  static getDerivedStateFromError(_error: Error): Partial<ErrorBoundaryState> {
     // Update state so the next render will show the fallback UI
     return {
       hasError: true,
@@ -48,11 +48,11 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     };
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
+  componentDidCatch(_error: Error, _errorInfo: ErrorInfo): void {
     // Log error details for debugging
     this.setState({
-      error,
-      errorInfo
+      error: _error,
+      errorInfo: _errorInfo
     });
 
     const errorId = this.state.errorId || Date.now().toString();
@@ -60,15 +60,15 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     // Log error to console in development
     if (process.env.NODE_ENV === 'development') {
       console.error('Error Boundary caught an error:', {
-        error,
-        errorInfo,
+        error: _error,
+        errorInfo: _errorInfo,
         errorId
       });
     }
 
     // Call custom error handler if provided
     if (this.props.onError) {
-      this.props.onError(error, errorInfo, errorId);
+      this.props.onError(_error, _errorInfo, errorId);
     }
 
     // In production, you would send this to your error reporting service
@@ -177,7 +177,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 export const withErrorBoundary = <P extends object>(
   WrappedComponent: React.ComponentType<P>,
   fallback?: React.ComponentType<ErrorFallbackProps>,
-  onError?: (error: Error, errorInfo: ErrorInfo, errorId: string) => void
+  onError?: (_error: Error, _errorInfo: ErrorInfo, _errorId: string) => void
 ) => {
   const WithErrorBoundaryComponent: React.FC<P> = props => (
     <ErrorBoundary fallback={fallback} onError={onError}>
@@ -194,9 +194,9 @@ export const withErrorBoundary = <P extends object>(
 
 // Hook for handling errors in functional components
 export const useErrorHandler = () => {
-  const handleError = React.useCallback((error: Error, errorInfo?: any) => {
+  const handleError = React.useCallback((_error: Error, _errorInfo?: any) => {
     // In a real app, you might want to report this error to a service
-    console.error('Handled error:', error, errorInfo);
+    console.error('Handled error:', _error, _errorInfo);
 
     // You could throw the error to trigger the nearest error boundary
     // throw error;

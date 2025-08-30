@@ -5,6 +5,17 @@
 
 import { useTranslation } from 'react-i18next';
 
+const HTTP_STATUS_CODES = {
+  BAD_REQUEST: 400,
+  UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
+  NOT_FOUND: 404,
+  REQUEST_TIMEOUT: 408,
+  SERVER_ERROR_START: 500,
+  CLIENT_ERROR_START: 400,
+  CLIENT_ERROR_END: 500
+};
+
 // Error types and their user-friendly messages
 export const ErrorTypes = {
   NETWORK_ERROR: 'NETWORK_ERROR',
@@ -120,19 +131,20 @@ export const classifyError = error => {
     const status = error.status || error.response?.status;
 
     switch (true) {
-      case status === 400:
+      case status === HTTP_STATUS_CODES.BAD_REQUEST:
         return { ...error, type: ErrorTypes.VALIDATION_ERROR };
-      case status === 401:
+      case status === HTTP_STATUS_CODES.UNAUTHORIZED:
         return { ...error, type: ErrorTypes.AUTHENTICATION_ERROR };
-      case status === 403:
+      case status === HTTP_STATUS_CODES.FORBIDDEN:
         return { ...error, type: ErrorTypes.PERMISSION_ERROR };
-      case status === 404:
+      case status === HTTP_STATUS_CODES.NOT_FOUND:
         return { ...error, type: ErrorTypes.NOT_FOUND_ERROR };
-      case status === 408:
+      case status === HTTP_STATUS_CODES.REQUEST_TIMEOUT:
         return { ...error, type: ErrorTypes.TIMEOUT_ERROR };
-      case status >= 400 && status < 500:
+      case status >= HTTP_STATUS_CODES.CLIENT_ERROR_START &&
+        status < HTTP_STATUS_CODES.CLIENT_ERROR_END:
         return { ...error, type: ErrorTypes.CLIENT_ERROR };
-      case status >= 500:
+      case status >= HTTP_STATUS_CODES.SERVER_ERROR_START:
         return { ...error, type: ErrorTypes.SERVER_ERROR };
       default:
         return { ...error, type: ErrorTypes.API_ERROR };
@@ -343,7 +355,7 @@ export const reportError = (error, context = {}) => {
   console.error('Error reported:', { error, context });
 };
 
-export default {
+const errorHandling = {
   ErrorTypes,
   getErrorMessage,
   classifyError,
@@ -351,3 +363,5 @@ export default {
   useErrorHandler,
   reportError
 };
+
+export default errorHandling;

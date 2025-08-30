@@ -1,12 +1,8 @@
+import PropTypes from 'prop-types';
 import React, { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
 
 import { getSeasons } from '../services/api';
-import {
-  createAsyncReducer,
-  createAsyncActions,
-  ActionTypes,
-  createAsyncState
-} from '../utils/stateManagement';
+import { createAsyncReducer, createAsyncActions, createAsyncState } from '../utils/stateManagement';
 
 const SeasonContext = createContext();
 
@@ -87,4 +83,8 @@ export const SeasonProvider = ({ children }) => {
   };
 
   return <SeasonContext.Provider value={contextValue}>{children}</SeasonContext.Provider>;
+};
+
+SeasonProvider.propTypes = {
+  children: PropTypes.node.isRequired
 };

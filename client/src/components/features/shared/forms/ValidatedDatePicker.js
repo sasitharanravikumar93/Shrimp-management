@@ -80,8 +80,8 @@ const ValidatedDatePicker = ({
       />
       {displayErrors.length > 0 && (
         <Box sx={{ mt: 0.5 }}>
-          {displayErrors.map((error, index) => (
-            <FormHelperText key={index} error>
+          {displayErrors.map(error => (
+            <FormHelperText key={`${name}-${error}`} error>
               {error}
             </FormHelperText>
           ))}

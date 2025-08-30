@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 
-import { deduplicatedApiCall, CacheStrategies, clearCache, getCacheStats } from '../utils/apiCache';
+import { deduplicatedApiCall, clearCache, getCacheStats } from '../utils/apiCache';
 
 // Enhanced API call function with intelligent caching
 const apiCall = async (endpoint, method = 'GET', data = null) => {
@@ -107,7 +107,7 @@ export const useApiData = (apiFunction, dependencies = [], cacheKey = null, retr
         setLoading(false);
       }
     },
-    [apiFunction, cacheKey, retryCount]
+    [apiFunction, retryCount]
   );
 
   useEffect(() => {

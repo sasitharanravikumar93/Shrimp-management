@@ -1,8 +1,7 @@
 import {
   BugReport as BugIcon,
   Home as HomeIcon,
-  Refresh as RefreshIcon,
-  Warning as WarningIcon
+  Refresh as RefreshIcon
 } from '@mui/icons-material';
 import {
   Alert,
@@ -13,7 +12,6 @@ import {
   Collapse,
   Container,
   Divider,
-  IconButton,
   Stack,
   Typography
 } from '@mui/material';

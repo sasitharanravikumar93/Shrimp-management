@@ -13,10 +13,11 @@ import {
   Typography,
   Alert
 } from '@mui/material';
+import PropTypes from 'prop-types';
 import React from 'react';
 
 import { useSeason } from '../../../context/SeasonContext';
-import { useFormState, useAsyncOperation, useApiMutation } from '../../../hooks';
+import { useFormState, useApiMutation } from '../../../hooks';
 import useApi from '../../../hooks/useApi';
 import { InlineError } from '../shared/error-handling/ErrorDisplay';
 
@@ -167,6 +168,21 @@ const InventoryAdjustmentModal = ({ open, onClose, item }) => {
 };
 
 export default InventoryAdjustmentModal;
+
+InventoryAdjustmentModal.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  item: PropTypes.shape({
+    _id: PropTypes.string,
+    itemName: PropTypes.string,
+    currentQuantity: PropTypes.number,
+    unit: PropTypes.string
+  })
+};
+
+InventoryAdjustmentModal.defaultProps = {
+  item: null
+};
 
 /**
  * Benefits of this refactoring:

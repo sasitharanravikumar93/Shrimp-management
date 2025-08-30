@@ -1,5 +1,6 @@
-import { Warning, Refresh, ExpandMore, ExpandLess } from '@mui/icons-material';
-import { Box, Typography, Button, Alert, Collapse, IconButton } from '@mui/material';
+import { Refresh, ExpandMore, ExpandLess } from '@mui/icons-material';
+import { Box, Typography, Button, Alert, Collapse } from '@mui/material';
+import PropTypes from 'prop-types';
 import React from 'react';
 
 /**
@@ -19,7 +20,7 @@ class SectionErrorBoundary extends React.Component {
     };
   }
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError(_error) {
     return {
       hasError: true,
       errorId: Date.now().toString()
@@ -135,3 +136,9 @@ class SectionErrorBoundary extends React.Component {
 }
 
 export default SectionErrorBoundary;
+
+SectionErrorBoundary.propTypes = {
+  children: PropTypes.node,
+  section: PropTypes.string,
+  onReset: PropTypes.func
+};

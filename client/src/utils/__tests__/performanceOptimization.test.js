@@ -16,7 +16,7 @@ import {
   deepMemo,
   performanceMonitor
 } from '../../utils/performanceOptimization';
-import { waitUtils, mockUtils } from '../../utils/testUtils';
+import { mockUtils } from '../../utils/testUtils';
 
 describe('Performance Optimization Utilities', () => {
   describe('useStableCallback', () => {

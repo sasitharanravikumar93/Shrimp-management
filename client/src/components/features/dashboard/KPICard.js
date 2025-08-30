@@ -14,10 +14,10 @@ import {
 } from '@mui/material';
 import { motion } from 'framer-motion';
 import PropTypes from 'prop-types';
-import React, { memo, useMemo, useCallback } from 'react';
+import React, { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { useStableCallback, useStableMemo } from '../../../utils/performanceOptimization';
+import { useStableMemo } from '../../../utils/performanceOptimization';
 
 const KPICard = memo(
   ({
@@ -140,21 +140,21 @@ const KPICard = memo(
 
 // Circular KPI Card variant with performance optimizations
 export const CircularKPICard = memo(
-  ({
-    title,
-    value,
-    icon,
-    color = '#1976d2',
-    change = 0,
-    changeText = '',
-    size = 120,
-    delay = 0
-  }) => {
+  ({ title, value, icon, color = '#1976d2', change = 0, changeText = '', size, delay = 0 }) => {
     const { t } = useTranslation();
 
+    const FULL_PROGRESS = 100;
+    const AVATAR_SIZE_DIVISOR = 3;
+
     // Memoize calculations and styles
-    const progressValue = useStableMemo(() => (value > 100 ? 100 : value), [value]);
-    const avatarSize = useStableMemo(() => ({ width: size / 3, height: size / 3 }), [size]);
+    const progressValue = useStableMemo(
+      () => (value > FULL_PROGRESS ? FULL_PROGRESS : value),
+      [value]
+    );
+    const avatarSize = useStableMemo(
+      () => ({ width: size / AVATAR_SIZE_DIVISOR, height: size / AVATAR_SIZE_DIVISOR }),
+      [size]
+    );
     const avatarStyles = useStableMemo(
       () => ({
         bgcolor: color,
@@ -205,7 +205,7 @@ export const CircularKPICard = memo(
           <Box sx={{ position: 'relative', display: 'inline-flex', mb: 1 }}>
             <CircularProgress
               variant='determinate'
-              value={100}
+              value={FULL_PROGRESS}
               size={size}
               thickness={3}
               sx={{

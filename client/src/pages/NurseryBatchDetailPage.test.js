@@ -24,11 +24,9 @@ jest.mock('../hooks/useApi', () => ({
 }));
 
 // Mock the CustomCalendar component
-jest.mock('../components/CustomCalendar', () => {
-  return function MockCustomCalendar() {
-    return <div data-testid='custom-calendar'>Custom Calendar</div>;
-  };
-});
+const CustomCalendarMock = () => <div data-testid='custom-calendar'>Custom Calendar</div>;
+CustomCalendarMock.displayName = 'CustomCalendar';
+jest.mock('../components/CustomCalendar', () => CustomCalendarMock);
 
 // Mock react-router-dom useParams and useNavigate
 const mockNavigate = jest.fn();

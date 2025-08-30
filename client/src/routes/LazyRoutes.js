@@ -91,7 +91,9 @@ export const preloadStrategies = {
   idle: [LazyExpenseList, LazyExpenseForm, LazyDataTrend]
 };
 
-export default {
+const lazyRoutesWithStrategies = {
   ...lazyRoutes,
   preloadStrategies
 };
+
+export default lazyRoutesWithStrategies;

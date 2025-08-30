@@ -61,6 +61,7 @@ const defaultFilterConfig = {
 
 // Individual filter component
 const FilterComponent = memo(({ filter, value, onChange, disabled = false }) => {
+  const DEFAULT_SLIDER_MAX = 100;
   const { t } = useTranslation();
 
   const handleChange = useCallback(
@@ -218,11 +219,11 @@ const FilterComponent = memo(({ filter, value, onChange, disabled = false }) => 
             {t(filter.label)}
           </Typography>
           <Slider
-            value={value || [filter.min || 0, filter.max || 100]}
+            value={value || [filter.min || 0, filter.max || DEFAULT_SLIDER_MAX]}
             onChange={(e, newValue) => handleChange(newValue)}
             valueLabelDisplay='auto'
             min={filter.min || 0}
-            max={filter.max || 100}
+            max={filter.max || DEFAULT_SLIDER_MAX}
             step={filter.step || 1}
             disabled={disabled}
             marks={filter.marks}
@@ -694,7 +695,9 @@ FilterComponent.propTypes = {
     max: PropTypes.number,
     step: PropTypes.number,
     placeholder: PropTypes.string,
-    searchable: PropTypes.bool
+    searchable: PropTypes.bool,
+    marks: PropTypes.array,
+    formatter: PropTypes.func
   }).isRequired,
   value: PropTypes.any,
   onChange: PropTypes.func.isRequired,

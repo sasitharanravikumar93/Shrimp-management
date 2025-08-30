@@ -58,7 +58,7 @@ const ValidatedTextField = ({
       {displayErrors.length > 0 && (
         <Box sx={{ mt: 0.5 }}>
           {displayErrors.map((error, index) => (
-            <FormHelperText key={index} error>
+            <FormHelperText key={`${name}-${error}`} error>
               {error}
             </FormHelperText>
           ))}

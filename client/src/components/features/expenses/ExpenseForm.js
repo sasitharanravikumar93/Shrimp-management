@@ -9,7 +9,7 @@ import {
   Grid
 } from '@mui/material';
 import PropTypes from 'prop-types';
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 
 import { useSeason } from '../../../context/SeasonContext';

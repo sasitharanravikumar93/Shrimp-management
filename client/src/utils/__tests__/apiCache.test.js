@@ -4,7 +4,7 @@
  */
 
 import { deduplicatedApiCall, clearCache, getCacheStats, CacheStrategies } from '../apiCache';
-import { mockUtils, waitUtils } from '../testUtils';
+import { mockUtils } from '../testUtils';
 
 // Mock fetch for testing
 global.fetch = jest.fn();

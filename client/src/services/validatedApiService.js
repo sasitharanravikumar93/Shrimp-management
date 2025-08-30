@@ -16,12 +16,7 @@
 import React from 'react';
 
 import { useApiValidation } from '../hooks/useDataValidation';
-import {
-  validateApiResponse,
-  validateFormData,
-  ValidationError,
-  createValidationMiddleware
-} from '../utils/dataValidation';
+import { validateApiResponse, validateFormData, ValidationError } from '../utils/dataValidation';
 
 // Base API configuration
 const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:3001/api';
@@ -31,6 +26,11 @@ class ValidatedApiService {
     this.cache = new Map();
     this.retryAttempts = 3;
     this.retryDelay = 1000;
+    this.CACHE_DURATION_MINUTES = 5;
+    this.SECONDS_PER_MINUTE = 60;
+    this.MILLISECONDS_PER_SECOND = 1000;
+    this.CACHE_DURATION =
+      this.CACHE_DURATION_MINUTES * this.SECONDS_PER_MINUTE * this.MILLISECONDS_PER_SECOND;
   }
 
   /**
@@ -55,8 +55,9 @@ class ValidatedApiService {
       const cachedData = this.cache.get(cacheKey);
       const now = Date.now();
 
-      if (now - cachedData.timestamp < 5 * 60 * 1000) {
+      if (now - cachedData.timestamp < this.CACHE_DURATION) {
         // 5 minutes cache
+        // eslint-disable-next-line no-console
         console.log(`📋 Cache hit for ${endpoint}`);
         return cachedData.data;
       }
@@ -70,12 +71,14 @@ class ValidatedApiService {
         // Validate request data and create request data
         let requestData = data;
         if (validateRequest && requestData && schema) {
+          // eslint-disable-next-line no-console
           console.log(`🔍 Validating request data for ${endpoint}`);
           const validatedData = validateFormData(requestData, schema);
           requestData = validatedData.data;
         }
 
         // Make API request
+        // eslint-disable-next-line no-console
         console.log(
           `🌐 API Request: ${method} ${endpoint}${attempt > 0 ? ` (retry ${attempt})` : ''}`
         );
@@ -97,6 +100,7 @@ class ValidatedApiService {
 
         // Validate response data
         if (validateResponse && schema) {
+          // eslint-disable-next-line no-console
           console.log(`✅ Validating response data for ${endpoint}`);
 
           const validationResult = validateApiResponse(responseData, schema);
@@ -128,6 +132,7 @@ class ValidatedApiService {
           });
         }
 
+        // eslint-disable-next-line no-console
         console.log(`✅ API Request successful: ${method} ${endpoint}`);
         return responseData;
       } catch (error) {
@@ -455,7 +460,7 @@ export class ValidationErrorBoundary extends React.Component {
     return null;
   }
 
-  componentDidCatch(error, errorInfo) {
+  componentDidCatch(error, _errorInfo) {
     if (error instanceof ValidationError) {
       console.error('Validation Error:', error.errors);
     }

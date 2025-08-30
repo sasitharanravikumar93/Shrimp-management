@@ -1,4 +1,4 @@
-import { Search as SearchIcon, Filter as FilterIcon } from '@mui/icons-material';
+import { Search as SearchIcon } from '@mui/icons-material';
 import {
   Table,
   TableBody,
@@ -12,7 +12,6 @@ import {
   Checkbox,
   TextField,
   InputAdornment,
-  IconButton,
   Box,
   Typography,
   Skeleton,

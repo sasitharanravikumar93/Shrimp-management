@@ -46,9 +46,15 @@ export const useComponentDebug = (componentName, props = {}, state = null, optio
     }
 
     if (logToConsole && renderCountRef.current > 1) {
+      // eslint-disable-next-line no-console
       console.group(`🔄 ${componentName} Render #${renderCountRef.current}`);
+      // eslint-disable-next-line no-console
       console.log('Props:', props);
-      if (state) console.log('State:', state);
+      if (state) {
+        // eslint-disable-next-line no-console
+        console.log('State:', state);
+      }
+      // eslint-disable-next-line no-console
       console.groupEnd();
     }
   });
@@ -61,9 +67,13 @@ export const useComponentDebug = (componentName, props = {}, state = null, optio
       ComponentDebugger.trackProps(componentName, prevProps, props);
 
       if (logToConsole) {
+        // eslint-disable-next-line no-console
         console.group(`🔧 ${componentName} Props Changed`);
+        // eslint-disable-next-line no-console
         console.log('Previous:', prevProps);
+        // eslint-disable-next-line no-console
         console.log('Current:', props);
+        // eslint-disable-next-line no-console
         console.groupEnd();
       }
     }
@@ -78,9 +88,13 @@ export const useComponentDebug = (componentName, props = {}, state = null, optio
       ComponentDebugger.trackStateChange(componentName, prevState, state, 'useState');
 
       if (logToConsole) {
+        // eslint-disable-next-line no-console
         console.group(`📊 ${componentName} State Changed`);
+        // eslint-disable-next-line no-console
         console.log('Previous:', prevState);
+        // eslint-disable-next-line no-console
         console.log('Current:', state);
+        // eslint-disable-next-line no-console
         console.groupEnd();
       }
     }
@@ -120,6 +134,7 @@ export const usePerformanceDebug = (componentName, options = {}) => {
       const duration = renderMarkRef.current.end();
 
       if (duration > warnThreshold) {
+        // eslint-disable-next-line no-console
         console.warn(`⚠️ Slow render detected in ${componentName}: ${duration.toFixed(2)}ms`);
       }
     }
@@ -249,6 +264,7 @@ export const useErrorContext = (componentName, context = {}) => {
       const enhancedError = enhanceError(error, additionalContext);
 
       // Log enhanced error for debugging
+      // eslint-disable-next-line no-console
       console.error(`❌ Error in ${componentName}:`, enhancedError);
 
       return enhancedError;
@@ -306,6 +322,7 @@ export const useStateDebug = (state, stateName, componentName) => {
         `${stateName}_change`
       );
 
+      // eslint-disable-next-line no-console
       console.log(`🔄 ${componentName}.${stateName} changed:`, {
         from: prevState,
         to: state,
@@ -320,6 +337,7 @@ export const useStateDebug = (state, stateName, componentName) => {
     changeCount: changeCountRef.current,
     history: historyRef.current,
     logHistory: () => {
+      // eslint-disable-next-line no-console
       console.table(historyRef.current);
     }
   };
@@ -339,12 +357,14 @@ export const useApiDebug = componentName => {
       if (!DEBUG_CONFIG.enabled) return await apiCall();
 
       const startTime = performance.now();
+      // eslint-disable-next-line no-console
       console.log(`🌐 API call started from ${componentName}:`, metadata);
 
       try {
         const result = await apiCall();
         const duration = performance.now() - startTime;
 
+        // eslint-disable-next-line no-console
         console.log(`✅ API call succeeded from ${componentName}:`, {
           duration: `${duration.toFixed(2)}ms`,
           result: result?.data || result,
@@ -361,6 +381,7 @@ export const useApiDebug = componentName => {
       } catch (error) {
         const duration = performance.now() - startTime;
 
+        // eslint-disable-next-line no-console
         console.error(`❌ API call failed from ${componentName}:`, {
           duration: `${duration.toFixed(2)}ms`,
           error: error.message,
@@ -478,6 +499,7 @@ export const useDebug = (componentName, props = {}, state = null, options = {}) 
   useEffect(() => {
     return () => {
       if (DEBUG_CONFIG.enabled && options.logSummaryOnUnmount) {
+        // eslint-disable-next-line no-console
         console.log(`📋 ${componentName} Debug Summary:`, debugInfo);
       }
     };

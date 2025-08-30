@@ -1,14 +1,15 @@
-import { Card, CardContent, CardHeader, Box, ToggleButton, ToggleButtonGroup } from '@mui/material';
-import moment from 'moment';
-import React, { useMemo } from 'react';
-import { Calendar, momentLocalizer, Views } from 'react-big-calendar';
-import 'react-big-calendar/lib/css/react-big-calendar.css';
-import './CalendarOverrides.css';
 import {
   CalendarToday as DayViewIcon,
   ViewWeek as WeekViewIcon,
   CalendarMonth as MonthViewIcon
 } from '@mui/icons-material';
+import { Card, CardContent, CardHeader, Box, ToggleButton, ToggleButtonGroup } from '@mui/material';
+import moment from 'moment';
+import PropTypes from 'prop-types';
+import React, { useMemo } from 'react';
+import { Calendar, momentLocalizer, Views } from 'react-big-calendar';
+import 'react-big-calendar/lib/css/react-big-calendar.css';
+import './CalendarOverrides.css';
 
 // Set up calendar localizer
 const localizer = momentLocalizer(moment);
@@ -21,7 +22,7 @@ const CustomCalendar = ({
   date,
   view = Views.WEEK,
   onViewChange,
-  toolbar = true
+  toolbar: _toolbar = true // Prefixed with _ as it's not used
 }) => {
   // Event styles for calendar
   const eventStyleGetter = event => {
@@ -168,3 +169,14 @@ const CustomCalendar = ({
 };
 
 export default CustomCalendar;
+
+CustomCalendar.propTypes = {
+  events: PropTypes.array,
+  onEventSelect: PropTypes.func,
+  onDateChange: PropTypes.func,
+  onRangeChange: PropTypes.func,
+  date: PropTypes.instanceOf(Date),
+  view: PropTypes.oneOf([Views.DAY, Views.WEEK, Views.MONTH]),
+  onViewChange: PropTypes.func,
+  toolbar: PropTypes.bool
+};

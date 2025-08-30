@@ -16,6 +16,7 @@ import {
   Typography
 } from '@mui/material';
 import { format } from 'date-fns';
+import PropTypes from 'prop-types';
 import React, { useState, useEffect } from 'react';
 
 import { useSeason } from '../../../context/SeasonContext';
@@ -96,3 +97,16 @@ const AdjustmentHistoryModal = ({ open, onClose, item }) => {
 };
 
 export default AdjustmentHistoryModal;
+
+AdjustmentHistoryModal.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  item: PropTypes.shape({
+    _id: PropTypes.string,
+    itemName: PropTypes.string
+  })
+};
+
+AdjustmentHistoryModal.defaultProps = {
+  item: null
+};

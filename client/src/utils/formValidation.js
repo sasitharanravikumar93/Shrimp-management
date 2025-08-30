@@ -7,6 +7,11 @@ import React from 'react';
 
 import { sanitizeText, sanitizeEmail, sanitizePhone, sanitizeNumber } from './sanitization';
 
+const MAX_LENGTHS = {
+  POND_NAME: 50,
+  EMPLOYEE_NAME: 100
+};
+
 // Validation rule definitions
 export const validationRules = {
   required: (value, message = 'This field is required') => {
@@ -38,7 +43,7 @@ export const validationRules = {
 
   phone: (value, message = 'Please enter a valid phone number') => {
     if (!value) return null;
-    const phoneRegex = /^[\+]?[\d\s\-\(\)]{10,15}$/;
+    const phoneRegex = /^[+]?[-()\d\s]{10,15}$/;
     return phoneRegex.test(value.trim()) ? null : message;
   },
 
@@ -309,7 +314,10 @@ export const commonSchemas = {
       rules: [
         validationRules.required(),
         validationRules.minLength(2, 'Pond name must be at least 2 characters'),
-        validationRules.maxLength(50, 'Pond name must be less than 50 characters')
+        validationRules.maxLength(
+          MAX_LENGTHS.POND_NAME,
+          'Pond name must be less than 50 characters'
+        )
       ]
     },
     size: {
@@ -356,7 +364,10 @@ export const commonSchemas = {
       rules: [
         validationRules.required(),
         validationRules.minLength(2, 'Name must be at least 2 characters'),
-        validationRules.maxLength(100, 'Name must be less than 100 characters')
+        validationRules.maxLength(
+          MAX_LENGTHS.EMPLOYEE_NAME,
+          'Name must be less than 100 characters'
+        )
       ]
     },
     email: {
@@ -375,10 +386,12 @@ export const commonSchemas = {
   }
 };
 
-export default {
+const formValidation = {
   validationRules,
   validateField,
   validateForm,
   useFormValidation,
   commonSchemas
 };
+
+export default formValidation;

@@ -8,7 +8,6 @@ import {
   Typography,
   Box,
   Chip,
-  Tooltip,
   IconButton
 } from '@mui/material';
 import PropTypes from 'prop-types';
@@ -22,6 +21,8 @@ const FeedCalculator = ({
   initialShrimpCount = 0,
   feedingStrategy = 'standard'
 }) => {
+  const GRAMS_IN_KG = 1000;
+  const PERCENTAGE_MULTIPLIER = 100;
   const [biomass, setBiomass] = useState(initialBiomass);
   const [shrimpCount, setShrimpCount] = useState(initialShrimpCount);
   const [strategy, setStrategy] = useState(feedingStrategy);
@@ -48,7 +49,7 @@ const FeedCalculator = ({
       // Estimate biomass from shrimp count (assuming average weight)
       // This is a simplified calculation - in reality, this would be more complex
       const avgWeight = 15; // grams (example)
-      const estimatedBiomass = (shrimpCount * avgWeight) / 1000; // kg
+      const estimatedBiomass = (shrimpCount * avgWeight) / GRAMS_IN_KG; // kg
       const rate = feedingRates[strategy] || feedingRates.standard;
       const feedQty = estimatedBiomass * rate;
       setCalculatedFeed(feedQty);
@@ -125,7 +126,7 @@ const FeedCalculator = ({
         <Typography variant='body1'>Recommended Daily Feed:</Typography>
         <Chip label={`${calculatedFeed.toFixed(2)} kg`} color='primary' variant='outlined' />
         <Typography variant='body2' color='text.secondary'>
-          (Based on {feedingRates[strategy] * 100}% of biomass)
+          (Based on {feedingRates[strategy] * PERCENTAGE_MULTIPLIER}% of biomass)
         </Typography>
       </Box>
     </Box>

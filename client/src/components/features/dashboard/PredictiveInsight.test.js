@@ -1,6 +1,7 @@
 import { TrendingUp as TrendingUpIcon } from '@mui/icons-material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { render, screen } from '@testing-library/react';
+import PropTypes from 'prop-types';
 import React from 'react';
 
 import PredictiveInsight from './PredictiveInsight';
@@ -10,6 +11,10 @@ const theme = createTheme();
 
 // Wrapper component to provide theme
 const WithTheme = ({ children }) => <ThemeProvider theme={theme}>{children}</ThemeProvider>;
+
+WithTheme.propTypes = {
+  children: PropTypes.node.isRequired
+};
 
 describe('PredictiveInsight', () => {
   const defaultProps = {

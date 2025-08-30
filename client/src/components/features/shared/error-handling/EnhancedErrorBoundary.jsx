@@ -9,8 +9,6 @@ import {
   ExpandMore,
   BugReport,
   Download,
-  Visibility,
-  VisibilityOff,
   ContentCopy
 } from '@mui/icons-material';
 import {
@@ -28,10 +26,9 @@ import {
   List,
   ListItem,
   ListItemText,
-  Divider,
-  IconButton,
-  Tooltip
+  Divider
 } from '@mui/material';
+import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 
 import { ErrorContextEnhancer, debugStore } from '../../../utils/debugUtils';
@@ -51,10 +48,16 @@ class EnhancedErrorBoundary extends Component {
     };
   }
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError(_error) {
+    // Constants for magic numbers
+    const BASE_36_RADIX = 36; // Radix for base-36 encoding
+    const ERROR_ID_RANDOM_LENGTH = 9; // Length of random string part
+
     return {
       hasError: true,
-      errorId: `error_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      errorId: `error_${Date.now()}_${Math.random()
+        .toString(BASE_36_RADIX)
+        .substr(2, ERROR_ID_RANDOM_LENGTH)}`
     };
   }
 
@@ -99,7 +102,7 @@ class EnhancedErrorBoundary extends Component {
   reportToExternalService = error => {
     // Implement external error reporting (e.g., Sentry, LogRocket, etc.)
     // This is a placeholder for the actual implementation
-    console.log('Would report to external service:', error);
+    logger.info('Would report to external service:', error);
   };
 
   handleReset = () => {
@@ -123,6 +126,11 @@ class EnhancedErrorBoundary extends Component {
   };
 
   handleDownloadDebugData = () => {
+    // Constants for magic numbers
+    const RECENT_LOGS_LIMIT = 50;
+    const USER_ACTIONS_LIMIT = 10;
+    const NETWORK_CALLS_LIMIT = 5;
+
     const debugData = {
       errorId: this.state.errorId,
       timestamp: new Date().toISOString(),
@@ -136,11 +144,11 @@ class EnhancedErrorBoundary extends Component {
       userAgent: navigator.userAgent,
       url: window.location.href,
       debugStore: {
-        recentLogs: debugStore.getEntries({ limit: 50 }),
+        recentLogs: debugStore.getEntries({ limit: RECENT_LOGS_LIMIT }),
         componentStates: Object.fromEntries(debugStore.componentStates),
         renderCounts: Object.fromEntries(debugStore.renderCounts),
-        userActions: debugStore.userActions.slice(-10),
-        networkCalls: debugStore.networkCalls.slice(-5)
+        userActions: debugStore.userActions.slice(-USER_ACTIONS_LIMIT),
+        networkCalls: debugStore.networkCalls.slice(-NETWORK_CALLS_LIMIT)
       }
     };
 
@@ -224,9 +232,9 @@ class EnhancedErrorBoundary extends Component {
           Refresh Page
         </Button>
 
-        {recoveryActions.map((action, index) => (
+        {recoveryActions.map(action => (
           <Button
-            key={index}
+            key={`recovery-action-${action.label}-${Date.now()}`}
             variant={action.variant || 'outlined'}
             color={action.color || 'secondary'}
             onClick={action.handler}
@@ -251,6 +259,9 @@ class EnhancedErrorBoundary extends Component {
   }
 
   renderDebugDetails() {
+    // Constants for magic numbers
+    const RECENT_USER_ACTIONS_LIMIT = 5;
+
     const { enhancedError, showDebugDetails } = this.state;
     const debugContext = enhancedError?.debugContext;
 
@@ -275,8 +286,8 @@ class EnhancedErrorBoundary extends Component {
                   Recent User Actions
                 </Typography>
                 <List dense>
-                  {debugContext.recentUserActions.slice(-5).map((action, index) => (
-                    <ListItem key={index}>
+                  {debugContext.recentUserActions.slice(-RECENT_USER_ACTIONS_LIMIT).map(action => (
+                    <ListItem key={`action-${action.timestamp}`}>
                       <ListItemText
                         primary={`${action.data.action} in ${action.component}`}
                         secondary={new Date(action.data.timestamp).toLocaleTimeString()}
@@ -294,7 +305,7 @@ class EnhancedErrorBoundary extends Component {
                   Component States
                 </Typography>
                 {Object.entries(debugContext.componentStates).map(([component, state]) => (
-                  <Box key={component} sx={{ mb: 1 }}>
+                  <Box key={`component-${component}`} sx={{ mb: 1 }}>
                     <Typography variant='caption' color='text.secondary'>
                       {component}
                     </Typography>
@@ -315,7 +326,7 @@ class EnhancedErrorBoundary extends Component {
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                   {Object.entries(debugContext.renderCounts).map(([component, count]) => (
                     <Chip
-                      key={component}
+                      key={`render-count-${component}`}
                       label={`${component}: ${count}`}
                       size='small'
                       variant='outlined'
@@ -332,8 +343,8 @@ class EnhancedErrorBoundary extends Component {
                   Recent Network Calls
                 </Typography>
                 <List dense>
-                  {debugContext.recentNetworkCalls.map((call, index) => (
-                    <ListItem key={index}>
+                  {debugContext.recentNetworkCalls.map(call => (
+                    <ListItem key={`network-call-${call.url}`}>
                       <ListItemText
                         primary={`${call.method || 'GET'} ${call.url}`}
                         secondary={
@@ -472,3 +483,22 @@ class EnhancedErrorBoundary extends Component {
 }
 
 export default EnhancedErrorBoundary;
+
+EnhancedErrorBoundary.propTypes = {
+  children: PropTypes.node,
+  onError: PropTypes.func,
+  onReset: PropTypes.func,
+  recoveryActions: PropTypes.arrayOf(
+    PropTypes.shape({
+      label: PropTypes.string.isRequired,
+      handler: PropTypes.func.isRequired,
+      variant: PropTypes.string,
+      color: PropTypes.string,
+      icon: PropTypes.element
+    })
+  ),
+  fallback: PropTypes.elementType,
+  title: PropTypes.string,
+  message: PropTypes.string,
+  context: PropTypes.object
+};

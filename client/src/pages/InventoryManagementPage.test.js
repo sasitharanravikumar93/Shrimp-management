@@ -14,21 +14,21 @@ jest.mock('../hooks/useApi');
 
 // Mock the components that are imported
 jest.mock('../components/InventoryForm', () => {
-  const InventoryFormMock = ({ open, onClose, item }) =>
+  const InventoryFormMock = ({ open, item }) =>
     open ? <div data-testid='inventory-form'>Inventory Form {item ? 'Edit' : 'Add'}</div> : null;
   InventoryFormMock.displayName = 'InventoryForm';
   return InventoryFormMock;
 });
 
 jest.mock('../components/InventoryAdjustmentModal', () => {
-  const InventoryAdjustmentModalMock = ({ open, onClose, item }) =>
+  const InventoryAdjustmentModalMock = ({ open, item }) =>
     open ? <div data-testid='adjustment-modal'>Adjustment Modal for {item?.itemName}</div> : null;
   InventoryAdjustmentModalMock.displayName = 'InventoryAdjustmentModal';
   return InventoryAdjustmentModalMock;
 });
 
 jest.mock('../components/AdjustmentHistoryModal', () => {
-  const AdjustmentHistoryModalMock = ({ open, onClose, item }) =>
+  const AdjustmentHistoryModalMock = ({ open, item }) =>
     open ? <div data-testid='history-modal'>History Modal for {item?.itemName}</div> : null;
   AdjustmentHistoryModalMock.displayName = 'AdjustmentHistoryModal';
   return AdjustmentHistoryModalMock;

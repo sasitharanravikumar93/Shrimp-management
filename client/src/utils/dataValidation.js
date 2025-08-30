@@ -396,6 +396,7 @@ export class DataValidator {
   }
 
   _validateCurrency(value, schema, path) {
+    const CURRENCY_DECIMAL_PLACES = 2;
     const numValue = parseFloat(value);
 
     if (isNaN(numValue)) {
@@ -404,7 +405,7 @@ export class DataValidator {
     }
 
     // Round to 2 decimal places for currency
-    return Math.round(numValue * 100) / 100;
+    return Math.round(numValue * 10 ** CURRENCY_DECIMAL_PLACES) / 10 ** CURRENCY_DECIMAL_PLACES;
   }
 
   _addError(message, path) {
@@ -697,7 +698,7 @@ export class BulkValidator {
   }
 }
 
-export default {
+const dataValidation = {
   DataValidator,
   ValidationError,
   ValidationTypes,
@@ -709,3 +710,5 @@ export default {
   createValidationMiddleware,
   BulkValidator
 };
+
+export default dataValidation;

@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
-import { deduplicatedApiCall, CacheStrategies, apiCache } from '../utils/apiCache';
+import { deduplicatedApiCall, apiCache } from '../utils/apiCache';
 
 // Type definitions for API utilities
 export interface ApiError {
@@ -179,7 +179,7 @@ export const useApiData = <T = any>(
         setLoading(false);
       }
     },
-    [apiFunction, cacheKey, retryCount]
+    [apiFunction, retryCount]
   );
 
   useEffect(() => {
@@ -315,7 +315,7 @@ export const useCacheManagement = () => {
 
 // Utility hooks for common API patterns
 export const usePaginatedApi = <T = any>(
-  baseApiFunction: (page: number, limit: number) => Promise<ApiResponse<T[]>>,
+  baseApiFunction: (_page: number, _limit: number) => Promise<ApiResponse<T[]>>,
   initialPage: number = 1,
   pageSize: number = 10
 ) => {

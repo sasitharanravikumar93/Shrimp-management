@@ -6,7 +6,6 @@ import {
   TextField,
   Button,
   Typography,
-  Box,
   Alert
 } from '@mui/material';
 import PropTypes from 'prop-types';
@@ -14,14 +13,13 @@ import React, { useState, useEffect } from 'react';
 
 import { useSeason } from '../context/SeasonContext';
 import useApi from '../hooks/useApi';
-import { useErrorHandler } from '../utils/errorHandling';
 
 import { InlineError } from './ErrorDisplay';
 
 const InventoryAdjustmentModal = ({ open, onClose, item }) => {
   const api = useApi();
   const { selectedSeason } = useSeason();
-  const { handleError } = useErrorHandler();
+
   const [adjustmentQuantity, setAdjustmentQuantity] = useState('');
   const [reason, setReason] = useState('');
   const [error, setError] = useState(null);

@@ -547,10 +547,12 @@ export const createDataComponent = (additionalPropTypes = {}, additionalDefaultP
   );
 
 // Default export for convenience
-export default {
+const propTypes = {
   baseComponentPropTypes,
   baseComponentDefaultProps,
   createStandardPropTypes,
   withStandardProps,
   validateStandardProps
 };
+
+export default propTypes;

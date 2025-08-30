@@ -1,9 +1,7 @@
-import {
-  TrendingUp as TrendingUpIcon,
-  TrendingDown as TrendingDownIcon
-} from '@mui/icons-material';
+import { TrendingUp as TrendingUpIcon } from '@mui/icons-material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { render, screen } from '@testing-library/react';
+import PropTypes from 'prop-types';
 import React from 'react';
 
 import KPICard, { CircularKPICard } from './KPICard';
@@ -13,6 +11,10 @@ const theme = createTheme();
 
 // Wrapper component to provide theme
 const WithTheme = ({ children }) => <ThemeProvider theme={theme}>{children}</ThemeProvider>;
+
+WithTheme.propTypes = {
+  children: PropTypes.node.isRequired
+};
 
 // Mock MUI icons
 jest.mock('@mui/icons-material', () => ({

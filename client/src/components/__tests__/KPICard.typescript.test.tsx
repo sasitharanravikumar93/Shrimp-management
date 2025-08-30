@@ -1,7 +1,7 @@
-import React from 'react';
 import '@testing-library/jest-dom';
-import { render, screen } from '@testing-library/react';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { render, screen } from '@testing-library/react';
+import React from 'react';
 
 import KPICard, {
   CircularKPICard,
@@ -25,8 +25,8 @@ jest.mock('react-i18next', () => ({
 
 // Mock performance optimization hooks
 jest.mock('../../utils/performanceOptimization', () => ({
-  useStableMemo: (fn: () => any, deps: any[]) => React.useMemo(fn, deps),
-  useStableCallback: (fn: any, deps: any[]) => React.useCallback(fn, deps)
+  useStableMemo: (fn: () => any, deps: any[]) => React.useMemo(fn, [fn, ...deps]),
+  useStableCallback: (fn: any, deps: any[]) => React.useCallback(fn, [fn, ...deps])
 }));
 
 const theme = createTheme();

@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from '@testing-library/react';
+import PropTypes from 'prop-types';
 import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
 
@@ -15,22 +16,32 @@ jest.mock('react-router-dom', () => ({
 
 // Mock the chart components from recharts
 // eslint-disable-next-line react/display-name
-jest.mock('recharts', () => ({
-  ...jest.requireActual('recharts'),
-  BarChart: () => <div data-testid='bar-chart'>Bar Chart</div>,
-  Bar: () => <div data-testid='bar'>Bar</div>,
-  XAxis: () => <div data-testid='x-axis'>X Axis</div>,
-  YAxis: () => <div data-testid='y-axis'>Y Axis</div>,
-  CartesianGrid: () => <div data-testid='cartesian-grid'>Cartesian Grid</div>,
-  Tooltip: () => <div data-testid='tooltip'>Tooltip</div>,
-  Legend: () => <div data-testid='legend'>Legend</div>,
-  ResponsiveContainer: ({ children }) => <div data-testid='responsive-container'>{children}</div>,
-  LineChart: () => <div data-testid='line-chart'>Line Chart</div>,
-  Line: () => <div data-testid='line'>Line</div>,
-  PieChart: () => <div data-testid='pie-chart'>Pie Chart</div>,
-  Pie: () => <div data-testid='pie'>Pie</div>,
-  Cell: () => <div data-testid='cell'>Cell</div>
-}));
+jest.mock('recharts', () => {
+  const ResponsiveContainer = ({ children }) => (
+    <div data-testid='responsive-container'>{children}</div>
+  );
+  ResponsiveContainer.propTypes = {
+    children: PropTypes.node
+  };
+  ResponsiveContainer.displayName = 'ResponsiveContainer';
+
+  return {
+    ...jest.requireActual('recharts'),
+    BarChart: () => <div data-testid='bar-chart'>Bar Chart</div>,
+    Bar: () => <div data-testid='bar'>Bar</div>,
+    XAxis: () => <div data-testid='x-axis'>X Axis</div>,
+    YAxis: () => <div data-testid='y-axis'>Y Axis</div>,
+    CartesianGrid: () => <div data-testid='cartesian-grid'>Cartesian Grid</div>,
+    Tooltip: () => <div data-testid='tooltip'>Tooltip</div>,
+    Legend: () => <div data-testid='legend'>Legend</div>,
+    ResponsiveContainer,
+    LineChart: () => <div data-testid='line-chart'>Line Chart</div>,
+    Line: () => <div data-testid='line'>Line</div>,
+    PieChart: () => <div data-testid='pie-chart'>Pie Chart</div>,
+    Pie: () => <div data-testid='pie'>Pie</div>,
+    Cell: () => <div data-testid='cell'>Cell</div>
+  };
+});
 
 // Mock the components that are imported
 // eslint-disable-next-line react/display-name, react/prop-types
@@ -56,68 +67,141 @@ jest.mock('../components/KPICard', () => ({
 }));
 
 // eslint-disable-next-line react/display-name, react/prop-types
+const AlertBanner = ({ message, severity, dismissible, onClose, children }) => (
+  <div data-testid='alert-banner' data-severity={severity}>
+    {message}
+    {dismissible && <button onClick={onClose}>Close</button>}
+    {children}
+  </div>
+);
+
+AlertBanner.displayName = 'AlertBanner';
+
+// eslint-disable-next-line react/display-name, react/prop-types
 jest.mock('../components/AlertBanner', () => {
-  return ({ message, severity, dismissible, onClose }) => (
-    <div data-testid='alert-banner' data-severity={severity}>
-      {message}
-      {dismissible && <button onClick={onClose}>Close</button>}
-    </div>
-  );
+  return AlertBanner;
 });
+
+// eslint-disable-next-line react/display-name, react/prop-types
+const AquacultureTooltip = ({ children }) => (
+  <div data-testid='aquaculture-tooltip'>{children}</div>
+);
+
+AquacultureTooltip.displayName = 'AquacultureTooltip';
 
 // eslint-disable-next-line react/display-name, react/prop-types
 jest.mock('../components/AquacultureTooltip', () => {
-  return ({ children }) => <div data-testid='aquaculture-tooltip'>{children}</div>;
+  return AquacultureTooltip;
 });
+
+// eslint-disable-next-line react/display-name, react/prop-types
+const PredictiveInsight = ({
+  title,
+  insight,
+  confidence,
+  projectedDate,
+  icon: _icon,
+  color: _color
+}) => (
+  <div data-testid='predictive-insight'>
+    <span data-testid='insight-title'>{title}</span>
+    <span data-testid='insight-content'>{insight}</span>
+    {confidence && <span data-testid='insight-confidence'>{confidence}%</span>}
+    {projectedDate && <span data-testid='insight-date'>{projectedDate}</span>}
+  </div>
+);
+
+PredictiveInsight.propTypes = {
+  title: PropTypes.string,
+  insight: PropTypes.string,
+  confidence: PropTypes.number,
+  projectedDate: PropTypes.string,
+  icon: PropTypes.node,
+  color: PropTypes.string
+};
 
 // eslint-disable-next-line react/display-name, react/prop-types
 jest.mock('../components/PredictiveInsight', () => {
-  return ({ title, insight, confidence, projectedDate }) => (
-    <div data-testid='predictive-insight'>
-      <span data-testid='insight-title'>{title}</span>
-      <span data-testid='insight-content'>{insight}</span>
-      {confidence && <span data-testid='insight-confidence'>{confidence}%</span>}
-      {projectedDate && <span data-testid='insight-date'>{projectedDate}</span>}
-    </div>
-  );
+  return PredictiveInsight;
 });
+
+// eslint-disable-next-line react/display-name, react/prop-types
+const HealthScore = ({ score }) => (
+  <div data-testid='health-score' role='progressbar' aria-valuenow={score}>
+    {score}
+  </div>
+);
+
+HealthScore.displayName = 'HealthScore';
 
 // eslint-disable-next-line react/display-name, react/prop-types
 jest.mock('../components/HealthScore', () => {
-  return ({ score }) => (
-    <div data-testid='health-score' role='progressbar' aria-valuenow={score}>
-      {score}
-    </div>
-  );
+  return HealthScore;
 });
+
+// eslint-disable-next-line react/display-name, react/prop-types
+const PondCard = ({ pond, onClick: _onClick, className: _className, style: _style, ...props }) => (
+  <div data-testid='pond-card' {...props}>
+    <span data-testid='pond-name'>{pond.name}</span>
+    <span data-testid='pond-status'>{pond.status}</span>
+    <span data-testid='pond-health'>{pond.health}</span>
+    <span data-testid='pond-progress'>{pond.progress}%</span>
+  </div>
+);
+
+PondCard.propTypes = {
+  pond: PropTypes.shape({
+    name: PropTypes.string,
+    status: PropTypes.string,
+    health: PropTypes.string,
+    progress: PropTypes.number
+  }),
+  onClick: PropTypes.func,
+  className: PropTypes.string,
+  style: PropTypes.object
+};
+
+PondCard.displayName = 'PondCard';
 
 // eslint-disable-next-line react/display-name, react/prop-types
 jest.mock('../components/PondCard', () => {
-  return ({ pond }) => (
-    <div data-testid='pond-card'>
-      <span data-testid='pond-name'>{pond.name}</span>
-      <span data-testid='pond-status'>{pond.status}</span>
-      <span data-testid='pond-health'>{pond.health}</span>
-      <span data-testid='pond-progress'>{pond.progress}%</span>
-    </div>
-  );
+  return PondCard;
 });
 
 // eslint-disable-next-line react/display-name, react/prop-types
+const DataTrend = ({ title, data, onActionClick: _onActionClick, value: _value, ...props }) => (
+  <div data-testid='data-trend' {...props}>
+    <span data-testid='data-trend-title'>{title}</span>
+    <span data-testid='data-trend-content'>Chart with {data?.length || 0} data points</span>
+  </div>
+);
+
+DataTrend.propTypes = {
+  title: PropTypes.string,
+  data: PropTypes.array,
+  onActionClick: PropTypes.func,
+  value: PropTypes.any
+};
+
+DataTrend.displayName = 'DataTrend';
+
+// eslint-disable-next-line react/display-name, react/prop-types
 jest.mock('../components/DataTrend', () => {
-  return ({ title, data }) => (
-    <div data-testid='data-trend'>
-      <span data-testid='data-trend-title'>{title}</span>
-      <span data-testid='data-trend-content'>Chart with {data?.length || 0} data points</span>
-    </div>
-  );
+  return DataTrend;
 });
 
 // eslint-disable-next-line react/display-name, react/prop-types, no-unused-vars
+const QuickActions = ({ onActionClick: _onActionClick, ...props }) => (
+  <div data-testid='quick-actions' {...props}>
+    Quick Actions
+  </div>
+);
+
+QuickActions.displayName = 'QuickActions';
+
+// eslint-disable-next-line react/display-name, react/prop-types, no-unused-vars
 jest.mock('../components/QuickActions', () => {
-  return ({ onActionClick: _onActionClick }) => (
-    <div data-testid='quick-actions'>Quick Actions</div>
-  );
+  return QuickActions;
 });
 
 // Mock SeasonContext

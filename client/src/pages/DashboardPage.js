@@ -6,7 +6,6 @@ import PondDetail from '../components/features/ponds/PondDetail';
 
 const DashboardPage = () => {
   const { pondId } = useParams();
-  console.log('DashboardPage - pondId:', pondId);
 
   return pondId ? <PondDetail pondId={pondId} /> : <FarmOverview />;
 };

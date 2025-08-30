@@ -465,8 +465,8 @@ export const useIndexedCollection = (initialItems = [], keyField = 'id') => {
     []
   );
 
-  const data = useMemo(() => collection.current.getAll(), [version]);
-  const size = useMemo(() => collection.current.size(), [version]);
+  const data = useMemo(() => collection.current.getAll(), []);
+  const size = useMemo(() => collection.current.size(), []);
 
   return { data, size, actions };
 };
@@ -560,13 +560,15 @@ export const useSearchIndex = (items = [], searchFields = []) => {
  * Hook for optimized table data management
  * Combines all optimizations for maximum performance
  */
+const DEFAULT_PAGE_SIZE = 10;
+
 export const useOptimizedTableData = (
   data = [],
   {
     keyField = 'id',
     searchFields = [],
     sortField = null,
-    pageSize = 10,
+    pageSize = DEFAULT_PAGE_SIZE,
     enableSelection = false
   } = {}
 ) => {

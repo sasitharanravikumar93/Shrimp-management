@@ -20,11 +20,6 @@ const growthData = [
   { date: '08-17', abw: 16.8 }
 ];
 
-const projectedGrowth = [
-  { date: '07-20', abw: 8.5 },
-  { date: '08-24', abw: 18.0 }
-];
-
 const GrowthSamplingLog = () => {
   return (
     <Card sx={{ mt: 2 }}>

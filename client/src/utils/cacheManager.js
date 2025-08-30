@@ -20,14 +20,16 @@
 
 // Time constants
 const SECONDS_TO_MS = 1000;
-const MINUTES_TO_SECONDS = 60;
+const SECONDS_PER_MINUTE = 60;
+const MINUTES_TO_SECONDS = SECONDS_PER_MINUTE;
 const MINUTES_TO_MS = MINUTES_TO_SECONDS * SECONDS_TO_MS;
 const _HOURS_TO_MS = 60 * MINUTES_TO_MS; // Not currently used but kept for completeness
 
 // Size constants
 const BYTES = 1;
-const KB_TO_BYTES = 1024 * BYTES;
-const MB_TO_BYTES = 1024 * KB_TO_BYTES;
+const BYTES_PER_KB = 1024;
+const KB_TO_BYTES = BYTES_PER_KB * BYTES;
+const MB_TO_BYTES = BYTES_PER_KB * KB_TO_BYTES;
 
 // Multipliers
 const FIVE = 5;

@@ -23,7 +23,6 @@ import {
   Card,
   CardContent,
   CardHeader,
-  Divider,
   IconButton,
   Tooltip,
   CircularProgress,
@@ -36,12 +35,7 @@ import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useApiData } from '../hooks/useApi';
-import {
-  getFeedInputs,
-  getFeedInputsByDateRange,
-  getFeedInputsByPondId,
-  getPonds
-} from '../services/api';
+import { getFeedInputs, getPonds } from '../services/api';
 
 const FeedViewPage = () => {
   const { t, i18n } = useTranslation();
@@ -108,7 +102,6 @@ const FeedViewPage = () => {
 
   const handleExport = () => {
     // Implementation for exporting data would go here
-    console.log('Exporting data');
   };
 
   const formatTime = time => {

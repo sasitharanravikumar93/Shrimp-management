@@ -1,9 +1,6 @@
-import {
-  TrendingUp as TrendingUpIcon,
-  CalendarToday as CalendarIcon,
-  Info as InfoIcon
-} from '@mui/icons-material';
+import { CalendarToday as CalendarIcon, Info as InfoIcon } from '@mui/icons-material';
 import { Card, CardContent, Typography, Box, Avatar, LinearProgress } from '@mui/material';
+import PropTypes from 'prop-types';
 import React from 'react';
 
 const PredictiveInsight = ({
@@ -14,10 +11,15 @@ const PredictiveInsight = ({
   icon = <InfoIcon />,
   color = 'primary'
 }) => {
+  const CONFIDENCE_LEVEL = {
+    HIGH: 80,
+    MEDIUM: 60
+  };
+
   // Get color based on confidence level
   const getConfidenceColor = () => {
-    if (confidence >= 80) return 'success';
-    if (confidence >= 60) return 'warning';
+    if (confidence >= CONFIDENCE_LEVEL.HIGH) return 'success';
+    if (confidence >= CONFIDENCE_LEVEL.MEDIUM) return 'warning';
     return 'error';
   };
 
@@ -71,6 +73,15 @@ const PredictiveInsight = ({
       </CardContent>
     </Card>
   );
+};
+
+PredictiveInsight.propTypes = {
+  title: PropTypes.string.isRequired,
+  insight: PropTypes.string.isRequired,
+  confidence: PropTypes.number,
+  projectedDate: PropTypes.string,
+  icon: PropTypes.element,
+  color: PropTypes.string
 };
 
 export default PredictiveInsight;

@@ -4,22 +4,9 @@
  */
 
 // Import all components and their exports
-import DataTable, { CELL_TYPES, createColumn, createActionColumn } from './DataTable';
-import DataVisualization, {
-  CHART_TYPES,
-  MetricsBarChart,
-  TrendLineChart,
-  DistributionPieChart,
-  GrowthAreaChart
-} from './DataVisualization';
-import FilterPanel, {
-  FILTER_TYPES,
-  createFilter,
-  createSelectFilter,
-  createDateRangeFilter,
-  createTextFilter,
-  createNumberFilter
-} from './FilterPanel';
+import DataTable, { CELL_TYPES } from './DataTable';
+import DataVisualization, { CHART_TYPES } from './DataVisualization';
+import FilterPanel, { FILTER_TYPES } from './FilterPanel';
 import MetricsGrid, {
   METRIC_TYPES,
   GRID_LAYOUTS,
@@ -58,12 +45,6 @@ export * from './layout';
 
 // Data Visualization
 export { default as DataVisualization, CHART_TYPES } from './DataVisualization';
-export {
-  MetricsBarChart,
-  TrendLineChart,
-  DistributionPieChart,
-  GrowthAreaChart
-} from './DataVisualization';
 
 // Metrics Display
 export { default as MetricsGrid } from './MetricsGrid';
@@ -82,17 +63,9 @@ export {
 
 // Data Table
 export { default as DataTable, CELL_TYPES } from './DataTable';
-export { createColumn, createActionColumn } from './DataTable';
 
 // Filter Panel
 export { default as FilterPanel, FILTER_TYPES } from './FilterPanel';
-export {
-  createFilter,
-  createSelectFilter,
-  createDateRangeFilter,
-  createTextFilter,
-  createNumberFilter
-} from './FilterPanel';
 
 // Component combinations for common use cases
 export const DataDashboard = {

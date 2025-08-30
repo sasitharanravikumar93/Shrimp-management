@@ -1,18 +1,15 @@
 import {
   Insights as InsightsIcon,
-  Warning as WarningIcon,
-  TrendingUp as TrendingUpIcon,
-  CalendarToday as CalendarIcon,
   Widgets as WidgetsIcon, // Biomass
   Scale as ScaleIcon, // ABW
   SyncAlt as SyncAltIcon, // FCR
   HealthAndSafety as HealthAndSafetyIcon, // Survival
   Event as EventIcon, // DOC
   Speed as SpeedIcon, // Health Score
-  Archive as ArchiveIcon, // Total Harvest
-  CheckCircle as CheckCircleIcon, // Final
-  DonutLarge as DonutLargeIcon, // Yield
-  Info as InfoIcon
+  Archive as ArchiveIcon, // Harvested Biomass, Final Harvested Biomass
+  CheckCircle as CheckCircleIcon, // Survival Rate
+  DonutLarge as DonutLargeIcon, // Feed Conversion Ratio
+  Info as InfoIcon // Info icon
 } from '@mui/icons-material';
 import {
   Typography,
@@ -26,10 +23,8 @@ import {
   Tab,
   Chip
 } from '@mui/material';
-import PropTypes from 'prop-types';
 import React, { useState } from 'react';
 
-import PredictiveInsight from '../dashboard/PredictiveInsight';
 import FeedLog from '../feeding/FeedLog';
 import GrowthSamplingLog from '../feeding/GrowthSamplingLog';
 import WaterQualityLog from '../water-quality/WaterQualityLog';
@@ -110,7 +105,7 @@ const finalReportKpis = [
   }
 ];
 
-const PondDetail = ({ pondId }) => {
+const PondDetail = () => {
   const [tabIndex, setTabIndex] = useState(0);
 
   // --- SIMULATE BACKEND DATA ---
@@ -168,7 +163,7 @@ const PondDetail = ({ pondId }) => {
       {kpiCards.length > 0 && (
         <Grid container spacing={2} sx={{ mb: 4 }}>
           {kpiCards.map((kpi, index) => (
-            <Grid item xs={12} sm={6} md={4} lg={2} key={index}>
+            <Grid item xs={12} sm={6} md={4} lg={2} key={`${kpi.title}-${index}`}>
               <Card elevation={3} sx={{ height: '100%' }}>
                 <CardContent
                   sx={{
@@ -266,6 +261,3 @@ const PondDetail = ({ pondId }) => {
 export default PondDetail;
 
 // Add PropTypes validation
-PondDetail.propTypes = {
-  pondId: PropTypes.string.isRequired
-};

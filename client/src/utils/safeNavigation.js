@@ -71,8 +71,7 @@ export const safeReload = (forceReload = false) => {
       window.location.replace(window.location.href);
     } catch (replaceError) {
       logger.error('URL replace failed:', replaceError);
-      // Last resort
-      window.location.href = window.location.href;
+      // Last resort: do nothing, as all attempts failed.
     }
   }
 };

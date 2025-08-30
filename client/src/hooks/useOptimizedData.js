@@ -88,6 +88,7 @@ export const useOptimizedApiData = (apiFunction, dependencies = [], options = {}
       // Performance logging
       if (enablePerformanceLogging) {
         const endTime = performance.now();
+        // eslint-disable-next-line no-console
         console.log(`🚀 API call completed in ${(endTime - startTime).toFixed(2)}ms`);
       }
 
@@ -586,9 +587,11 @@ const compareValues = (a, b, direction) => {
   return 0;
 };
 
-export default {
+const optimizedDataHooks = {
   useOptimizedApiData,
   useOptimizedList,
   useOptimizedPagination,
   useOptimizedSorting
 };
+
+export default optimizedDataHooks;

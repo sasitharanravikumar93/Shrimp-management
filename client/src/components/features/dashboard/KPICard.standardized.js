@@ -1,7 +1,6 @@
 import {
   TrendingUp as TrendingUpIcon,
-  TrendingDown as TrendingDownIcon,
-  TrendingFlat as TrendingFlatIcon
+  TrendingDown as TrendingDownIcon
 } from '@mui/icons-material';
 import {
   Card,
@@ -19,6 +18,33 @@ import { useTranslation } from 'react-i18next';
 
 import { useStableMemo } from '../../../utils/performanceOptimization';
 import { kpiCardPropTypes, kpiCardDefaultProps } from '../../../utils/propTypes';
+
+const KPI_CARD_SIZES = {
+  small: {
+    icon: 14,
+    progress: 6,
+    circularProgress: 16,
+    padding: 1.5
+  },
+  medium: {
+    icon: 16,
+    progress: 8,
+    circularProgress: 20,
+    padding: 2
+  },
+  large: {
+    icon: 18,
+    progress: 10,
+    circularProgress: 20,
+    padding: 3
+  }
+};
+
+const KPI_CARD_CONSTANTS = {
+  opacity: 0.6,
+  maxProgress: 100,
+  elevation: 3
+};
 
 /**
  * KPICard - Displays key performance indicator with standardized prop interface
@@ -98,7 +124,12 @@ const KPICard = memo(
 
       const iconProps = {
         sx: {
-          fontSize: size === 'small' ? 14 : size === 'large' ? 18 : 16,
+          fontSize:
+            size === 'small'
+              ? KPI_CARD_SIZES.small.icon
+              : size === 'large'
+              ? KPI_CARD_SIZES.large.icon
+              : KPI_CARD_SIZES.medium.icon,
           color: change > 0 ? 'success.main' : 'error.main'
         }
       };
@@ -174,7 +205,7 @@ const KPICard = memo(
             height: '100%',
             display: 'flex',
             flexDirection: 'column',
-            opacity: disabled ? 0.6 : 1,
+            opacity: disabled ? KPI_CARD_CONSTANTS.opacity : 1,
             cursor: onClick && !disabled && !loading ? 'pointer' : 'default',
             transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
             '&:hover':
@@ -197,7 +228,12 @@ const KPICard = memo(
           <CardContent
             sx={{
               flexGrow: 1,
-              p: size === 'small' ? 1.5 : size === 'large' ? 3 : 2
+              p:
+                size === 'small'
+                  ? KPI_CARD_SIZES.small.padding
+                  : size === 'large'
+                  ? KPI_CARD_SIZES.large.padding
+                  : KPI_CARD_SIZES.medium.padding
             }}
           >
             <Box
@@ -241,7 +277,13 @@ const KPICard = memo(
                   }}
                 >
                   {loading ? (
-                    <CircularProgress size={size === 'small' ? 16 : 20} />
+                    <CircularProgress
+                      size={
+                        size === 'small'
+                          ? KPI_CARD_SIZES.small.circularProgress
+                          : KPI_CARD_SIZES.medium.circularProgress
+                      }
+                    />
                   ) : (
                     formattedValue
                   )}
@@ -285,11 +327,16 @@ const KPICard = memo(
               <Box sx={{ mt: 2 }}>
                 <LinearProgress
                   variant='determinate'
-                  value={Math.min(Math.max(progressValue, 0), 100)}
+                  value={Math.min(Math.max(progressValue, 0), KPI_CARD_CONSTANTS.maxProgress)}
                   color={progressColor}
                   sx={{
                     borderRadius: 2,
-                    height: size === 'small' ? 6 : size === 'large' ? 10 : 8
+                    height:
+                      size === 'small'
+                        ? KPI_CARD_SIZES.small.progress
+                        : size === 'large'
+                        ? KPI_CARD_SIZES.large.progress
+                        : KPI_CARD_SIZES.medium.progress
                   }}
                 />
                 <Typography

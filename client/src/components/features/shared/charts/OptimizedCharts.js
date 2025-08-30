@@ -360,7 +360,7 @@ export const OptimizedTooltip = memo(
     const formattedPayload = useStableMemo(() => {
       if (!payload || !payload.length) return [];
 
-      return payload.map((entry, index) => ({
+      return payload.map((entry, _index) => ({
         ...entry,
         formattedValue: formatter ? formatter(entry.value, entry.name, entry) : entry.value
       }));

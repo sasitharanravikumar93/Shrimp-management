@@ -1,6 +1,7 @@
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import PropTypes from 'prop-types';
 import React from 'react';
 
 import QuickActions from './QuickActions';
@@ -10,6 +11,10 @@ const theme = createTheme();
 
 // Wrapper component to provide theme
 const WithTheme = ({ children }) => <ThemeProvider theme={theme}>{children}</ThemeProvider>;
+
+WithTheme.propTypes = {
+  children: PropTypes.node.isRequired
+};
 
 describe('QuickActions', () => {
   const mockOnActionClick = jest.fn();

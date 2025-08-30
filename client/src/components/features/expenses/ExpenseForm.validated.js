@@ -11,6 +11,7 @@ import {
   Box,
   Chip
 } from '@mui/material';
+import PropTypes from 'prop-types';
 import React, { useEffect } from 'react';
 
 import { useSeason } from '../context/SeasonContext';
@@ -112,7 +113,6 @@ const ExpenseFormValidated = ({ open, onClose, onSave, expense }) => {
 
   // Handle category change and reset dependent fields
   const handleCategoryChange = event => {
-    const newCategory = event.target.value;
     handleChange('category')(event);
 
     // Reset dependent fields when category changes
@@ -400,6 +400,27 @@ const ExpenseFormValidated = ({ open, onClose, onSave, expense }) => {
 };
 
 export default ExpenseFormValidated;
+
+ExpenseFormValidated.propTypes = {
+  open: PropTypes.bool.isRequired,
+  onClose: PropTypes.func.isRequired,
+  onSave: PropTypes.func.isRequired,
+  expense: PropTypes.shape({
+    _id: PropTypes.string,
+    date: PropTypes.string,
+    amount: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+    category: PropTypes.string,
+    subcategory: PropTypes.string,
+    description: PropTypes.string,
+    pondId: PropTypes.string,
+    employeeId: PropTypes.string,
+    seasonId: PropTypes.string
+  })
+};
+
+ExpenseFormValidated.defaultProps = {
+  expense: null
+};
 
 /**
  * Benefits of Data Validation Integration:

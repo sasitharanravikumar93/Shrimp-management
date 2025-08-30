@@ -116,7 +116,6 @@ const WaterQualityViewPage = () => {
 
   const handleExport = () => {
     // Implementation for exporting data would go here
-    console.log('Exporting data');
   };
 
   const formatTime = time => {

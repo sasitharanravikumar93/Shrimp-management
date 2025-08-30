@@ -4,7 +4,9 @@ import { motion } from 'framer-motion';
 import PropTypes from 'prop-types';
 import React from 'react';
 
-const HarvestProjection = ({ currentWeight, targetWeight, growthRate, startDate, pondName }) => {
+const HarvestProjection = ({ currentWeight, targetWeight, growthRate, pondName }) => {
+  const PERCENTAGE_MULTIPLIER = 100;
+
   // Calculate projected harvest date
   const calculateHarvestProjection = () => {
     if (!currentWeight || !targetWeight || !growthRate) return null;
@@ -20,7 +22,10 @@ const HarvestProjection = ({ currentWeight, targetWeight, growthRate, startDate,
     return {
       daysToHarvest,
       projectedDate: projectedDate.toLocaleDateString(),
-      progress: Math.min(100, (currentWeight / targetWeight) * 100)
+      progress: Math.min(
+        PERCENTAGE_MULTIPLIER,
+        (currentWeight / targetWeight) * PERCENTAGE_MULTIPLIER
+      )
     };
   };
 
@@ -102,6 +107,5 @@ HarvestProjection.propTypes = {
   currentWeight: PropTypes.number,
   targetWeight: PropTypes.number,
   growthRate: PropTypes.number,
-  startDate: PropTypes.instanceOf(Date),
   pondName: PropTypes.string
 };

@@ -32,7 +32,7 @@ export const useCachedData = (key, fetcher, options = {}) => {
     category = CacheConfig.CATEGORIES.API_RESPONSES,
     dependencies = [],
     enabled = true,
-    suspense = false,
+    _suspense = false,
     onSuccess = null,
     onError = null,
     retryCount = 3,
@@ -110,7 +110,7 @@ export const useCachedData = (key, fetcher, options = {}) => {
   // Fetch data when key or dependencies change
   useEffect(() => {
     fetchData();
-  }, [fetchData, ...dependencies]);
+  }, [fetchData, ...dependencies]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Manual refetch function
   const refetch = useCallback(() => {

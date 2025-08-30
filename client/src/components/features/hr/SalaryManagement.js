@@ -40,7 +40,7 @@ const SalaryManagement = () => {
   const [editingEmployee, setEditingEmployee] = useState(null);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
 
-  const { data: employees, loading, refetch } = useApiData(getEmployees, []);
+  const { data: employees, refetch } = useApiData(getEmployees, []);
   const { mutate: createEmployeeMutation } = useApiMutation(createEmployee);
   const { mutate: updateEmployeeMutation } = useApiMutation(updateEmployee);
   const { mutate: deleteEmployeeMutation } = useApiMutation(deleteEmployee);

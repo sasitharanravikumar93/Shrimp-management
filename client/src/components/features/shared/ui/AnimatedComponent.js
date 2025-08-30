@@ -1,11 +1,14 @@
 import { motion, useAnimation } from 'framer-motion';
+import PropTypes from 'prop-types';
 import React, { useEffect, useRef } from 'react';
+
+const DEFAULT_ANIMATION_DURATION = 0.5;
 
 const AnimatedComponent = ({
   children,
   animationType = 'fadeIn',
   delay = 0,
-  duration = 0.5,
+  duration = DEFAULT_ANIMATION_DURATION,
   ...props
 }) => {
   const controls = useAnimation();
@@ -67,3 +70,10 @@ const AnimatedComponent = ({
 };
 
 export default AnimatedComponent;
+
+AnimatedComponent.propTypes = {
+  children: PropTypes.node.isRequired,
+  animationType: PropTypes.string,
+  delay: PropTypes.number,
+  duration: PropTypes.number
+};

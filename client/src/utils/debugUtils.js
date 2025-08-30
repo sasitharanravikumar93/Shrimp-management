@@ -7,6 +7,11 @@ import React from 'react';
 
 import { LOG_LEVELS } from './logger';
 
+const DEFAULT_LOG_LIMIT = 100;
+const MAX_STRINGIFIED_LENGTH = 200;
+const RECENT_ACTIONS_LIMIT = 5;
+const RECENT_NETWORK_CALLS_LIMIT = 3;
+
 // ===================
 // DEBUG CONFIGURATION
 // ===================
@@ -62,7 +67,7 @@ class DebugStore {
       filtered = filtered.filter(entry => entry.level >= filter.level);
     }
 
-    return filtered.slice(-filter.limit || 100);
+    return filtered.slice(-filter.limit || DEFAULT_LOG_LIMIT);
   }
 
   clear() {
@@ -151,7 +156,7 @@ export class ComponentDebugger {
       } else if (React.isValidElement(value)) {
         sanitized[key] = '[React Element]';
       } else if (value && typeof value === 'object') {
-        sanitized[key] = JSON.stringify(value, null, 2).substring(0, 200);
+        sanitized[key] = JSON.stringify(value, null, 2).substring(0, MAX_STRINGIFIED_LENGTH);
       } else {
         sanitized[key] = value;
       }
@@ -422,8 +427,8 @@ export class ErrorContextEnhancer {
 
     // Get recent debug entries for context
     const recentEntries = debugStore.getEntries({ limit: 20 });
-    const recentActions = debugStore.userActions.slice(-5);
-    const recentNetworkCalls = debugStore.networkCalls.slice(-3);
+    const recentActions = debugStore.userActions.slice(-RECENT_ACTIONS_LIMIT);
+    const recentNetworkCalls = debugStore.networkCalls.slice(-RECENT_NETWORK_CALLS_LIMIT);
 
     // Create enhanced error with debug context
     const enhancedError = new Error(error.message);
@@ -499,6 +504,7 @@ export class DebugConsole {
       disableVerbose: () => this.disableVerboseLogging()
     };
 
+    // eslint-disable-next-line no-console
     console.log('🐛 Debug console enabled. Use window.__DEBUG__ for debugging tools.');
   }
 
@@ -529,6 +535,7 @@ export class DebugConsole {
     DEBUG_CONFIG.enableStateDebugging = true;
     DEBUG_CONFIG.enableNetworkDebugging = true;
     DEBUG_CONFIG.enablePerformanceMonitoring = true;
+    // eslint-disable-next-line no-console
     console.log('🔊 Verbose debugging enabled');
   }
 
@@ -537,6 +544,7 @@ export class DebugConsole {
     DEBUG_CONFIG.enableStateDebugging = false;
     DEBUG_CONFIG.enableNetworkDebugging = false;
     DEBUG_CONFIG.enablePerformanceMonitoring = false;
+    // eslint-disable-next-line no-console
     console.log('🔇 Verbose debugging disabled');
   }
 }
@@ -556,7 +564,7 @@ if (DEBUG_CONFIG.enabled) {
 
 export { debugStore, DEBUG_CONFIG };
 
-export default {
+const debugUtils = {
   PerformanceDebugger,
   NetworkDebugger,
   UserActionDebugger,
@@ -565,3 +573,5 @@ export default {
   debugStore,
   config: DEBUG_CONFIG
 };
+
+export default debugUtils;

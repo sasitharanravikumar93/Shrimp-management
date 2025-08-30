@@ -13,6 +13,7 @@ import {
   useMediaQuery
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
+import PropTypes from 'prop-types';
 import React from 'react';
 
 const ResponsiveTable = ({ columns, data, onRowClick, rowKey }) => {
@@ -88,3 +89,16 @@ const ResponsiveTable = ({ columns, data, onRowClick, rowKey }) => {
 };
 
 export default ResponsiveTable;
+
+ResponsiveTable.propTypes = {
+  columns: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      label: PropTypes.string.isRequired,
+      render: PropTypes.func
+    })
+  ).isRequired,
+  data: PropTypes.arrayOf(PropTypes.object).isRequired,
+  onRowClick: PropTypes.func,
+  rowKey: PropTypes.string
+};

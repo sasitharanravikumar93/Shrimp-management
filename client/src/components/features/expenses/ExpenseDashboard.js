@@ -115,7 +115,7 @@ const ExpenseDashboard = () => {
                 nameKey='category'
               >
                 {summary?.summaryByCategory.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  <Cell key={entry.category} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
               <Tooltip

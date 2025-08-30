@@ -452,38 +452,52 @@ class EnvironmentConfig {
   }
 
   printReport() {
+    // eslint-disable-next-line no-console
     console.group('🔧 Environment Configuration Report');
 
+    // eslint-disable-next-line no-console
     console.log('Environment:', this.config.NODE_ENV);
+    // eslint-disable-next-line no-console
     console.log('Valid:', this.isValid);
 
     if (this.errors.length > 0) {
+      // eslint-disable-next-line no-console
       console.group('❌ Errors');
       this.errors.forEach(error => {
+        // eslint-disable-next-line no-console
         console.error(`${error.key}: ${error.message}`);
         if (error.description) {
+          // eslint-disable-next-line no-console
           console.log(`  Description: ${error.description}`);
         }
       });
+      // eslint-disable-next-line no-console
       console.groupEnd();
     }
 
     if (this.warnings.length > 0) {
+      // eslint-disable-next-line no-console
       console.group('⚠️ Warnings');
       this.warnings.forEach(warning => {
+        // eslint-disable-next-line no-console
         console.warn(`${warning.key}: ${warning.message}`);
         if (warning.description) {
+          // eslint-disable-next-line no-console
           console.log(`  Description: ${warning.description}`);
         }
       });
+      // eslint-disable-next-line no-console
       console.groupEnd();
     }
 
     if (this.isDevelopment()) {
+      // eslint-disable-next-line no-console
       console.group('📋 Current Configuration');
       Object.entries(this.config).forEach(([key, value]) => {
+        // eslint-disable-next-line no-console
         console.log(`${key}:`, value);
       });
+      // eslint-disable-next-line no-console
       console.groupEnd();
     }
 
@@ -546,6 +560,7 @@ if (config.isDevelopment() && !config.isTest()) {
 
 // Throw error if configuration is invalid
 if (!config.isValid) {
+  // eslint-disable-next-line no-console
   console.error('❌ Invalid environment configuration');
   config.printReport();
 

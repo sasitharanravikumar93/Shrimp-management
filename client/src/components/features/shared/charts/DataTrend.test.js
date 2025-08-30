@@ -2,7 +2,7 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 
-import { testDataFactories, renderUtils } from '../utils/testUtils';
+import { renderUtils } from '../utils/testUtils';
 
 import DataTrend from './DataTrend';
 

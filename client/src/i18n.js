@@ -4,6 +4,7 @@ import HttpBackend from 'i18next-http-backend';
 import { initReactI18next } from 'react-i18next';
 
 // Initialize i18n
+// eslint-disable-next-line import/no-named-as-default-member
 i18n
   // Load translations from public/locales
   .use(HttpBackend)

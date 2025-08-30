@@ -4,39 +4,23 @@
  */
 
 import '@testing-library/jest-dom';
-import { testSetup } from './utils/testUtils';
 
 // Increase test timeout for async operations
 jest.setTimeout(10000);
 
-// Global test environment setup
-let envCleanup;
-
-beforeAll(() => {
-  envCleanup = testSetup.setupTestEnvironment();
-});
-
-afterAll(() => {
-  if (envCleanup) {
-    envCleanup.cleanup();
-  }
-});
-
 // Mock common browser APIs
 global.matchMedia =
   global.matchMedia ||
-  function (query) {
-    return {
-      matches: false,
-      media: query,
-      onchange: null,
-      addListener: jest.fn(), // deprecated
-      removeListener: jest.fn(), // deprecated
-      addEventListener: jest.fn(),
-      removeEventListener: jest.fn(),
-      dispatchEvent: jest.fn()
-    };
-  };
+  (query => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: jest.fn(),
+    removeListener: jest.fn(),
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    dispatchEvent: jest.fn()
+  }));
 
 // Mock window.location
 delete window.location;
@@ -160,7 +144,7 @@ global.FileReader =
       this.onprogress = null;
     }
 
-    readAsText(file) {
+    readAsText(_file) {
       setTimeout(() => {
         this.readyState = 2;
         this.result = 'mock file content';
@@ -168,7 +152,7 @@ global.FileReader =
       }, 0);
     }
 
-    readAsDataURL(file) {
+    readAsDataURL(_file) {
       setTimeout(() => {
         this.readyState = 2;
         this.result = 'data:text/plain;base64,bW9jayBmaWxlIGNvbnRlbnQ=';
@@ -240,7 +224,7 @@ process.on('unhandledRejection', (reason, promise) => {
 
 // Add custom matchers for better assertions
 expect.extend({
-  toBeWithinRange(received, floor, ceiling) {
+  toBeWithinRange: (received, floor, ceiling) => {
     const pass = received >= floor && received <= ceiling;
     if (pass) {
       return {
@@ -254,7 +238,7 @@ expect.extend({
     };
   },
 
-  toHaveBeenCalledWithinTime(mockFn, timeMs) {
+  toHaveBeenCalledWithinTime: (mockFn, timeMs) => {
     const calls = mockFn.mock.calls;
     if (calls.length === 0) {
       return {

@@ -1,7 +1,8 @@
 import { TextField } from '@mui/material';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import PropTypes from 'prop-types';
 import React from 'react';
 
 import * as useApiHook from '../hooks/useApi';
@@ -13,11 +14,18 @@ jest.mock('../hooks/useApi');
 
 // Mock MUI date pickers
 jest.mock('@mui/x-date-pickers/LocalizationProvider', () => {
-  return ({ children }) => <div data-testid='localization-provider'>{children}</div>;
+  const MockLocalizationProvider = ({ children }) => (
+    <div data-testid='localization-provider'>{children}</div>
+  );
+  MockLocalizationProvider.displayName = 'MockLocalizationProvider';
+  MockLocalizationProvider.propTypes = {
+    children: PropTypes.node.isRequired
+  };
+  return MockLocalizationProvider;
 });
 
-jest.mock('@mui/x-date-pickers/DatePicker', () => ({
-  DatePicker: ({ renderInput, value, onChange }) => {
+jest.mock('@mui/x-date-pickers/DatePicker', () => {
+  const MockDatePicker = ({ renderInput, value, onChange }) => {
     const view = renderInput({ inputProps: {} });
     return (
       <TextField
@@ -27,14 +35,25 @@ jest.mock('@mui/x-date-pickers/DatePicker', () => ({
         data-testid='date-picker'
       />
     );
-  }
-}));
+  };
+  MockDatePicker.displayName = 'MockDatePicker';
+  MockDatePicker.propTypes = {
+    renderInput: PropTypes.func.isRequired,
+    value: PropTypes.instanceOf(Date),
+    onChange: PropTypes.func.isRequired
+  };
+  return { DatePicker: MockDatePicker };
+});
 
 // Create a theme for testing
 const theme = createTheme();
 
 // Wrapper component to provide theme
 const WithProviders = ({ children }) => <ThemeProvider theme={theme}>{children}</ThemeProvider>;
+
+WithProviders.propTypes = {
+  children: PropTypes.node.isRequired
+};
 
 describe('InventoryForm', () => {
   const mockOnClose = jest.fn();

@@ -8,6 +8,7 @@ import {
 } from '@mui/icons-material';
 import { Card, CardContent, Typography, Box, Grid } from '@mui/material';
 import { motion } from 'framer-motion';
+import PropTypes from 'prop-types';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -118,6 +119,10 @@ const QuickActions = ({ onActionClick }) => {
       </Card>
     </motion.div>
   );
+};
+
+QuickActions.propTypes = {
+  onActionClick: PropTypes.func
 };
 
 export default QuickActions;

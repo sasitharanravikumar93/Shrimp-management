@@ -5,6 +5,7 @@
 
 import { Box, Container, Grid, Stack } from '@mui/material';
 import { styled } from '@mui/material/styles';
+import PropTypes from 'prop-types';
 import React from 'react';
 
 import { designTokens } from '../theme/designTokens';
@@ -119,6 +120,13 @@ export const PageLayout = ({
   );
 };
 
+PageLayout.propTypes = {
+  children: PropTypes.node.isRequired,
+  maxWidth: PropTypes.string,
+  padding: PropTypes.string,
+  background: PropTypes.string
+};
+
 // Card Layout with consistent spacing
 export const CardLayout = styled(Box)(({ theme, padding = 'lg', variant = 'default' }) => ({
   padding: theme.spacing(getResponsiveSpacing(padding) / MATERIAL_UI_SPACING_UNIT),
@@ -170,6 +178,16 @@ export const TwoColumnLayout = ({
   </Box>
 );
 
+TwoColumnLayout.propTypes = {
+  left: PropTypes.node.isRequired,
+  right: PropTypes.node.isRequired,
+  leftWidth: PropTypes.string,
+  rightWidth: PropTypes.string,
+  gap: PropTypes.string,
+  breakpoint: PropTypes.string,
+  reverseOnMobile: PropTypes.bool
+};
+
 // Sidebar Layout
 // eslint-disable-next-line react/prop-types
 export const SidebarLayout = ({
@@ -215,6 +233,15 @@ export const SidebarLayout = ({
   </Box>
 );
 
+SidebarLayout.propTypes = {
+  sidebar: PropTypes.node.isRequired,
+  content: PropTypes.node.isRequired,
+  sidebarWidth: PropTypes.string,
+  gap: PropTypes.string,
+  sidebarPosition: PropTypes.string,
+  collapsible: PropTypes.bool
+};
+
 // Centered Layout
 // eslint-disable-next-line react/prop-types
 export const CenteredLayout = ({
@@ -242,6 +269,13 @@ export const CenteredLayout = ({
     </Box>
   </Box>
 );
+
+CenteredLayout.propTypes = {
+  children: PropTypes.node.isRequired,
+  maxWidth: PropTypes.string,
+  minHeight: PropTypes.string,
+  padding: PropTypes.string
+};
 
 // Grid Layout with responsive columns
 // eslint-disable-next-line react/prop-types
@@ -273,6 +307,19 @@ export const ResponsiveGrid = ({
   </Box>
 );
 
+ResponsiveGrid.propTypes = {
+  children: PropTypes.node.isRequired,
+  columns: PropTypes.shape({
+    xs: PropTypes.number,
+    sm: PropTypes.number,
+    md: PropTypes.number,
+    lg: PropTypes.number,
+    xl: PropTypes.number
+  }),
+  gap: PropTypes.string,
+  minItemWidth: PropTypes.string
+};
+
 // Masonry Layout (CSS Grid based)
 // eslint-disable-next-line react/prop-types
 export const MasonryGrid = ({ children, columns = { xs: 1, sm: 2, md: 3 }, gap = 'md' }) => (
@@ -298,6 +345,17 @@ export const MasonryGrid = ({ children, columns = { xs: 1, sm: 2, md: 3 }, gap =
   </Box>
 );
 
+MasonryGrid.propTypes = {
+  children: PropTypes.node.isRequired,
+  columns: PropTypes.shape({
+    xs: PropTypes.number,
+    sm: PropTypes.number,
+    md: PropTypes.number,
+    lg: PropTypes.number
+  }),
+  gap: PropTypes.string
+};
+
 // Sticky Container
 // eslint-disable-next-line react/prop-types
 export const StickyContainer = ({ children, top = 0, zIndex = DEFAULT_Z_INDEX }) => (
@@ -314,6 +372,12 @@ export const StickyContainer = ({ children, top = 0, zIndex = DEFAULT_Z_INDEX })
     {children}
   </Box>
 );
+
+StickyContainer.propTypes = {
+  children: PropTypes.node.isRequired,
+  top: PropTypes.number,
+  zIndex: PropTypes.number
+};
 
 // Layout utilities for consistent spacing
 export const layoutUtils = {

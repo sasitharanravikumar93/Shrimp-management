@@ -173,7 +173,6 @@ export const useCrudOperations = (apiMethods = {}, options = {}) => {
       setErrors(prev => ({ ...prev, [loadingKey]: null }));
 
       try {
-        let result;
         let optimisticUpdate = null;
 
         // Apply optimistic update for immediate UI feedback
@@ -193,7 +192,7 @@ export const useCrudOperations = (apiMethods = {}, options = {}) => {
         }
 
         // Perform actual operation
-        result = await operation();
+        const result = await operation();
 
         // Update state based on operation type
         switch (operationType) {
@@ -335,7 +334,7 @@ export const useSelection = (items = [], keyField = 'id') => {
     }
   }, [selectedIds, items.length, selectAll, selectNone]);
 
-  const isSelected = useCallback(id => selectedIds.has(id), []);
+  const isSelected = useCallback(id => selectedIds.has(id), [selectedIds]);
 
   const isAllSelected = useMemo(
     () => items.length > 0 && selectedIds.size === items.length,

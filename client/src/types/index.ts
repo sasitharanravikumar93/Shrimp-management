@@ -195,7 +195,7 @@ export interface FormFieldValidation {
   min?: number;
   max?: number;
   pattern?: RegExp;
-  custom?: (value: any) => string | null;
+  custom?: (_value: any) => string | null;
 }
 
 export interface FormField {
@@ -278,7 +278,7 @@ export interface ModalProps extends BaseComponentProps {
 }
 
 export interface FormProps extends BaseComponentProps {
-  onSubmit: (data: any) => void | Promise<void>;
+  onSubmit: (_data: any) => void | Promise<void>;
   initialData?: any;
   loading?: boolean;
   error?: string | null;
@@ -341,7 +341,7 @@ export interface SeasonContextType {
   selectedSeason: Season | null;
   loading: boolean;
   error: string | null;
-  selectSeason: (season: Season) => void;
+  selectSeason: (_season: Season) => void;
   refetch: () => Promise<void>;
 }
 
@@ -349,9 +349,9 @@ export interface UserContextType {
   user: User | null;
   isAuthenticated: boolean;
   loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (_email: string, _password: string) => Promise<void>;
   logout: () => void;
-  updateUser: (data: Partial<User>) => Promise<void>;
+  updateUser: (_data: Partial<User>) => Promise<void>;
 }
 
 // Hook Return Types
@@ -364,7 +364,7 @@ export interface UseApiDataReturn<T = any> {
 }
 
 export interface UseApiMutationReturn<T = any> {
-  mutate: (...args: any[]) => Promise<{ data: T | null; error: string | null }>;
+  mutate: (..._args: any[]) => Promise<{ data: T | null; error: string | null }>;
   loading: boolean;
   error: string | null;
 }

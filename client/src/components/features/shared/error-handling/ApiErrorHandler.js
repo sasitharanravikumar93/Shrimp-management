@@ -1,5 +1,4 @@
 import ErrorIcon from '@mui/icons-material/Error';
-import HomeIcon from '@mui/icons-material/Home';
 import NetworkIcon from '@mui/icons-material/NetworkCheck';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import WarningIcon from '@mui/icons-material/Warning';
@@ -11,7 +10,6 @@ import {
   Typography,
   Stack,
   Collapse,
-  IconButton,
   Card,
   CardContent
 } from '@mui/material';
