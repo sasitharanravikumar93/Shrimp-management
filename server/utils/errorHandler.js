@@ -313,7 +313,9 @@ const globalErrorHandler = (err, req, res, _next) => {
  * @returns {void}
  */
 const notFoundHandler = (req, res, next) => {
-  const error = new NotFoundError(`Route ${req.originalUrl} not found`);
+  // Create a proper NotFoundError with safe resource name, then update the message
+  const error = new NotFoundError('Route');
+  error.message = `Route ${req.originalUrl} not found`;
   next(error);
 };
 
