@@ -636,6 +636,115 @@ exports.getFilteredFeedInputs = asyncHandler(async (req, res) => {
   sendSuccessResponse(res, response, 'Filtered feed inputs retrieved successfully');
 });
 
+/**
+ * Get aggregated feed data for histogram chart
+ * @async
+ * @function getFeedHistogramData
+ * @param {object} req - Express request object
+ * @param {object} req.query - Query parameters
+ * @param {Date} req.query.startDate - Start date for range
+ * @param {Date} req.query.endDate - End date for range
+ * @param {string} [req.query.seasonId] - Optional season filter
+ * @param {string} [req.query.pondId] - Optional pond filter
+ * @param {object} res - Express response object
+ * @returns {Promise<void>} JSON response with histogram data
+ * @description Returns aggregated feed data grouped by date and feed type for chart visualization
+ */
+exports.getFeedHistogramData = async (req, res) => {
+  logger.info('Getting feed histogram data', { query: req.query });
+  try {
+    const { startDate, endDate, seasonId, pondId } = req.query;
+
+    if (!startDate || !endDate) {
+      return res.status(400).json({ message: 'Start date and end date are required' });
+    }
+
+    const query = {
+      date: {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate)
+      }
+    };
+
+    if (seasonId) {
+      query.seasonId = seasonId;
+    }
+
+    if (pondId) {
+      query.pondId = pondId;
+    }
+
+    const feedInputs = await FeedInput.find(query)
+      .populate('inventoryItemId', 'itemName itemType')
+      .sort({ date: 1, inventoryItemId: 1 });
+
+    // Aggregate data by date and feed type
+    const histogramData = {};
+    const feedTypes = new Set();
+
+    feedInputs.forEach(feed => {
+      const dateKey = feed.date.toISOString().split('T')[0];
+      const feedType = feed.inventoryItemId?.itemName || 'Unknown';
+
+      feedTypes.add(feedType);
+
+      if (!histogramData[dateKey]) {
+        histogramData[dateKey] = { date: dateKey };
+      }
+
+      if (!histogramData[dateKey][feedType]) {
+        histogramData[dateKey][feedType] = 0;
+      }
+
+      histogramData[dateKey][feedType] += feed.quantity;
+    });
+
+    // Convert to array format for charts
+    const data = Object.values(histogramData).sort((a, b) =>
+      new Date(a.date) - new Date(b.date)
+    );
+
+    // Fill in missing dates with zeros
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const completeData = [];
+    let currentDate = new Date(start);
+
+    while (currentDate <= end) {
+      const dateKey = currentDate.toISOString().split('T')[0];
+      const existingData = histogramData[dateKey] || { date: dateKey };
+
+      // Ensure all feed types have entries for this date
+      Array.from(feedTypes).forEach(type => {
+        if (!existingData[type]) {
+          existingData[type] = 0;
+        }
+      });
+
+      completeData.push(existingData);
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    // Calculate summary statistics
+    const summary = {
+      totalDays: completeData.length,
+      feedTypes: Array.from(feedTypes),
+      totalQuantity: feedInputs.reduce((sum, feed) => sum + feed.quantity, 0),
+      averageDaily: completeData.length > 0 ?
+        feedInputs.reduce((sum, feed) => sum + feed.quantity, 0) / completeData.length : 0
+    };
+
+    res.json({
+      data: completeData,
+      summary
+    });
+
+  } catch (error) {
+    logger.error('Error getting feed histogram data', { error: error.message, stack: error.stack });
+    res.status(500).json({ message: 'Error fetching feed histogram data' });
+  }
+};
+
 const { stringify } = require('csv-stringify');
 
 exports.exportFeedData = async (req, res) => {

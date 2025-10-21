@@ -45,7 +45,8 @@ export const SeasonProvider = ({ children }) => {
     selectedSeason: null
   });
 
-  const actions = createAsyncActions(dispatch);
+  // Memoize actions to prevent infinite re-renders
+  const actions = React.useMemo(() => createAsyncActions(dispatch), [dispatch]);
 
   // Enhanced actions for season management
   const selectSeason = useCallback(season => {
@@ -53,20 +54,37 @@ export const SeasonProvider = ({ children }) => {
   }, []);
 
   const fetchSeasons = useCallback(async () => {
-    actions.setLoading(true);
+    // Dispatch loading state
+    dispatch({ type: 'SET_LOADING', payload: true });
     try {
-      const data = await getSeasons();
-      actions.setData(data);
+      const response = await getSeasons();
+      console.log('SeasonContext: API Response:', response);
+      // Dispatch data - extract the data array from the API response
+      dispatch({ type: 'SET_DATA', payload: response.data || [] });
       // Set default season after data is loaded
       dispatch({ type: seasonActions.SET_DEFAULT_SEASON });
     } catch (err) {
-      actions.setError(err);
+      console.error('SeasonContext: API Error:', err);
+      // Dispatch error
+      dispatch({ type: 'SET_ERROR', payload: err });
     }
-  }, [actions]);
+  }, []); // No dependencies - won't cause infinite loop
 
+  // Only run once on mount, and if there's an error, allow manual refetch
   useEffect(() => {
-    fetchSeasons();
-  }, [fetchSeasons]);
+    console.log('SeasonContext: useEffect triggered');
+    console.log('SeasonContext: state.data:', state.data);
+    console.log('SeasonContext: state.error:', state.error);
+    if ((!state.data || state.data.length === 0) && !state.error) {
+      console.log('SeasonContext: Fetching seasons...');
+      fetchSeasons();
+    }
+  }, []); // Empty dependency array - only run once on mount
+
+  // Debug selectedSeason
+  useEffect(() => {
+    console.log('SeasonContext: selectedSeason changed:', state.selectedSeason);
+  }, [state.selectedSeason]);
 
   // Context value with standardized state structure
   const contextValue = {

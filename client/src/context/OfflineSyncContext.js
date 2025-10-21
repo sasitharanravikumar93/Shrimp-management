@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 
 import { processSyncQueue, getSyncQueueItems } from '../utils/offlineSync';
 
@@ -36,20 +36,8 @@ export const OfflineSyncProvider = ({ children }) => {
     loadSyncQueue();
   }, []);
 
-  // Process sync queue when coming online
-  useEffect(() => {
-    if (isOnline && syncQueue.length > 0 && !isSyncing) {
-      // Process queue with a delay to ensure connectivity
-      const timer = setTimeout(() => {
-        processQueue();
-      }, 2000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [isOnline, syncQueue, isSyncing, processQueue]);
-
   // Process sync queue
-  const processQueue = async () => {
+  const processQueue = useCallback(async () => {
     if (isSyncing) return;
 
     setIsSyncing(true);
@@ -58,9 +46,8 @@ export const OfflineSyncProvider = ({ children }) => {
       // This is a placeholder for the actual API call function
       // In a real implementation, you would pass the actual API call function
       const apiCall = async (endpoint, method, data) => {
-        const url = `${
-          process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001/api'
-        }${endpoint}`;
+        const url = `${process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001/api'
+          }${endpoint}`;
 
         const options = {
           method,
@@ -93,7 +80,19 @@ export const OfflineSyncProvider = ({ children }) => {
     } finally {
       setIsSyncing(false);
     }
-  };
+  }, [isSyncing]);
+
+  // Process sync queue when coming online
+  useEffect(() => {
+    if (isOnline && syncQueue.length > 0 && !isSyncing) {
+      // Process queue with a delay to ensure connectivity
+      const timer = setTimeout(() => {
+        processQueue();
+      }, 2000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isOnline, syncQueue, isSyncing, processQueue]);
 
   // Add item to sync queue
   const addToQueue = async (endpoint, method, data, identifier) => {

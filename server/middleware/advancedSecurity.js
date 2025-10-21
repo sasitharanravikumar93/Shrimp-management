@@ -20,13 +20,19 @@ const SECURITY_CONFIG = {
 };
 
 /**
- * IP blocking middleware
+ * IP blocking middleware (conditional based on environment)
  * @param {object} req - Express request object.
  * @param {object} res - Express response object.
  * @param {Function} next - Express next middleware function.
  * @returns {void}
  */
 const checkBlockedIPs = (req, res, next) => {
+  // Skip advanced security in development if disabled
+  if (process.env.NODE_ENV === 'development' &&
+    process.env.SECURITY_RATE_LIMIT_ENABLED === 'false') {
+    return next();
+  }
+
   const clientIP = req.ip || req.connection.remoteAddress;
 
   if (blockedIPs.has(clientIP)) {
@@ -43,13 +49,19 @@ const checkBlockedIPs = (req, res, next) => {
 };
 
 /**
- * Advanced threat detection middleware
+ * Advanced threat detection middleware (conditional based on environment)
  * @param {object} req - Express request object.
  * @param {object} res - Express response object.
  * @param {Function} next - Express next middleware function.
  * @returns {void}
  */
 const threatDetection = (req, res, next) => {
+  // Skip threat detection in development if disabled
+  if (process.env.NODE_ENV === 'development' &&
+    process.env.SECURITY_RATE_LIMIT_ENABLED === 'false') {
+    return next();
+  }
+
   const clientIP = req.ip || req.connection.remoteAddress;
   const userAgent = req.get('User-Agent') || '';
   const url = req.originalUrl;

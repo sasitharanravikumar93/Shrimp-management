@@ -29,55 +29,18 @@ const GlobalErrorModal = ({ open, onClose, error = null, showDetails = false, on
   };
 
   const getErrorEmoji = () => {
-    if (!error) return '❌';
-    const message = error.message?.toLowerCase() || '';
-    const status = error.status || 0;
-
-    if (status >= 400 && status < 500) return '🔍';
-    if (status >= 500) return '🔧';
-    if (message.includes('network') || message.includes('fetch') || message.includes('connection'))
-      return '🌐';
-    if (message.includes('timeout')) return '⏱️';
-    if (message.includes('unauthorized') || message.includes('login')) return '🔐';
-    if (message.includes('forbidden')) return '🚫';
-    if (message.includes('offline')) return '📡';
-
+    // Always return consistent emoji to prevent exposing technical details
     return '⚠️';
   };
 
   const getErrorTitle = () => {
-    if (!error) return t('error_modal_title', 'Something went wrong');
-
-    const message = error.message?.toLowerCase() || '';
-    const status = error.status || 0;
-
-    if (status >= 400 && status < 500) return t('error_client_title', 'Request Error');
-    if (status >= 500) return t('error_server_title', 'Server Error');
-    if (message.includes('network') || message.includes('fetch') || message.includes('connection'))
-      return t('error_network_title', 'Connection Problem');
-    if (message.includes('timeout')) return t('error_timeout_title', 'Request Timeout');
-    if (message.includes('unauthorized') || message.includes('login'))
-      return t('error_auth_title', 'Authentication Required');
-    if (message.includes('forbidden')) return t('error_forbidden_title', 'Access Denied');
-    if (message.includes('offline')) return t('error_offline_title', 'Offline Mode');
-
+    // Always return generic title to prevent exposing technical details to users
     return t('error_modal_title', 'Something went wrong');
   };
 
   const isRetryableError = () => {
-    if (!error) return false;
-    const status = error.status || 0;
-    const message = error.message?.toLowerCase() || '';
-
-    // Retry for network and server errors
-    return (
-      status >= 500 ||
-      message.includes('network') ||
-      message.includes('fetch') ||
-      message.includes('timeout') ||
-      message.includes('connection') ||
-      message.includes('offline')
-    );
+    // All errors are potentially retryable for user experience
+    return true;
   };
 
   return (
@@ -114,42 +77,7 @@ const GlobalErrorModal = ({ open, onClose, error = null, showDetails = false, on
 
         <p style={{ color: '#666', marginBottom: '1.5rem' }}>
           {(() => {
-            if (!error)
-              return t(
-                'error_modal_message',
-                "We've encountered an unexpected error. No need to worry - our team has been notified and is working on it."
-              );
-
-            const status = error.status || 0;
-            const message = error.message?.toLowerCase() || '';
-
-            if (status >= 400 && status < 500)
-              return t(
-                'error_client_message',
-                'The request could not be processed. Please check your input and try again.'
-              );
-            if (status >= 500)
-              return t(
-                'error_server_message',
-                'Our servers are experiencing issues. Please try again in a few moments.'
-              );
-            if (
-              message.includes('network') ||
-              message.includes('fetch') ||
-              message.includes('connection')
-            )
-              return t(
-                'error_network_message',
-                'Unable to connect to our servers. Please check your internet connection.'
-              );
-            if (message.includes('unauthorized') || message.includes('login'))
-              return t('error_auth_message', 'Please log in again to continue.');
-            if (message.includes('forbidden'))
-              return t(
-                'error_forbidden_message',
-                "You don't have permission to perform this action."
-              );
-
+            // Always return generic message to prevent exposing technical details to users
             return t(
               'error_modal_message',
               "We've encountered an unexpected error. No need to worry - our team has been notified and is working on it."

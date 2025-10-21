@@ -21,6 +21,38 @@ const config = getConfig();
  * @returns {Promise<void>}
  */
 const authenticate = asyncHandler(async (req, res, next) => {
+  // Check if we should bypass authentication in development mode
+  if (config.server.env === 'development' && process.env.DEV_BYPASS_AUTH === 'true') {
+    // Create a mock admin user for development
+    req.user = {
+      _id: 'dev-user-id',
+      username: 'devuser',
+      email: 'dev@example.com',
+      firstName: 'Development',
+      lastName: 'User',
+      role: 'admin',
+      language: 'en',
+      isActive: true,
+      isLocked: false,
+      permissions: [
+        'read:ponds', 'write:ponds', 'delete:ponds',
+        'read:seasons', 'write:seasons', 'delete:seasons',
+        'read:feedInputs', 'write:feedInputs', 'delete:feedInputs',
+        'read:growthSamplings', 'write:growthSamplings', 'delete:growthSamplings',
+        'read:waterQualityInputs', 'write:waterQualityInputs', 'delete:waterQualityInputs',
+        'read:expenses', 'write:expenses', 'delete:expenses',
+        'read:inventory', 'write:inventory', 'delete:inventory',
+        'read:nurseryBatches', 'write:nurseryBatches', 'delete:nurseryBatches',
+        'read:employees', 'write:employees', 'delete:employees',
+        'read:events', 'write:events', 'delete:events',
+        'read:farm', 'write:farm', 'delete:farm',
+        'read:settings', 'write:settings', 'delete:settings',
+        'read:historicalInsights', 'write:historicalInsights', 'delete:historicalInsights'
+      ]
+    };
+    return next();
+  }
+
   let token;
 
   // Get token from header

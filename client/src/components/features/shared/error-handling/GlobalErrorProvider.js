@@ -36,78 +36,13 @@ const sanitizeErrorForUser = error => {
     return new Error('An unexpected error occurred. Please try again later.');
   }
 
-  // Clone the error to avoid modifying the original
-  const sanitizedError = new Error(error.message);
+  // Always return a generic error message to prevent technical details from being shown to users
+  const sanitizedError = new Error('An unexpected error occurred. Please try again or refresh the page.');
 
-  // Keep useful stack trace for development debugging
+  // Keep useful original error for development debugging only
   if (process.env.NODE_ENV === 'development') {
+    sanitizedError.originalMessage = error.message;
     sanitizedError.stack = error.stack;
-  }
-
-  const message = error.message?.toLowerCase() || '';
-
-  // Map technical errors to user-friendly messages
-  if (
-    message.includes('network') ||
-    message.includes('fetch') ||
-    message.includes('failed to fetch') ||
-    message.includes('offline')
-  ) {
-    sanitizedError.message =
-      'Unable to connect to the server. Please check your internet connection and try again.';
-  } else if (message.includes('timeout')) {
-    sanitizedError.message = 'The request timed out. Please try again.';
-  } else if (
-    message.includes('unauthorized') ||
-    message.includes('401') ||
-    message.includes('authentication') ||
-    message.includes('login')
-  ) {
-    sanitizedError.message = 'Your session has expired. Please log in again.';
-  } else if (
-    message.includes('forbidden') ||
-    message.includes('403') ||
-    message.includes('access denied')
-  ) {
-    sanitizedError.message = 'You do not have permission to perform this action.';
-  } else if (message.includes('not found') || message.includes('404')) {
-    sanitizedError.message = 'The requested information could not be found.';
-  } else if (
-    message.includes('validation') ||
-    message.includes('invalid') ||
-    message.includes('format') ||
-    message.includes('required')
-  ) {
-    sanitizedError.message =
-      'Some information you entered is not correct. Please check and try again.';
-  } else if (
-    message.includes('conflict') ||
-    message.includes('409') ||
-    message.includes('already exists') ||
-    message.includes('duplicate')
-  ) {
-    sanitizedError.message =
-      'This action would create a duplicate entry. Please use different information.';
-  } else if (
-    message.includes('server') ||
-    message.includes('internal') ||
-    message.includes('500') ||
-    message.includes('unexpected')
-  ) {
-    sanitizedError.message =
-      'A temporary server issue occurred. Please try again in a few minutes.';
-  } else if (
-    message.includes('quota') ||
-    message.includes('limit') ||
-    message.includes('too many requests')
-  ) {
-    sanitizedError.message = 'Too many requests. Please wait a moment and try again.';
-  } else if (message.includes('file') && message.includes('size')) {
-    sanitizedError.message = 'The file you selected is too large. Please choose a smaller file.';
-  } else {
-    // Default generic message for any other error
-    sanitizedError.message =
-      'Something went wrong. Please try again or contact support if the problem continues.';
   }
 
   return sanitizedError;
@@ -220,9 +155,13 @@ export const withGlobalErrorHandling = (Component, options = {}) => {
           const errorArg = args.find(arg => arg instanceof Error || arg?.message || arg?.stack);
 
           if (errorArg instanceof Error) {
-            showError(errorArg);
+            // Sanitize error before showing
+            const sanitizedError = new Error('An unexpected error occurred. Please try again or refresh the page.');
+            showError(sanitizedError);
           } else if (typeof errorArg === 'string' && errorArg.includes('Error')) {
-            showError(new Error(errorArg));
+            // Show generic message instead of the actual error
+            const sanitizedError = new Error('An unexpected error occurred. Please try again or refresh the page.');
+            showError(sanitizedError);
           } else if (
             typeof errorArg === 'string' &&
             (errorArg.toLowerCase().includes('error') ||
@@ -232,7 +171,9 @@ export const withGlobalErrorHandling = (Component, options = {}) => {
               errorArg.toLowerCase().includes('connection') ||
               errorArg.toLowerCase().includes('timeout'))
           ) {
-            showError(new Error(errorArg));
+            // Show generic message instead of the actual error
+            const sanitizedError = new Error('An unexpected error occurred. Please try again or refresh the page.');
+            showError(sanitizedError);
           }
         };
 

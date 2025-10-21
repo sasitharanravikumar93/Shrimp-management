@@ -7,6 +7,29 @@ const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
 const { getConfig } = require('../config');
+
+/**
+ * Conditional rate limiting middleware based on environment and config
+ */
+const createConditionalRateLimiter = (rateLimiterFunc) => {
+  return (req, res, next) => {
+    const config = getConfig();
+
+    // Skip rate limiting in development if disabled
+    if (process.env.NODE_ENV === 'development' &&
+      process.env.SECURITY_RATE_LIMIT_ENABLED === 'false') {
+      return next();
+    }
+
+    // Skip rate limiting if globally disabled
+    if (process.env.RATE_LIMIT_ENABLED === 'false') {
+      return next();
+    }
+
+    // Apply the rate limiter
+    return rateLimiterFunc(req, res, next);
+  };
+};
 const { logger } = require('../utils/logger');
 
 const config = getConfig();
@@ -106,7 +129,7 @@ const securityHeaders = helmet({
       styleSrc: ['\'self\'', '\'unsafe-inline\''],
       scriptSrc: ['\'self\''],
       imgSrc: ['\'self\'', 'data:', 'https:'],
-      connectSrc: ['\'self\''],
+      connectSrc: ['\'self\'', 'http://localhost:3000', 'http://localhost:5001', 'ws://localhost:5001'],
       fontSrc: ['\'self\''],
       objectSrc: ['\'none\''],
       mediaSrc: ['\'self\''],
@@ -228,11 +251,25 @@ const fileUploadSecurity = (req, res, next) => {
   next();
 };
 
+// Create conditional rate limiters
+const conditionalRateLimiter = createConditionalRateLimiter(rateLimiter);
+const conditionalAuthRateLimiter = createConditionalRateLimiter(authRateLimiter);
+
 module.exports = {
+  // Original rate limiters
   rateLimiter,
   authRateLimiter,
+
+  // Conditional rate limiters (disabled in dev mode)
+  conditionalRateLimiter,
+  conditionalAuthRateLimiter,
+
+  // Other middleware
   sanitizeInput,
   securityHeaders,
   securityLogger,
-  fileUploadSecurity
+  fileUploadSecurity,
+
+  // Utility functions
+  createConditionalRateLimiter
 };

@@ -170,6 +170,8 @@ console.warn = (...args) => {
     if (
       message.includes('React Router Future Flag Warning') ||
       message.includes('validateDOMNesting') ||
+      message.includes('MUI:') ||
+      message.includes('Invalid prop') ||
       message.includes('Warning: Failed prop type') ||
       message.includes('Warning: componentWillReceiveProps')
     ) {

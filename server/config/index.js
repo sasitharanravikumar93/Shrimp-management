@@ -33,7 +33,8 @@ const config = {
     jwtExpiresIn: process.env.JWT_EXPIRES_IN || '24h',
     bcryptSaltRounds: parseInt(process.env.BCRYPT_SALT_ROUNDS, 10) || 12,
     corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:3000',
-    corsCredentials: process.env.CORS_CREDENTIALS === 'true'
+    corsCredentials: process.env.CORS_CREDENTIALS === 'true',
+    corsAllowAll: process.env.CORS_ALLOW_ALL || process.env.CORS_ALLOW_ALL_ORIGIN
   },
 
   // Rate Limiting Configuration
