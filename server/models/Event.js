@@ -59,15 +59,15 @@ const eventSchema = new mongoose.Schema({
       validator: function(details) {
         // Basic validation based on event type
         switch (this.eventType) {
-          case 'Stocking':
-            return details.quantity && details.quantity > 0;
-          case 'PartialHarvest':
-          case 'FullHarvest':
-            return details.harvestWeight && details.harvestWeight > 0;
-          case 'ChemicalApplication':
-            return details.chemical && details.quantity;
-          default:
-            return details && typeof details === 'object';
+        case 'Stocking':
+          return details.quantity && details.quantity > 0;
+        case 'PartialHarvest':
+        case 'FullHarvest':
+          return details.harvestWeight && details.harvestWeight > 0;
+        case 'ChemicalApplication':
+          return details.chemical && details.quantity;
+        default:
+          return details && typeof details === 'object';
         }
       },
       message: 'Event details must be valid for the event type'
@@ -458,7 +458,7 @@ eventSchema.statics.findOverdue = function() {
 
 eventSchema.statics.getEventStatistics = function(seasonId, startDate, endDate) {
   const matchConditions = {};
-  if (seasonId) matchConditions.seasonId = mongoose.Types.ObjectId(seasonId);
+  if (seasonId) {matchConditions.seasonId = mongoose.Types.ObjectId(seasonId);}
   if (startDate && endDate) {
     matchConditions.date = { $gte: startDate, $lte: endDate };
   }
@@ -505,16 +505,16 @@ eventSchema.statics.findRequiringFollowUp = function() {
 
 eventSchema.statics.getProductionTimeline = function(pondId, seasonId) {
   const matchConditions = {};
-  if (pondId) matchConditions.pondId = mongoose.Types.ObjectId(pondId);
-  if (seasonId) matchConditions.seasonId = mongoose.Types.ObjectId(seasonId);
+  if (pondId) {matchConditions.pondId = mongoose.Types.ObjectId(pondId);}
+  if (seasonId) {matchConditions.seasonId = mongoose.Types.ObjectId(seasonId);}
   
   return this.find({
     ...matchConditions,
     eventType: { $in: ['Stocking', 'PartialHarvest', 'FullHarvest', 'Sampling'] }
   })
-  .sort({ date: 1 })
-  .populate('pondId', 'name')
-  .populate('seasonId', 'name');
+    .sort({ date: 1 })
+    .populate('pondId', 'name')
+    .populate('seasonId', 'name');
 };
 
 module.exports = mongoose.model('Event', eventSchema);

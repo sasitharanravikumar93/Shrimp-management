@@ -1,79 +1,79 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 
-// Simple in-memory cache
-const apiCache = new Map();
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+import { deduplicatedApiCall, clearCache, getCacheStats } from '../utils/apiCache';
 
-// Helper function for API calls with better error handling
+// Enhanced API call function with intelligent caching
 const apiCall = async (endpoint, method = 'GET', data = null) => {
-  const API_BASE_URL = 'http://localhost:5001/api';
-  const url = `${API_BASE_URL}${endpoint}`;
-  const options = {
-    method,
-    headers: {
-      'Content-Type': 'application/json',
-    },
+  const options = { method, data };
+  const cacheOptions = {
+    useCache: method === 'GET',
+    invalidatePatterns: getInvalidationPatterns(endpoint, method)
   };
 
-  console.log('Making API call:', { url, method, data });
-  
-  if (data && (method === 'POST' || method === 'PUT')) {
-    options.body = JSON.stringify(data);
-  }
-
   try {
-    const response = await fetch(url, options);
-    console.log('API response received:', { url, status: response.status, statusText: response.statusText });
-    
-    // Log response headers for debugging
-    console.log('API response headers:', [...response.headers.entries()]);
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('API error response:', { url, status: response.status, errorText });
-      let errorMessage = `HTTP error! status: ${response.status}`;
-      
-      try {
-        const errorData = JSON.parse(errorText);
-        errorMessage = errorData.message || errorMessage;
-      } catch (e) {
-        // If parsing fails, use the raw text if it's not empty
-        if (errorText.trim()) {
-          errorMessage = errorText;
-        }
-      }
-      
-      throw new Error(errorMessage);
-    }
-    
-    const contentType = response.headers.get('content-type');
-    console.log('API response content type:', contentType);
-    
-    if (contentType && contentType.includes('application/json')) {
-      const jsonData = await response.json();
-      console.log('API response JSON data:', { url, data: jsonData });
-      
-      // Add additional logging for pond-related responses
-      if (url.includes('/ponds')) {
-        console.log('Pond API response details:', { 
-          url, 
-          isArray: Array.isArray(jsonData),
-          dataLength: Array.isArray(jsonData) ? jsonData.length : 'N/A',
-          dataType: typeof jsonData,
-          dataKeys: jsonData && typeof jsonData === 'object' ? Object.keys(jsonData) : 'N/A'
-        });
-      }
-      
-      return jsonData;
-    } else {
-      const textData = await response.text();
-      console.log('API response text data:', { url, data: textData });
-      return textData;
-    }
+    return await deduplicatedApiCall(endpoint, options, cacheOptions);
   } catch (error) {
     console.error('API call failed:', error);
     throw error;
   }
+};
+
+// Get cache invalidation patterns based on endpoint and method
+const getInvalidationPatterns = (endpoint, method) => {
+  if (method === 'GET') return [];
+
+  const patterns = [];
+
+  if (endpoint.includes('/ponds')) {
+    patterns.push('/ponds');
+    if (endpoint.includes('/')) {
+      const pondId = endpoint.split('/').pop();
+      if (pondId && pondId !== 'ponds') {
+        patterns.push(`/feed-inputs/pond/${pondId}`);
+        patterns.push(`/water-quality-inputs/pond/${pondId}`);
+      }
+    }
+  }
+
+  if (endpoint.includes('/seasons')) {
+    patterns.push('/seasons', '/ponds');
+  }
+
+  if (endpoint.includes('/feed-inputs')) {
+    patterns.push('/feed-inputs', '/ponds');
+  }
+
+  if (endpoint.includes('/water-quality-inputs')) {
+    patterns.push('/water-quality-inputs', '/ponds');
+  }
+
+  return patterns;
+};
+
+// Utility function to check if error is retryable
+const isRetryableError = error => {
+  if (!error) return false;
+
+  const message = error.message?.toLowerCase() || '';
+  const status = error.status || 0;
+
+  // Don't retry client errors (400-499) as they're not recoverable
+  if (status >= 400 && status < 500) {
+    return false;
+  }
+
+  // Retry on server errors (500+), network issues, and timeouts
+  if (
+    status >= 500 ||
+    message.includes('fetch') ||
+    message.includes('network') ||
+    message.includes('timeout') ||
+    message.includes('offline')
+  ) {
+    return true;
+  }
+
+  return false;
 };
 
 // Custom hook for data fetching with loading and error states
@@ -82,63 +82,75 @@ export const useApiData = (apiFunction, dependencies = [], cacheKey = null, retr
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const retryTimeoutRef = useRef(null);
+  const isMountedRef = useRef(true);
 
-  const fetchData = useCallback(async (useCache = true, retries = retryCount) => {
-    // Clear any existing retry timeout
-    if (retryTimeoutRef.current) {
-      clearTimeout(retryTimeoutRef.current);
-      retryTimeoutRef.current = null;
-    }
-    
-    // If apiFunction is null, don't make the request
-    if (!apiFunction) {
-      setData(null);
-      setLoading(false);
-      setError(null);
-      return null;
-    }
-    
-    try {
-      // Check cache first if cacheKey is provided
-      if (cacheKey && useCache) {
-        const cached = apiCache.get(cacheKey);
-        if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-          setData(cached.data);
+  const fetchData = useCallback(
+    async (useCache = true, retries = retryCount) => {
+      // Clear any existing retry timeout
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+        retryTimeoutRef.current = null;
+      }
+
+      // If apiFunction is null, don't make the request
+      if (!apiFunction) {
+        setData(null);
+        setLoading(false);
+        setError(null);
+        return null;
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+
+        // Use the enhanced caching system through apiFunction
+        const result = await apiFunction();
+
+        // Handle different response formats
+        if (Array.isArray(result)) {
+          setData(result);
+        } else if (result && Array.isArray(result.data)) {
+          setData(result.data);
+        } else if (result && typeof result === 'object') {
+          setData(result);
+        } else {
+          setData(null);
+        }
+
+        return result;
+      } catch (err) {
+        console.warn(`API call failed:`, err.message);
+
+        // Only retry if error is retryable and not unmounted
+        if (retries > 0 && isMountedRef.current && isRetryableError(err)) {
+          console.warn(`API call failed, retrying... (${retryCount - retries + 1}/${retryCount})`);
+          const delay = Math.min(1000 * Math.pow(2, retryCount - retries), 10000); // Exponential backoff, max 10s
+          retryTimeoutRef.current = setTimeout(() => {
+            if (isMountedRef.current) {
+              fetchData(useCache, retries - 1);
+            }
+          }, delay);
+          return;
+        }
+
+        // Set error only if component is still mounted
+        if (isMountedRef.current) {
+          setError({ message: err.message || 'An unknown error occurred', status: err.status });
+        }
+      } finally {
+        // Only set loading to false if component is still mounted
+        if (isMountedRef.current) {
           setLoading(false);
-          return cached.data;
         }
       }
-
-      setLoading(true);
-      setError(null);
-      const result = await apiFunction();
-      if (Array.isArray(result)) {
-        setData(result);
-      } else if (result && Array.isArray(result.data)) {
-        setData(result.data);
-      } else {
-        setData([]); // Set to empty array if the result is not an array
-      }
-      return result;
-    } catch (err) {
-      // Retry logic
-      if (retries > 0) {
-        console.warn(`API call failed, retrying... (${retryCount - retries + 1}/${retryCount})`);
-        retryTimeoutRef.current = setTimeout(() => {
-          fetchData(useCache, retries - 1);
-        }, 1000 * (retryCount - retries)); // Exponential backoff
-        return;
-      }
-      
-      setError({ message: err.message || 'An unknown error occurred' });
-    } finally {
-      setLoading(false);
-    }
-  }, [apiFunction, cacheKey, retryCount]);
+    },
+    [apiFunction, retryCount]
+  );
 
   useEffect(() => {
     fetchData();
-    
+
     // Cleanup function to clear any pending retries
     return () => {
       if (retryTimeoutRef.current) {
@@ -152,53 +164,76 @@ export const useApiData = (apiFunction, dependencies = [], cacheKey = null, retr
     return await fetchData(false); // Don't use cache when refetching
   }, [fetchData]);
 
-  // Clear cache for this key
-  const clearCache = useCallback(() => {
+  // Clear cache for this key using the enhanced cache system
+  const clearCacheKey = useCallback(() => {
     if (cacheKey) {
-      apiCache.delete(cacheKey);
+      clearCache([cacheKey]);
     }
   }, [cacheKey]);
 
-  return { data, loading, error, refetch, clearCache };
+  return { data, loading, error, refetch, clearCache: clearCacheKey };
 };
 
 // Custom hook for API mutations (POST, PUT, DELETE)
-export const useApiMutation = (apiFunction, maxRetryCount = 3) => {
+export const useApiMutation = (apiFunction, options = {}) => {
+  const { maxRetryCount = 3, invalidatePatterns = [], onSuccess = null, onError = null } = options;
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const retryTimeoutRef = useRef(null);
 
   const mutate = async (...args) => {
     // Wrapper function that handles retries with decrementing count
-    const attemptMutation = async (remainingRetries) => {
+    const attemptMutation = async remainingRetries => {
       // Clear any existing retry timeout
       if (retryTimeoutRef.current) {
         clearTimeout(retryTimeoutRef.current);
         retryTimeoutRef.current = null;
       }
-      
+
       try {
         setLoading(true);
         setError(null);
         const result = await apiFunction(...args);
+
+        // Invalidate cache patterns after successful mutation
+        if (invalidatePatterns.length > 0) {
+          clearCache(invalidatePatterns);
+        }
+
+        // Call success callback if provided
+        if (onSuccess) {
+          onSuccess(result);
+        }
+
         return { data: result, error: null };
       } catch (err) {
         // Retry logic
         if (remainingRetries > 0) {
-          console.warn(`API mutation failed, retrying... (${maxRetryCount - remainingRetries + 1}/${maxRetryCount})`);
+          console.warn(
+            `API mutation failed, retrying... (${
+              maxRetryCount - remainingRetries + 1
+            }/${maxRetryCount})`
+          );
           retryTimeoutRef.current = setTimeout(() => {
             attemptMutation(remainingRetries - 1);
           }, 1000 * (maxRetryCount - remainingRetries)); // Exponential backoff
           return;
         }
-        
+
         setError({ message: err.message || 'An unknown error occurred' });
+
+        // Call error callback if provided
+        if (onError) {
+          onError(err);
+        }
+
         return { data: null, error: err.message };
       } finally {
         setLoading(false);
       }
     };
-    
+
     return await attemptMutation(maxRetryCount);
   };
 
@@ -217,22 +252,42 @@ export const useApiMutation = (apiFunction, maxRetryCount = 3) => {
 
 // Helper hook that provides API methods (backward compatibility)
 const useApi = () => {
-  return useMemo(() => ({
-    get: (endpoint) => apiCall(endpoint, 'GET'),
-    post: (endpoint, data) => apiCall(endpoint, 'POST', data),
-    put: (endpoint, data) => apiCall(endpoint, 'PUT', data),
-    delete: (endpoint) => apiCall(endpoint, 'DELETE'),
-  }), []);
+  return useMemo(
+    () => ({
+      get: endpoint => apiCall(endpoint, 'GET'),
+      post: (endpoint, data) => apiCall(endpoint, 'POST', data),
+      put: (endpoint, data) => apiCall(endpoint, 'PUT', data),
+      delete: endpoint => apiCall(endpoint, 'DELETE')
+    }),
+    []
+  );
 };
 
 export default useApi;
 
-// Function to clear all cache
+// Enhanced cache management functions
 export const clearAllCache = () => {
-  apiCache.clear();
+  clearCache(); // Clear the enhanced cache system
 };
 
-// Function to get cache size
 export const getCacheSize = () => {
-  return apiCache.size;
+  const stats = getCacheStats();
+  return stats.size;
+};
+
+export const getCacheStatistics = () => {
+  return getCacheStats();
+};
+
+// Utility hook for cache management
+export const useCacheManager = () => {
+  return useMemo(
+    () => ({
+      clearAll: clearAllCache,
+      clearPatterns: patterns => clearCache(patterns),
+      getStats: getCacheStatistics,
+      getSize: getCacheSize
+    }),
+    []
+  );
 };

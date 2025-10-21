@@ -1,10 +1,13 @@
-import React from 'react';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import PropTypes from 'prop-types';
+import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
-import FeedViewPage from './FeedViewPage';
+
 import * as api from '../services/api';
+
+import FeedViewPage from './FeedViewPage';
 
 // Mock the API calls
 jest.mock('../services/api');
@@ -20,23 +23,29 @@ jest.mock('date-fns', () => ({
 }));
 
 // Mock MUI date pickers
-jest.mock('@mui/x-date-pickers/LocalizationProvider', () => {
-  return ({ children }) => <div data-testid="localization-provider">{children}</div>;
-});
+const MockLocalizationProvider = ({ children }) => (
+  <div data-testid='localization-provider'>{children}</div>
+);
+MockLocalizationProvider.propTypes = { children: PropTypes.node.isRequired };
+jest.mock('@mui/x-date-pickers/LocalizationProvider', () => MockLocalizationProvider);
 
-jest.mock('@mui/x-date-pickers/DatePicker', () => {
+const MockDatePicker = ({ label, value, onChange }) => {
   const TextField = require('@mui/material/TextField').default;
-  return {
-    DatePicker: ({ label, value, onChange }) => (
-      <TextField
-        label={label}
-        value={value ? value.toISOString().split('T')[0] : ''}
-        onChange={(e) => onChange(new Date(e.target.value))}
-        data-testid={`date-picker-${label}`}
-      />
-    ),
-  };
-});
+  return (
+    <TextField
+      label={label}
+      value={value ? value.toISOString().split('T')[0] : ''}
+      onChange={e => onChange(new Date(e.target.value))}
+      data-testid={`date-picker-${label}`}
+    />
+  );
+};
+MockDatePicker.propTypes = {
+  label: PropTypes.string.isRequired,
+  value: PropTypes.instanceOf(Date),
+  onChange: PropTypes.func.isRequired
+};
+jest.mock('@mui/x-date-pickers/DatePicker', () => MockDatePicker);
 
 // Create a theme for testing
 const theme = createTheme();
@@ -44,11 +53,10 @@ const theme = createTheme();
 // Wrapper component to provide theme and router
 const WithProviders = ({ children }) => (
   <ThemeProvider theme={theme}>
-    <BrowserRouter>
-      {children}
-    </BrowserRouter>
+    <BrowserRouter>{children}</BrowserRouter>
   </ThemeProvider>
 );
+WithProviders.propTypes = { children: PropTypes.node.isRequired };
 
 describe('FeedViewPage', () => {
   const mockFeedEntries = [
@@ -77,10 +85,10 @@ describe('FeedViewPage', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Mock API functions
-    api.getFeedInputs = jest.fn().mockResolvedValue(mockFeedEntries);
-    api.getPonds = jest.fn().mockResolvedValue(mockPonds);
+    jest.spyOn(api, 'getFeedInputs').mockResolvedValue(mockFeedEntries);
+    jest.spyOn(api, 'getPonds').mockResolvedValue(mockPonds);
   });
 
   it('renders feed view page with title and export button', async () => {
@@ -92,7 +100,7 @@ describe('FeedViewPage', () => {
 
     // Check that the page title is rendered
     expect(screen.getByText('Feed History')).toBeInTheDocument();
-    
+
     // Check that the export button is rendered
     expect(screen.getByText('Export Data')).toBeInTheDocument();
   });
@@ -115,7 +123,7 @@ describe('FeedViewPage', () => {
     expect(screen.getByLabelText('End Date')).toBeInTheDocument();
     expect(screen.getByLabelText('Pond')).toBeInTheDocument();
     expect(screen.getByLabelText('Search')).toBeInTheDocument();
-    
+
     // Check that pond options are rendered
     expect(screen.getByText('All Ponds')).toBeInTheDocument();
     expect(screen.getByText('Pond A')).toBeInTheDocument();
@@ -151,9 +159,9 @@ describe('FeedViewPage', () => {
 
   it('shows loading state initially', () => {
     // Mock API to simulate loading
-    api.getFeedInputs = jest.fn(() => new Promise(() => {})); // Never resolves
-    api.getPonds = jest.fn(() => new Promise(() => {})); // Never resolves
-    
+    jest.spyOn(api, 'getFeedInputs').mockImplementation(() => new Promise(() => {})); // Never resolves
+    jest.spyOn(api, 'getPonds').mockImplementation(() => new Promise(() => {})); // Never resolves
+
     render(
       <WithProviders>
         <FeedViewPage />
@@ -166,9 +174,9 @@ describe('FeedViewPage', () => {
 
   it('shows error state when API calls fail', async () => {
     // Mock API to simulate error
-    api.getFeedInputs = jest.fn().mockRejectedValue(new Error('Failed to fetch feed entries'));
-    api.getPonds = jest.fn().mockResolvedValue(mockPonds);
-    
+    jest.spyOn(api, 'getFeedInputs').mockRejectedValue(new Error('Failed to fetch feed entries'));
+    jest.spyOn(api, 'getPonds').mockResolvedValue(mockPonds);
+
     render(
       <WithProviders>
         <FeedViewPage />
@@ -179,7 +187,7 @@ describe('FeedViewPage', () => {
     await waitFor(() => {
       expect(screen.getByText(/Error loading data/)).toBeInTheDocument();
     });
-    
+
     // Should show error message
     expect(screen.getByText(/Failed to fetch feed entries/)).toBeInTheDocument();
   });
@@ -269,7 +277,7 @@ describe('FeedViewPage', () => {
       data: { data: mockFeedEntries },
       loading: false,
       error: null,
-      refetch: mockRefetch,
+      refetch: mockRefetch
     });
 
     render(

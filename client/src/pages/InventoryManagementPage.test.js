@@ -1,32 +1,37 @@
-import React from 'react';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { ThemeProvider, createTheme } from '@mui/material/styles';
+import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
-import InventoryManagementPage from './InventoryManagementPage';
-import * as useApiHook from '../hooks/useApi';
+
 import { SeasonProvider } from '../context/SeasonContext';
+import * as useApiHook from '../hooks/useApi';
+
+import InventoryManagementPage from './InventoryManagementPage';
 
 // Mock the API calls
 jest.mock('../hooks/useApi');
 
 // Mock the components that are imported
 jest.mock('../components/InventoryForm', () => {
-  return ({ open, onClose, item }) => (
-    open ? <div data-testid="inventory-form">Inventory Form {item ? 'Edit' : 'Add'}</div> : null
-  );
+  const InventoryFormMock = ({ open, item }) =>
+    open ? <div data-testid='inventory-form'>Inventory Form {item ? 'Edit' : 'Add'}</div> : null;
+  InventoryFormMock.displayName = 'InventoryForm';
+  return InventoryFormMock;
 });
 
 jest.mock('../components/InventoryAdjustmentModal', () => {
-  return ({ open, onClose, item }) => (
-    open ? <div data-testid="adjustment-modal">Adjustment Modal for {item?.itemName}</div> : null
-  );
+  const InventoryAdjustmentModalMock = ({ open, item }) =>
+    open ? <div data-testid='adjustment-modal'>Adjustment Modal for {item?.itemName}</div> : null;
+  InventoryAdjustmentModalMock.displayName = 'InventoryAdjustmentModal';
+  return InventoryAdjustmentModalMock;
 });
 
 jest.mock('../components/AdjustmentHistoryModal', () => {
-  return ({ open, onClose, item }) => (
-    open ? <div data-testid="history-modal">History Modal for {item?.itemName}</div> : null
-  );
+  const AdjustmentHistoryModalMock = ({ open, item }) =>
+    open ? <div data-testid='history-modal'>History Modal for {item?.itemName}</div> : null;
+  AdjustmentHistoryModalMock.displayName = 'AdjustmentHistoryModal';
+  return AdjustmentHistoryModalMock;
 });
 
 // Create a theme for testing
@@ -36,9 +41,7 @@ const theme = createTheme();
 const WithProviders = ({ children }) => (
   <ThemeProvider theme={theme}>
     <BrowserRouter>
-      <SeasonProvider>
-        {children}
-      </SeasonProvider>
+      <SeasonProvider>{children}</SeasonProvider>
     </BrowserRouter>
   </ThemeProvider>
 );
@@ -51,7 +54,7 @@ describe('InventoryManagementPage', () => {
       itemType: 'Feed',
       supplier: 'Aquatic Supplies Co.',
       unit: 'kg',
-      costPerUnit: 5.50,
+      costPerUnit: 5.5,
       currentQuantity: 1000,
       lowStockThreshold: 200
     },
@@ -61,7 +64,7 @@ describe('InventoryManagementPage', () => {
       itemType: 'Probiotic',
       supplier: 'BioAquatics Inc.',
       unit: 'liter',
-      costPerUnit: 25.00,
+      costPerUnit: 25.0,
       currentQuantity: 50,
       lowStockThreshold: 30
     },
@@ -79,14 +82,14 @@ describe('InventoryManagementPage', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    
+
     // Mock useApi hook
     const mockApi = {
       get: jest.fn().mockResolvedValue({ data: mockInventoryItems }),
       delete: jest.fn().mockResolvedValue({})
     };
-    
-    useApiHook.default = jest.fn(() => mockApi);
+
+    jest.spyOn(useApiHook, 'default').mockImplementation(() => mockApi);
   });
 
   it('renders inventory management page with title and add button', async () => {
@@ -98,7 +101,7 @@ describe('InventoryManagementPage', () => {
 
     // Check that the page title is rendered
     expect(screen.getByText('Inventory Management')).toBeInTheDocument();
-    
+
     // Check that the add button is rendered
     expect(screen.getByText('Add New Item')).toBeInTheDocument();
   });
@@ -144,9 +147,9 @@ describe('InventoryManagementPage', () => {
     const mockApi = {
       get: jest.fn(() => new Promise(() => {})) // Never resolves
     };
-    
-    useApiHook.default = jest.fn(() => mockApi);
-    
+
+    jest.spyOn(useApiHook, 'default').mockImplementation(() => mockApi);
+
     render(
       <WithProviders>
         <InventoryManagementPage />
@@ -162,9 +165,9 @@ describe('InventoryManagementPage', () => {
     const mockApi = {
       get: jest.fn().mockRejectedValue(new Error('Failed to fetch inventory items'))
     };
-    
-    useApiHook.default = jest.fn(() => mockApi);
-    
+
+    jest.spyOn(useApiHook, 'default').mockImplementation(() => mockApi);
+
     render(
       <WithProviders>
         <InventoryManagementPage />
@@ -232,8 +235,9 @@ describe('InventoryManagementPage', () => {
     await screen.findByText('Standard Feed');
 
     // Click the edit button for the first item
-    const editButtons = screen.getAllByTestId('EditIcon');
-    await userEvent.click(editButtons[0].closest('button'));
+    // Find the parent button element using a more appropriate method
+    const editButton = screen.getByRole('button', { name: /edit/i });
+    await userEvent.click(editButton);
 
     // Check that the inventory form is opened in edit mode
     expect(screen.getByTestId('inventory-form')).toBeInTheDocument();
@@ -251,12 +255,15 @@ describe('InventoryManagementPage', () => {
     await screen.findByText('Standard Feed');
 
     // Click the adjustment button for the first item
-    const adjustmentButtons = screen.getAllByTestId('AddIcon');
-    await userEvent.click(adjustmentButtons[0].closest('button'));
+    // Find the parent button element using a more appropriate method
+    const adjustmentButton = screen.getByRole('button', { name: /adjust/i });
+    await userEvent.click(adjustmentButton);
 
     // Check that the adjustment modal is opened
     expect(screen.getByTestId('adjustment-modal')).toBeInTheDocument();
-    expect(screen.getByTestId('adjustment-modal')).toHaveTextContent('Adjustment Modal for Standard Feed');
+    expect(screen.getByTestId('adjustment-modal')).toHaveTextContent(
+      'Adjustment Modal for Standard Feed'
+    );
   });
 
   it('opens history modal when history button is clicked', async () => {
@@ -270,18 +277,21 @@ describe('InventoryManagementPage', () => {
     await screen.findByText('Standard Feed');
 
     // Click the history button for the first item
-    const historyButtons = screen.getAllByTestId('HistoryIcon');
-    await userEvent.click(historyButtons[0].closest('button'));
+    // Find the parent button element using a more appropriate method
+    const historyButton = screen.getByRole('button', { name: /history/i });
+    await userEvent.click(historyButton);
 
     // Check that the history modal is opened
     expect(screen.getByTestId('history-modal')).toBeInTheDocument();
-    expect(screen.getByTestId('history-modal')).toHaveTextContent('History Modal for Standard Feed');
+    expect(screen.getByTestId('history-modal')).toHaveTextContent(
+      'History Modal for Standard Feed'
+    );
   });
 
   it('shows confirmation dialog when delete button is clicked', async () => {
     // Mock window.confirm
     const mockConfirm = jest.spyOn(window, 'confirm').mockImplementation(() => true);
-    
+
     render(
       <WithProviders>
         <InventoryManagementPage />
@@ -292,12 +302,15 @@ describe('InventoryManagementPage', () => {
     await screen.findByText('Standard Feed');
 
     // Click the delete button for the first item
-    const deleteButtons = screen.getAllByTestId('DeleteIcon');
-    await userEvent.click(deleteButtons[0].closest('button'));
+    // Find the parent button element using a more appropriate method
+    const deleteButton = screen.getByRole('button', { name: /delete/i });
+    await userEvent.click(deleteButton);
 
     // Check that confirm dialog was called
-    expect(mockConfirm).toHaveBeenCalledWith('Are you sure you want to delete this inventory item? This action is not reversible.');
-    
+    expect(mockConfirm).toHaveBeenCalledWith(
+      'Are you sure you want to delete this inventory item? This action is not reversible.'
+    );
+
     // Clean up
     mockConfirm.mockRestore();
   });

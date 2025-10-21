@@ -26,7 +26,7 @@ router.get('/export', requireResourcePermission('waterQualityInputs', 'read'), w
 router.get('/:id', requireResourcePermission('waterQualityInputs', 'read'), waterQualityInputController.getWaterQualityInputById);
 
 // PUT /api/water-quality-inputs/:id - Update a water quality input by ID
-router.put('/:id', requireResourcePermission('waterQualityInputs', 'write'), waterQualityValidation.update, waterQualityInputController.updateWaterQualityInput);
+router.put('/:id', requireResourcePermission('waterQualityInputs', 'write'), ...waterQualityValidation.update, waterQualityInputController.updateWaterQualityInput);
 
 // DELETE /api/water-quality-inputs/:id - Delete a water quality input by ID
 router.delete('/:id', requireResourcePermission('waterQualityInputs', 'delete'), waterQualityInputController.deleteWaterQualityInput);
@@ -35,7 +35,7 @@ router.delete('/:id', requireResourcePermission('waterQualityInputs', 'delete'),
 router.get('/pond/:pondId', requireResourcePermission('waterQualityInputs', 'read'), waterQualityInputController.getWaterQualityInputsByPondId);
 
 // GET /api/water-quality-inputs/date-range?startDate=...&endDate=... - Get water quality inputs by date range
-router.get('/date-range', requireResourcePermission('waterQualityInputs', 'read'), waterQualityValidation.getByDateRange, waterQualityInputController.getWaterQualityInputsByDateRange);
+router.get('/date-range', requireResourcePermission('waterQualityInputs', 'read'), ...waterQualityValidation.getByDateRange, waterQualityInputController.getWaterQualityInputsByDateRange);
 
 // GET /api/water-quality-inputs/season/:seasonId - Get water quality inputs by season ID
 router.get('/season/:seasonId', requireResourcePermission('waterQualityInputs', 'read'), waterQualityInputController.getWaterQualityInputsBySeasonId);

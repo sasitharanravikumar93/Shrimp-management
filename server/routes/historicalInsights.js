@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const historicalInsightsController = require('../controllers/historicalInsightsController');
-const logger = require('../logger');
 
 // GET /api/historical-insights/seasons - Get all seasons for historical comparison
 router.get('/seasons', historicalInsightsController.getAvailableSeasons);

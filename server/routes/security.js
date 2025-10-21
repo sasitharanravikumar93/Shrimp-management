@@ -8,7 +8,7 @@ const router = express.Router();
 const { authenticate, requireRole } = require('../middleware/auth');
 const { getSecurityStatus, unblockIP } = require('../middleware/advancedSecurity');
 const { sendSuccessResponse } = require('../utils/errorHandler');
-const { body, param } = require('express-validator');
+const { body } = require('express-validator');
 const { handleValidationErrors } = require('../middleware/validation');
 
 // All security routes require admin authentication

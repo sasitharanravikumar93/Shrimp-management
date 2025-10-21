@@ -5,7 +5,7 @@ const waterQualityInputSchema = new mongoose.Schema({
     type: Date,
     required: [true, 'Water quality test date is required'],
     validate: {
-      validator: function(date) {
+      validator: function (date) {
         // Don't allow future dates beyond tomorrow
         const tomorrow = new Date();
         tomorrow.setDate(tomorrow.getDate() + 1);
@@ -19,7 +19,7 @@ const waterQualityInputSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Water quality test time is required'],
     validate: {
-      validator: function(time) {
+      validator: function (time) {
         // Validate HH:MM format
         return /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/.test(time);
       },
@@ -39,7 +39,7 @@ const waterQualityInputSchema = new mongoose.Schema({
     min: [0, 'pH cannot be negative'],
     max: [14, 'pH cannot exceed 14'],
     validate: {
-      validator: function(pH) {
+      validator: function (pH) {
         // Round to 2 decimal places
         return Number(pH.toFixed(2)) === pH;
       },
@@ -52,7 +52,7 @@ const waterQualityInputSchema = new mongoose.Schema({
     min: [0, 'Dissolved oxygen cannot be negative'],
     max: [50, 'Dissolved oxygen cannot exceed 50 mg/L'],
     validate: {
-      validator: function(DO) {
+      validator: function (DO) {
         return Number(DO.toFixed(2)) === DO;
       },
       message: 'Dissolved oxygen must not have more than 2 decimal places'
@@ -64,7 +64,7 @@ const waterQualityInputSchema = new mongoose.Schema({
     min: [-10, 'Temperature cannot be below -10°C'],
     max: [60, 'Temperature cannot exceed 60°C'],
     validate: {
-      validator: function(temp) {
+      validator: function (temp) {
         return Number(temp.toFixed(1)) === temp;
       },
       message: 'Temperature must not have more than 1 decimal place'
@@ -76,7 +76,7 @@ const waterQualityInputSchema = new mongoose.Schema({
     min: [0, 'Salinity cannot be negative'],
     max: [100, 'Salinity cannot exceed 100 ppt'],
     validate: {
-      validator: function(salinity) {
+      validator: function (salinity) {
         return Number(salinity.toFixed(2)) === salinity;
       },
       message: 'Salinity must not have more than 2 decimal places'
@@ -88,7 +88,7 @@ const waterQualityInputSchema = new mongoose.Schema({
     min: [0, 'Ammonia cannot be negative'],
     max: [100, 'Ammonia cannot exceed 100 mg/L'],
     validate: {
-      validator: function(ammonia) {
+      validator: function (ammonia) {
         return !ammonia || Number(ammonia.toFixed(3)) === ammonia;
       },
       message: 'Ammonia must not have more than 3 decimal places'
@@ -99,7 +99,7 @@ const waterQualityInputSchema = new mongoose.Schema({
     min: [0, 'Nitrite cannot be negative'],
     max: [100, 'Nitrite cannot exceed 100 mg/L'],
     validate: {
-      validator: function(nitrite) {
+      validator: function (nitrite) {
         return !nitrite || Number(nitrite.toFixed(3)) === nitrite;
       },
       message: 'Nitrite must not have more than 3 decimal places'
@@ -134,7 +134,7 @@ const waterQualityInputSchema = new mongoose.Schema({
     type: Number,
     min: [0, 'Chemical quantity cannot be negative'],
     validate: {
-      validator: function(quantity) {
+      validator: function (quantity) {
         // If chemical is used, quantity must be provided
         if (this.chemicalUsed && !quantity) {
           return false;
@@ -173,7 +173,7 @@ const waterQualityInputSchema = new mongoose.Schema({
   overallQuality: {
     type: String,
     enum: ['Excellent', 'Good', 'Fair', 'Poor', 'Critical'],
-    default: function() {
+    default: function () {
       // Auto-calculate based on parameters
       return this.calculateQualityRating();
     }
@@ -183,8 +183,8 @@ const waterQualityInputSchema = new mongoose.Schema({
     coordinates: {
       type: [Number], // [longitude, latitude]
       validate: {
-        validator: function(coords) {
-          return !coords || (coords.length === 2 && 
+        validator: function (coords) {
+          return !coords || (coords.length === 2 &&
             coords[0] >= -180 && coords[0] <= 180 && // longitude
             coords[1] >= -90 && coords[1] <= 90);    // latitude
         },
@@ -204,10 +204,10 @@ const waterQualityInputSchema = new mongoose.Schema({
 });
 
 // Virtual for quality score calculation
-waterQualityInputSchema.virtual('qualityScore').get(function() {
+waterQualityInputSchema.virtual('qualityScore').get(function () {
   let score = 0;
   let factors = 0;
-  
+
   // pH scoring (optimal range: 7.5-8.5)
   if (this.pH >= 7.5 && this.pH <= 8.5) {
     score += 25;
@@ -217,7 +217,7 @@ waterQualityInputSchema.virtual('qualityScore').get(function() {
     score += 5;
   }
   factors++;
-  
+
   // DO scoring (optimal: >5 mg/L)
   if (this.dissolvedOxygen >= 5) {
     score += 25;
@@ -227,7 +227,7 @@ waterQualityInputSchema.virtual('qualityScore').get(function() {
     score += 5;
   }
   factors++;
-  
+
   // Temperature scoring (optimal range: 26-32°C for shrimp)
   if (this.temperature >= 26 && this.temperature <= 32) {
     score += 25;
@@ -237,7 +237,7 @@ waterQualityInputSchema.virtual('qualityScore').get(function() {
     score += 5;
   }
   factors++;
-  
+
   // Salinity scoring (depends on species, assuming 15-25 ppt for many species)
   if (this.salinity >= 15 && this.salinity <= 25) {
     score += 25;
@@ -247,16 +247,16 @@ waterQualityInputSchema.virtual('qualityScore').get(function() {
     score += 5;
   }
   factors++;
-  
+
   return Math.round(score / factors);
 });
 
 // Virtual for testing window
-waterQualityInputSchema.virtual('testingWindow').get(function() {
-  const hour = parseInt(this.time.split(':')[0]);
-  if (hour >= 6 && hour < 12) return 'Morning';
-  if (hour >= 12 && hour < 18) return 'Afternoon';
-  if (hour >= 18 && hour < 22) return 'Evening';
+waterQualityInputSchema.virtual('testingWindow').get(function () {
+  const hour = parseInt(this.time.split(':')[0], 10);
+  if (hour >= 6 && hour < 12) { return 'Morning'; }
+  if (hour >= 12 && hour < 18) { return 'Afternoon'; }
+  if (hour >= 18 && hour < 22) { return 'Evening'; }
   return 'Night';
 });
 
@@ -282,7 +282,7 @@ waterQualityInputSchema.index({ notes: 'text' });
 // Unique constraint to prevent duplicate readings
 waterQualityInputSchema.index(
   { pondId: 1, date: 1, time: 1 },
-  { 
+  {
     unique: true,
     partialFilterExpression: {
       pondId: { $exists: true },
@@ -293,56 +293,56 @@ waterQualityInputSchema.index(
 );
 
 // Instance methods
-waterQualityInputSchema.methods.calculateQualityRating = function() {
+waterQualityInputSchema.methods.calculateQualityRating = function () {
   const score = this.qualityScore;
-  if (score >= 20) return 'Excellent';
-  if (score >= 15) return 'Good';
-  if (score >= 10) return 'Fair';
-  if (score >= 5) return 'Poor';
+  if (score >= 20) { return 'Excellent'; }
+  if (score >= 15) { return 'Good'; }
+  if (score >= 10) { return 'Fair'; }
+  if (score >= 5) { return 'Poor'; }
   return 'Critical';
 };
 
-waterQualityInputSchema.methods.getParameterAlerts = function() {
+waterQualityInputSchema.methods.getParameterAlerts = function () {
   const alerts = [];
-  
+
   if (this.pH < 6.5 || this.pH > 9.0) {
     alerts.push({ parameter: 'pH', value: this.pH, severity: 'high', message: 'pH is outside safe range' });
   }
-  
+
   if (this.dissolvedOxygen < 3) {
     alerts.push({ parameter: 'dissolvedOxygen', value: this.dissolvedOxygen, severity: 'high', message: 'Dissolved oxygen is critically low' });
   }
-  
+
   if (this.temperature < 15 || this.temperature > 35) {
     alerts.push({ parameter: 'temperature', value: this.temperature, severity: 'medium', message: 'Temperature is outside optimal range' });
   }
-  
+
   if (this.ammonia && this.ammonia > 0.5) {
     alerts.push({ parameter: 'ammonia', value: this.ammonia, severity: 'high', message: 'Ammonia levels are too high' });
   }
-  
+
   if (this.nitrite && this.nitrite > 1.0) {
     alerts.push({ parameter: 'nitrite', value: this.nitrite, severity: 'medium', message: 'Nitrite levels are elevated' });
   }
-  
+
   return alerts;
 };
 
 // Static methods
-waterQualityInputSchema.statics.findByPondAndDateRange = function(pondId, startDate, endDate) {
+waterQualityInputSchema.statics.findByPondAndDateRange = function (pondId, startDate, endDate) {
   return this.find({
     pondId,
     date: { $gte: startDate, $lte: endDate }
   }).sort({ date: -1, time: -1 });
 };
 
-waterQualityInputSchema.statics.getQualityTrends = function(seasonId, groupBy = 'day') {
+waterQualityInputSchema.statics.getQualityTrends = function (seasonId, groupBy = 'day') {
   const groupByFormat = {
     day: '%Y-%m-%d',
     week: '%Y-%U',
     month: '%Y-%m'
   };
-  
+
   return this.aggregate([
     {
       $match: {
@@ -376,11 +376,11 @@ waterQualityInputSchema.statics.getQualityTrends = function(seasonId, groupBy = 
   ]);
 };
 
-waterQualityInputSchema.statics.getParameterStatistics = function(pondId, seasonId, parameter) {
+waterQualityInputSchema.statics.getParameterStatistics = function (pondId, seasonId, parameter) {
   const matchConditions = {};
-  if (pondId) matchConditions.pondId = mongoose.Types.ObjectId(pondId);
-  if (seasonId) matchConditions.seasonId = mongoose.Types.ObjectId(seasonId);
-  
+  if (pondId) { matchConditions.pondId = mongoose.Types.ObjectId(pondId); }
+  if (seasonId) { matchConditions.seasonId = mongoose.Types.ObjectId(seasonId); }
+
   return this.aggregate([
     { $match: matchConditions },
     {

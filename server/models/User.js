@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { getConfig } = require('../config');
+const { logger } = require('../utils/logger');
 
 const config = getConfig();
 
@@ -112,29 +113,30 @@ userSchema.virtual('isLocked').get(function () {
 });
 
 // Index for better query performance
-userSchema.index({ username: 1 });
-userSchema.index({ email: 1 });
+// Note: username and email already have unique indexes from their schema definitions
 userSchema.index({ role: 1 });
 userSchema.index({ isActive: 1 });
 
 // Hash password before saving
-userSchema.pre('save', async function (next) {
+userSchema.pre('save', function (next) {
   // Only hash the password if it has been modified (or is new)
-  if (!this.isModified('password')) return next();
-
-  try {
-    // Hash password with cost of 12
-    const salt = await bcrypt.genSalt(config.security.bcryptSaltRounds);
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
-  } catch (error) {
-    next(error);
+  if (!this.isModified('password')) {
+    return next();
   }
+
+  // Hash password before saving
+  bcrypt.genSalt(config.security.bcryptSaltRounds)
+    .then(salt => bcrypt.hash(this.password, salt))
+    .then(hash => {
+      this.password = hash;
+      next();
+    })
+    .catch(error => next(error));
 });
 
 // Instance method to check password
 userSchema.methods.comparePassword = async function (candidatePassword) {
-  return bcrypt.compare(candidatePassword, this.password);
+  return await bcrypt.compare(candidatePassword, this.password);
 };
 
 // Instance method to generate JWT token

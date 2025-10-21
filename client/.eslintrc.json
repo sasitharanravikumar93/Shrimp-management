@@ -1,0 +1,220 @@
+{
+    "env": {
+        "browser": true,
+        "es2021": true,
+        "jest": true,
+        "node": true
+    },
+    "extends": [
+        "react-app",
+        "react-app/jest",
+        "plugin:react/recommended",
+        "plugin:react-hooks/recommended",
+        "plugin:jsx-a11y/recommended",
+        "plugin:import/errors",
+        "plugin:import/warnings",
+        "prettier"
+    ],
+    "parserOptions": {
+        "ecmaFeatures": {
+            "jsx": true
+        },
+        "ecmaVersion": 12,
+        "sourceType": "module"
+    },
+    "plugins": [
+        "react",
+        "react-hooks",
+        "jsx-a11y",
+        "import",
+        "prefer-arrow",
+        "prettier"
+    ],
+    "rules": {
+        // React Rules
+        "react/react-in-jsx-scope": "off",
+        "react/prop-types": "warn",
+        "react/display-name": "warn",
+        "react/no-array-index-key": "warn",
+        "react/no-danger": "error",
+        "react/no-deprecated": "error",
+        "react/no-direct-mutation-state": "error",
+        "react/no-unsafe": "error",
+        "react/no-unused-prop-types": "warn",
+        "react/no-unused-state": "warn",
+        "react/prefer-stateless-function": "warn",
+        "react/self-closing-comp": [
+            "warn",
+            {
+                "component": true,
+                "html": true
+            }
+        ],
+        // React Hooks Rules
+        "react-hooks/rules-of-hooks": "error",
+        "react-hooks/exhaustive-deps": "warn",
+        // TypeScript Rules (basic)
+        "no-unused-vars": [
+            "warn",
+            {
+                "argsIgnorePattern": "^_",
+                "varsIgnorePattern": "^_"
+            }
+        ],
+        // JavaScript/ES6+ Rules
+        "no-console": [
+            "warn",
+            {
+                "allow": [
+                    "warn",
+                    "error"
+                ]
+            }
+        ],
+        "no-debugger": "error",
+        "no-duplicate-imports": "error",
+        "no-var": "error",
+        "prefer-const": "warn",
+        "prefer-template": "warn",
+        "no-magic-numbers": [
+            "warn",
+            {
+                "ignore": [
+                    -1,
+                    0,
+                    1,
+                    2
+                ],
+                "ignoreArrayIndexes": true,
+                "enforceConst": true,
+                "detectObjects": false
+            }
+        ],
+        // Import Rules
+        "import/order": [
+            "warn",
+            {
+                "groups": [
+                    "builtin",
+                    "external",
+                    "internal",
+                    "parent",
+                    "sibling",
+                    "index"
+                ],
+                "newlines-between": "always",
+                "alphabetize": {
+                    "order": "asc",
+                    "caseInsensitive": true
+                }
+            }
+        ],
+        "import/no-default-export": "off",
+        "import/prefer-default-export": "off",
+        "import/no-duplicates": "error",
+        "import/no-unresolved": "off", // Handled by webpack
+        // Accessibility Rules
+        "jsx-a11y/alt-text": "error",
+        "jsx-a11y/anchor-has-content": "error",
+        "jsx-a11y/click-events-have-key-events": "warn",
+        "jsx-a11y/no-static-element-interactions": "warn",
+        // Code Quality Rules
+        "complexity": [
+            "warn",
+            15
+        ],
+        "max-depth": [
+            "warn",
+            4
+        ],
+        "max-lines": [
+            "warn",
+            500
+        ],
+        "max-lines-per-function": [
+            "warn",
+            100
+        ],
+        "max-params": [
+            "warn",
+            5
+        ],
+        "no-nested-ternary": "warn",
+        "no-else-return": "warn",
+        "prefer-arrow/prefer-arrow-functions": [
+            "warn",
+            {
+                "disallowPrototype": true,
+                "singleReturnOnly": false,
+                "classPropertiesAllowed": false
+            }
+        ],
+        // Performance Rules
+        "no-await-in-loop": "warn",
+        "require-atomic-updates": "error",
+        // Prettier Integration
+        "prettier/prettier": "warn",
+        // Security Rules
+        "no-eval": "error",
+        "no-implied-eval": "error",
+        "no-new-func": "error",
+        "no-script-url": "error"
+    },
+    "settings": {
+        "react": {
+            "version": "detect"
+        },
+        "import/resolver": {
+            "node": {
+                "extensions": [
+                    ".js",
+                    ".jsx",
+                    ".ts",
+                    ".tsx"
+                ]
+            }
+        }
+    },
+    "overrides": [
+        {
+            "files": [
+                "*.test.js",
+                "*.test.jsx",
+                "*.test.ts",
+                "*.test.tsx"
+            ],
+            "env": {
+                "jest": true
+            },
+            "rules": {
+                "no-magic-numbers": "off",
+                "max-lines-per-function": "off"
+            }
+        },
+        {
+            "files": [
+                "*.js",
+                "*.jsx"
+            ],
+            "rules": {
+                "@typescript-eslint/no-var-requires": "off",
+                "@typescript-eslint/explicit-function-return-type": "off"
+            }
+        },
+        {
+            "files": ["src/constants/index.js"],
+            "rules": {
+                "no-magic-numbers": "off",
+                "max-lines": "off"
+            }
+        }
+    ],
+    "ignorePatterns": [
+        "build/",
+        "node_modules/",
+        "dist/",
+        "coverage/",
+        "*.min.js",
+        "*.bundle.js"
+    ]
+}

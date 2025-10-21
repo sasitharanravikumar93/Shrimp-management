@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+
 import { useOfflineSync } from '../context/OfflineSyncContext';
 
 /**
@@ -18,53 +19,58 @@ const useOfflineForm = (endpoint, method, onSuccess, onError) => {
    * @param {any} data - Form data to submit
    * @param {string} identifier - Unique identifier for the record
    */
-  const submit = useCallback(async (data, identifier) => {
-    setIsSubmitting(true);
-    setSubmitError(null);
+  const submit = useCallback(
+    async (data, identifier) => {
+      setIsSubmitting(true);
+      setSubmitError(null);
 
-    try {
-      if (isOnline) {
-        // Online: Submit directly to API
-        const url = `${process.env.REACT_APP_API_URL || 'http://localhost:5001'}${endpoint}`;
-        
-        const response = await fetch(url, {
-          method,
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(data)
-        });
+      try {
+        if (isOnline) {
+          // Online: Submit directly to API
+          const url = `${
+            process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001/api'
+          }${endpoint}`;
 
-        if (response.ok) {
-          const result = await response.json();
-          onSuccess && onSuccess(result);
-          return result;
-        } else {
+          const response = await fetch(url, {
+            method,
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+            onSuccess && onSuccess(result);
+            return result;
+          }
           const error = await response.json();
           throw new Error(error.message || 'Submission failed');
+        } else {
+          // Offline: Queue for later sync
+          await addToQueue(endpoint, method, data, identifier);
+          onSuccess &&
+            onSuccess({
+              message: 'Data saved offline. Will be synced when online.',
+              offline: true,
+              data
+            });
+          return {
+            message: 'Data saved offline. Will be synced when online.',
+            offline: true,
+            data
+          };
         }
-      } else {
-        // Offline: Queue for later sync
-        await addToQueue(endpoint, method, data, identifier);
-        onSuccess && onSuccess({ 
-          message: 'Data saved offline. Will be synced when online.',
-          offline: true,
-          data
-        });
-        return { 
-          message: 'Data saved offline. Will be synced when online.',
-          offline: true,
-          data
-        };
+      } catch (error) {
+        setSubmitError(error.message);
+        onError && onError(error);
+        throw error;
+      } finally {
+        setIsSubmitting(false);
       }
-    } catch (error) {
-      setSubmitError(error.message);
-      onError && onError(error);
-      throw error;
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [endpoint, method, isOnline, addToQueue, onSuccess, onError]);
+    },
+    [endpoint, method, isOnline, addToQueue, onSuccess, onError]
+  );
 
   return {
     submit,

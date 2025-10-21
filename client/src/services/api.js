@@ -1,5 +1,13 @@
 // api.js
-const API_BASE_URL = 'http://localhost:5001/api';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001/api';
+
+// Validate API base URL on startup
+if (!process.env.REACT_APP_API_BASE_URL) {
+  console.warn('REACT_APP_API_BASE_URL environment variable not set, using default localhost');
+}
+
+// Check if we're in development mode
+const isDevelopment = process.env.NODE_ENV === 'development';
 
 // Helper function for API calls with better error handling
 const apiCall = async (endpoint, method = 'GET', data = null) => {
@@ -7,21 +15,23 @@ const apiCall = async (endpoint, method = 'GET', data = null) => {
   const options = {
     method,
     headers: {
-      'Content-Type': 'application/json',
-    },
+      'Content-Type': 'application/json'
+    }
   };
 
+  // In development mode, we might not need authentication
+  // This will be handled by the server-side bypass
   if (data && (method === 'POST' || method === 'PUT')) {
     options.body = JSON.stringify(data);
   }
 
   try {
     const response = await fetch(url, options);
-    
+
     if (!response.ok) {
       const errorText = await response.text();
       let errorMessage = `HTTP error! status: ${response.status}`;
-      
+
       try {
         const errorData = JSON.parse(errorText);
         errorMessage = errorData.message || errorMessage;
@@ -31,16 +41,15 @@ const apiCall = async (endpoint, method = 'GET', data = null) => {
           errorMessage = errorText;
         }
       }
-      
+
       throw new Error(errorMessage);
     }
-    
+
     const contentType = response.headers.get('content-type');
     if (contentType && contentType.includes('application/json')) {
       return await response.json();
-    } else {
-      return await response.text();
     }
+    return await response.text();
   } catch (error) {
     console.error('API call failed:', error);
     throw error;
@@ -49,64 +58,68 @@ const apiCall = async (endpoint, method = 'GET', data = null) => {
 
 // Season API calls
 export const getSeasons = () => apiCall('/seasons');
-export const getSeasonById = (id) => apiCall(`/seasons/${id}`);
-export const createSeason = (seasonData) => apiCall('/seasons', 'POST', seasonData);
+export const getSeasonById = id => apiCall(`/seasons/${id}`);
+export const createSeason = seasonData => apiCall('/seasons', 'POST', seasonData);
 export const updateSeason = (id, seasonData) => apiCall(`/seasons/${id}`, 'PUT', seasonData);
-export const deleteSeason = (id) => apiCall(`/seasons/${id}`, 'DELETE');
-export const copyPondDetails = (sourceSeasonId, targetSeasonId) => 
+export const deleteSeason = id => apiCall(`/seasons/${id}`, 'DELETE');
+export const copyPondDetails = (sourceSeasonId, targetSeasonId) =>
   apiCall('/seasons/copy-ponds', 'POST', { sourceSeasonId, targetSeasonId });
 
 // Pond API calls
 export const getPonds = () => apiCall('/ponds');
-export const getPondById = (id) => apiCall(`/ponds/${id}`);
-export const getPondsBySeasonId = (seasonId) => apiCall(`/ponds/season/${seasonId}`);
-export const createPond = (pondData) => apiCall('/ponds', 'POST', pondData);
+export const getPondById = id => apiCall(`/ponds/${id}`);
+export const getPondsBySeasonId = seasonId => apiCall(`/ponds/season/${seasonId}`);
+export const createPond = pondData => apiCall('/ponds', 'POST', pondData);
 export const updatePond = (id, pondData) => apiCall(`/ponds/${id}`, 'PUT', pondData);
-export const deletePond = (id) => apiCall(`/ponds/${id}`, 'DELETE');
+export const deletePond = id => apiCall(`/ponds/${id}`, 'DELETE');
 
 // Feed Input API calls
 export const getFeedInputs = () => apiCall('/feed-inputs');
-export const getFeedInputById = (id) => apiCall(`/feed-inputs/${id}`);
-export const getFeedInputsByPondId = (pondId) => apiCall(`/feed-inputs/pond/${pondId}`);
-export const getFeedInputsByDateRange = (startDate, endDate) => 
+export const getFeedInputById = id => apiCall(`/feed-inputs/${id}`);
+export const getFeedInputsByPondId = pondId => apiCall(`/feed-inputs/pond/${pondId}`);
+export const getFeedInputsByDateRange = (startDate, endDate) =>
   apiCall(`/feed-inputs/date-range?startDate=${startDate}&endDate=${endDate}`);
-export const createFeedInput = (feedData) => apiCall('/feed-inputs', 'POST', feedData);
+export const createFeedInput = feedData => apiCall('/feed-inputs', 'POST', feedData);
 export const updateFeedInput = (id, feedData) => apiCall(`/feed-inputs/${id}`, 'PUT', feedData);
-export const deleteFeedInput = (id) => apiCall(`/feed-inputs/${id}`, 'DELETE');
+export const deleteFeedInput = id => apiCall(`/feed-inputs/${id}`, 'DELETE');
 
 // Growth Sampling API calls
 export const getGrowthSamplings = () => apiCall('/growth-samplings');
-export const getGrowthSamplingById = (id) => apiCall(`/growth-samplings/${id}`);
-export const getGrowthSamplingsByPondId = (pondId) => apiCall(`/growth-samplings/pond/${pondId}`);
-export const getGrowthSamplingsByDateRange = (startDate, endDate) => 
+export const getGrowthSamplingById = id => apiCall(`/growth-samplings/${id}`);
+export const getGrowthSamplingsByPondId = pondId => apiCall(`/growth-samplings/pond/${pondId}`);
+export const getGrowthSamplingsByDateRange = (startDate, endDate) =>
   apiCall(`/growth-samplings/date-range?startDate=${startDate}&endDate=${endDate}`);
-export const createGrowthSampling = (growthData) => apiCall('/growth-samplings', 'POST', growthData);
-export const updateGrowthSampling = (id, growthData) => apiCall(`/growth-samplings/${id}`, 'PUT', growthData);
-export const deleteGrowthSampling = (id) => apiCall(`/growth-samplings/${id}`, 'DELETE');
+export const createGrowthSampling = growthData => apiCall('/growth-samplings', 'POST', growthData);
+export const updateGrowthSampling = (id, growthData) =>
+  apiCall(`/growth-samplings/${id}`, 'PUT', growthData);
+export const deleteGrowthSampling = id => apiCall(`/growth-samplings/${id}`, 'DELETE');
 
 // Water Quality Input API calls
 export const getWaterQualityInputs = () => apiCall('/water-quality-inputs');
-export const getWaterQualityInputById = (id) => apiCall(`/water-quality-inputs/${id}`);
-export const getWaterQualityInputsByPondId = (pondId) => apiCall(`/water-quality-inputs/pond/${pondId}`);
-export const getWaterQualityInputsByDateRange = (startDate, endDate) => 
+export const getWaterQualityInputById = id => apiCall(`/water-quality-inputs/${id}`);
+export const getWaterQualityInputsByPondId = pondId =>
+  apiCall(`/water-quality-inputs/pond/${pondId}`);
+export const getWaterQualityInputsByDateRange = (startDate, endDate) =>
   apiCall(`/water-quality-inputs/date-range?startDate=${startDate}&endDate=${endDate}`);
-export const createWaterQualityInput = (waterQualityData) => 
+export const createWaterQualityInput = waterQualityData =>
   apiCall('/water-quality-inputs', 'POST', waterQualityData);
-export const updateWaterQualityInput = (id, waterQualityData) => 
+export const updateWaterQualityInput = (id, waterQualityData) =>
   apiCall(`/water-quality-inputs/${id}`, 'PUT', waterQualityData);
-export const deleteWaterQualityInput = (id) => apiCall(`/water-quality-inputs/${id}`, 'DELETE');
+export const deleteWaterQualityInput = id => apiCall(`/water-quality-inputs/${id}`, 'DELETE');
 
 // Nursery Batch API calls
 export const getNurseryBatches = () => apiCall('/nursery-batches');
-export const getNurseryBatchById = (id) => apiCall(`/nursery-batches/${id}`);
-export const getNurseryBatchesBySeasonId = (seasonId) => apiCall(`/nursery-batches/season/${seasonId}`);
-export const getEventsForNurseryBatch = (id) => apiCall(`/nursery-batches/${id}/events`);
-export const createNurseryBatch = (nurseryData) => apiCall('/nursery-batches', 'POST', nurseryData);
-export const updateNurseryBatch = (id, nurseryData) => apiCall(`/nursery-batches/${id}`, 'PUT', nurseryData);
-export const deleteNurseryBatch = (id) => apiCall(`/nursery-batches/${id}`, 'DELETE');
+export const getNurseryBatchById = id => apiCall(`/nursery-batches/${id}`);
+export const getNurseryBatchesBySeasonId = seasonId =>
+  apiCall(`/nursery-batches/season/${seasonId}`);
+export const getEventsForNurseryBatch = id => apiCall(`/nursery-batches/${id}/events`);
+export const createNurseryBatch = nurseryData => apiCall('/nursery-batches', 'POST', nurseryData);
+export const updateNurseryBatch = (id, nurseryData) =>
+  apiCall(`/nursery-batches/${id}`, 'PUT', nurseryData);
+export const deleteNurseryBatch = id => apiCall(`/nursery-batches/${id}`, 'DELETE');
 
 // Inventory API calls
-export const getInventoryItems = (seasonId) => {
+export const getInventoryItems = seasonId => {
   const params = new URLSearchParams();
   if (seasonId) params.append('seasonId', seasonId);
   const queryString = params.toString() ? `?${params.toString()}` : '';
@@ -157,36 +170,43 @@ export const getInventoryAdjustments = (itemId, seasonId) => {
 
 // Event API calls
 export const getEvents = () => apiCall('/events');
-export const getEventById = (id) => apiCall(`/events/${id}`);
-export const getEventsByPondId = (pondId) => apiCall(`/events/pond/${pondId}`);
-export const getEventsByNurseryBatchId = (nurseryBatchId) => apiCall(`/events/nursery/${nurseryBatchId}`);
-export const getEventsBySeasonId = (seasonId) => apiCall(`/events/season/${seasonId}`);
-export const getEventsByDateRange = (startDate, endDate) => 
+export const getEventById = id => apiCall(`/events/${id}`);
+export const getEventsByPondId = pondId => apiCall(`/events/pond/${pondId}`);
+export const getEventsByNurseryBatchId = nurseryBatchId =>
+  apiCall(`/events/nursery/${nurseryBatchId}`);
+export const getEventsBySeasonId = seasonId => apiCall(`/events/season/${seasonId}`);
+export const getEventsByDateRange = (startDate, endDate) =>
   apiCall(`/events/date-range?startDate=${startDate}&endDate=${endDate}`);
-export const createEvent = (eventData) => apiCall('/events', 'POST', eventData);
+export const createEvent = eventData => apiCall('/events', 'POST', eventData);
 export const updateEvent = (id, eventData) => apiCall(`/events/${id}`, 'PUT', eventData);
-export const deleteEvent = (id) => apiCall(`/events/${id}`, 'DELETE');
+export const deleteEvent = id => apiCall(`/events/${id}`, 'DELETE');
 
 // Employee API calls
 export const getEmployees = () => apiCall('/employees');
-export const createEmployee = (employeeData) => apiCall('/employees', 'POST', employeeData);
-export const updateEmployee = (id, employeeData) => apiCall(`/employees/${id}`, 'PATCH', employeeData);
-export const deleteEmployee = (id) => apiCall(`/employees/${id}`, 'DELETE');
+export const createEmployee = employeeData => apiCall('/employees', 'POST', employeeData);
+export const updateEmployee = (id, employeeData) =>
+  apiCall(`/employees/${id}`, 'PATCH', employeeData);
+export const deleteEmployee = id => apiCall(`/employees/${id}`, 'DELETE');
 
 // Expense API calls
 export const getExpenses = (filters = {}) => {
   const params = new URLSearchParams(filters);
   return apiCall(`/expenses?${params.toString()}`);
 };
-export const getExpenseSummary = (seasonId) => apiCall(`/expenses/summary?seasonId=${seasonId}`);
-export const createExpense = (expenseData) => apiCall('/expenses', 'POST', expenseData);
+export const getExpenseSummary = seasonId => apiCall(`/expenses/summary?seasonId=${seasonId}`);
+export const createExpense = expenseData => apiCall('/expenses', 'POST', expenseData);
 export const updateExpense = (id, expenseData) => apiCall(`/expenses/${id}`, 'PATCH', expenseData);
-export const deleteExpense = (id) => apiCall(`/expenses/${id}`, 'DELETE');
+export const deleteExpense = id => apiCall(`/expenses/${id}`, 'DELETE');
 
 // Historical Insights API calls
 export const getHistoricalSeasons = () => apiCall('/historical-insights/seasons');
-export const getHistoricalPondsForCurrentSeason = () => apiCall('/historical-insights/ponds/current');
-export const getHistoricalPondsBySeasonId = (seasonId) => apiCall(`/historical-insights/ponds/season/${seasonId}`);
-export const comparePondsCurrentSeason = (comparisonData) => apiCall('/historical-insights/compare/current', 'POST', comparisonData);
-export const comparePondsHistorical = (comparisonData) => apiCall('/historical-insights/compare/historical', 'POST', comparisonData);
-export const exportComparisonData = (exportData) => apiCall('/historical-insights/export', 'POST', exportData);
+export const getHistoricalPondsForCurrentSeason = () =>
+  apiCall('/historical-insights/ponds/current');
+export const getHistoricalPondsBySeasonId = seasonId =>
+  apiCall(`/historical-insights/ponds/season/${seasonId}`);
+export const comparePondsCurrentSeason = comparisonData =>
+  apiCall('/historical-insights/compare/current', 'POST', comparisonData);
+export const comparePondsHistorical = comparisonData =>
+  apiCall('/historical-insights/compare/historical', 'POST', comparisonData);
+export const exportComparisonData = exportData =>
+  apiCall('/historical-insights/export', 'POST', exportData);

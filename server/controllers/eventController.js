@@ -1,9 +1,9 @@
-const logger = require('../logger');
+const { logger } = require('../utils/logger');
 const Event = require('../models/Event');
 const Pond = require('../models/Pond');
 const Season = require('../models/Season');
 const InventoryItem = require('../models/InventoryItem'); // New import
-const InventoryAdjustment = require('../models/InventoryAdjustment'); // New import
+// const InventoryAdjustment = require('../models/InventoryAdjustment'); // New import - unused
 const NurseryBatch = require('../models/NurseryBatch'); // New import
 const inventoryController = require('./inventoryController'); // New import
 
@@ -48,9 +48,16 @@ exports.createEvent = async (req, res) => {
     }
 
     // Type-specific validation and logic
+    // Declare variables outside switch to avoid lexical declaration issues
+    let method, preparationDate, stockingDate, stockNurseryBatchId, species, initialCount,
+      applicationDate, inventoryItemId, quantityApplied, harvestDate, harvestWeight, averageWeight,
+      preparationMethod, nurseryPrepDate, pH, dissolvedOxygen, temperature, salinity,
+      testTime, samplingTime, totalWeight, totalCount,
+      feedTime, feedInventoryItemId, quantity;
+
     switch (eventType) {
       case 'PondPreparation':
-        const { method, preparationDate } = details;
+        ({ method, preparationDate } = details);
         if (!method || !preparationDate) {
           return res.status(400).json({ message: 'PondPreparation: method and preparationDate are required in details' });
         }
@@ -60,8 +67,8 @@ exports.createEvent = async (req, res) => {
         }
         break;
 
-      case 'Stocking':
-        const { stockingDate, nurseryBatchId: stockNurseryBatchId, species, initialCount } = details;
+      case 'Stocking': {
+        ({ stockingDate, nurseryBatchId: stockNurseryBatchId, species, initialCount } = details);
         if (!stockingDate || !stockNurseryBatchId || !species || initialCount === undefined) {
           return res.status(400).json({ message: 'Stocking: stockingDate, nurseryBatchId, species, and initialCount are required in details' });
         }
@@ -75,9 +82,10 @@ exports.createEvent = async (req, res) => {
           return res.status(400).json({ message: 'Stocking event requires a pond ID' });
         }
         break;
+      }
 
-      case 'ChemicalApplication':
-        const { applicationDate, inventoryItemId, quantityApplied } = details;
+      case 'ChemicalApplication': {
+        ({ applicationDate, inventoryItemId, quantityApplied } = details);
         if (!applicationDate || !inventoryItemId || quantityApplied === undefined) {
           return res.status(400).json({ message: 'ChemicalApplication: applicationDate, inventoryItemId, and quantityApplied are required in details' });
         }
@@ -90,10 +98,11 @@ exports.createEvent = async (req, res) => {
           return res.status(400).json({ message: 'ChemicalApplication: Selected inventory item is not a Chemical or Probiotic type' });
         }
         break;
+      }
 
       case 'PartialHarvest':
       case 'FullHarvest':
-        const { harvestDate, harvestWeight, averageWeight } = details;
+        ({ harvestDate, harvestWeight, averageWeight } = details);
         if (!harvestDate || harvestWeight === undefined || averageWeight === undefined) {
           return res.status(400).json({ message: `${eventType}: harvestDate, harvestWeight, and averageWeight are required in details` });
         }
@@ -104,7 +113,7 @@ exports.createEvent = async (req, res) => {
         break;
 
       case 'NurseryPreparation':
-        const { preparationMethod, preparationDate: nurseryPrepDate } = details;
+        ({ preparationMethod, preparationDate: nurseryPrepDate } = details);
         if (!preparationMethod || !nurseryPrepDate) {
           return res.status(400).json({ message: 'NurseryPreparation: preparationMethod and preparationDate are required in details' });
         }
@@ -115,17 +124,14 @@ exports.createEvent = async (req, res) => {
         break;
 
       case 'WaterQualityTesting':
-        const { 
-          pH, 
-          dissolvedOxygen, 
-          temperature, 
-          salinity, 
-          ammonia, 
-          nitrite, 
-          alkalinity,
+        ({
+          pH,
+          dissolvedOxygen,
+          temperature,
+          salinity,
           testTime
-        } = details;
-        
+        } = details);
+
         if (pH === undefined || dissolvedOxygen === undefined || temperature === undefined || salinity === undefined) {
           return res.status(400).json({ message: 'WaterQualityTesting: pH, dissolvedOxygen, temperature, and salinity are required in details' });
         }
@@ -135,14 +141,14 @@ exports.createEvent = async (req, res) => {
         break;
 
       case 'GrowthSampling':
-        const { samplingTime, totalWeight, totalCount } = details;
+        ({ samplingTime, totalWeight, totalCount } = details);
         if (!samplingTime || totalWeight === undefined || totalCount === undefined) {
           return res.status(400).json({ message: 'GrowthSampling: samplingTime, totalWeight, and totalCount are required in details' });
         }
         break;
 
-      case 'Feeding':
-        const { feedTime, inventoryItemId: feedInventoryItemId, quantity } = details;
+      case 'Feeding': {
+        ({ feedTime, inventoryItemId: feedInventoryItemId, quantity } = details);
         if (!feedTime || !feedInventoryItemId || quantity === undefined) {
           return res.status(400).json({ message: 'Feeding: feedTime, inventoryItemId, and quantity are required in details' });
         }
@@ -155,6 +161,7 @@ exports.createEvent = async (req, res) => {
           return res.status(400).json({ message: 'Feeding: Selected inventory item is not a Feed type' });
         }
         break;
+      }
 
       case 'Inspection':
         // Inspection events don't have strict required fields beyond the basics
@@ -183,13 +190,13 @@ exports.createEvent = async (req, res) => {
           inventoryItemId: details.inventoryItemId,
           adjustmentType: 'Usage',
           quantityChange: -details.quantityApplied, // Deduct quantity
-          reason: pondId 
-            ? `Chemical/Probiotic application for pond ${pond.name}` 
+          reason: pondId
+            ? `Chemical/Probiotic application for pond ${pond.name}`
             : `Chemical/Probiotic application for nursery batch ${nurseryBatch.batchName}`,
           relatedDocument: event._id,
           relatedDocumentModel: 'Event'
         }
-      }, { status: () => ({ json: () => {} }) }); // Mock res object for internal call
+      }, { status: () => ({ json: () => { } }) }); // Mock res object for internal call
     }
 
     // Handle inventory deduction for Feeding
@@ -199,13 +206,13 @@ exports.createEvent = async (req, res) => {
           inventoryItemId: details.inventoryItemId,
           adjustmentType: 'Usage',
           quantityChange: -details.quantity, // Deduct quantity
-          reason: pondId 
-            ? `Feed application for pond ${pond.name}` 
+          reason: pondId
+            ? `Feed application for pond ${pond.name}`
             : `Feed application for nursery batch ${nurseryBatch.batchName}`,
           relatedDocument: event._id,
           relatedDocumentModel: 'Event'
         }
-      }, { status: () => ({ json: () => {} }) }); // Mock res object for internal call
+      }, { status: () => ({ json: () => { } }) }); // Mock res object for internal call
     }
 
     // Populate references in the response
@@ -240,7 +247,7 @@ exports.getAllEvents = async (req, res) => {
       .populate('nurseryBatchId', 'batchName')
       .populate('seasonId', 'name')
       .sort({ date: -1 }); // Sort by date, newest first
-    
+
     // Conditionally populate inventoryItemId for ChemicalApplication and Feeding events
     for (let i = 0; i < events.length; i++) {
       if (events[i].eventType === 'ChemicalApplication' && events[i].details.inventoryItemId) {
@@ -266,7 +273,7 @@ exports.getEventById = async (req, res) => {
       .populate('pondId', 'name')
       .populate('nurseryBatchId', 'batchName')
       .populate('seasonId', 'name');
-      
+
     if (!event) {
       return res.status(404).json({ message: 'Event not found' });
     }
@@ -275,12 +282,12 @@ exports.getEventById = async (req, res) => {
     if (event.eventType === 'ChemicalApplication' && event.details.inventoryItemId) {
       await event.populate('details.inventoryItemId', 'itemName itemType unit');
     }
-    
+
     // If it's a Feeding event, populate inventoryItemId
     if (event.eventType === 'Feeding' && event.details.inventoryItemId) {
       await event.populate('details.inventoryItemId', 'itemName itemType unit');
     }
-    
+
     res.json(event);
   } catch (error) {
     if (error.name === 'CastError') {
@@ -333,7 +340,7 @@ exports.updateEvent = async (req, res) => {
 
     // Type-specific validation and logic (similar to createEvent)
     switch (eventType) {
-      case 'PondPreparation':
+      case 'PondPreparation': {
         const { method, preparationDate } = details;
         if (!method || !preparationDate) {
           return res.status(400).json({ message: 'PondPreparation: method and preparationDate are required in details' });
@@ -343,8 +350,9 @@ exports.updateEvent = async (req, res) => {
           return res.status(400).json({ message: 'PondPreparation event requires a pond ID' });
         }
         break;
+      }
 
-      case 'Stocking':
+      case 'Stocking': {
         const { stockingDate, nurseryBatchId: stockNurseryBatchId, species, initialCount } = details;
         if (!stockingDate || !stockNurseryBatchId || !species || initialCount === undefined) {
           return res.status(400).json({ message: 'Stocking: stockingDate, nurseryBatchId, species, and initialCount are required in details' });
@@ -359,8 +367,9 @@ exports.updateEvent = async (req, res) => {
           return res.status(400).json({ message: 'Stocking event requires a pond ID' });
         }
         break;
+      }
 
-      case 'ChemicalApplication':
+      case 'ChemicalApplication': {
         const { applicationDate, inventoryItemId, quantityApplied } = details;
         if (!applicationDate || !inventoryItemId || quantityApplied === undefined) {
           return res.status(400).json({ message: 'ChemicalApplication: applicationDate, inventoryItemId, and quantityApplied are required in details' });
@@ -374,9 +383,10 @@ exports.updateEvent = async (req, res) => {
           return res.status(400).json({ message: 'ChemicalApplication: Selected inventory item is not a Chemical or Probiotic type' });
         }
         break;
+      }
 
       case 'PartialHarvest':
-      case 'FullHarvest':
+      case 'FullHarvest': {
         const { harvestDate, harvestWeight, averageWeight } = details;
         if (!harvestDate || harvestWeight === undefined || averageWeight === undefined) {
           return res.status(400).json({ message: `${eventType}: harvestDate, harvestWeight, and averageWeight are required in details` });
@@ -386,8 +396,9 @@ exports.updateEvent = async (req, res) => {
           return res.status(400).json({ message: 'Harvest events require a pond ID' });
         }
         break;
+      }
 
-      case 'NurseryPreparation':
+      case 'NurseryPreparation': {
         const { preparationMethod, preparationDate: nurseryPrepDate } = details;
         if (!preparationMethod || !nurseryPrepDate) {
           return res.status(400).json({ message: 'NurseryPreparation: preparationMethod and preparationDate are required in details' });
@@ -397,19 +408,17 @@ exports.updateEvent = async (req, res) => {
           return res.status(400).json({ message: 'NurseryPreparation event requires a nursery batch ID' });
         }
         break;
+      }
 
-      case 'WaterQualityTesting':
-        const { 
-          pH, 
-          dissolvedOxygen, 
-          temperature, 
-          salinity, 
-          ammonia, 
-          nitrite, 
-          alkalinity,
+      case 'WaterQualityTesting': {
+        const {
+          pH,
+          dissolvedOxygen,
+          temperature,
+          salinity,
           testTime
         } = details;
-        
+
         if (pH === undefined || dissolvedOxygen === undefined || temperature === undefined || salinity === undefined) {
           return res.status(400).json({ message: 'WaterQualityTesting: pH, dissolvedOxygen, temperature, and salinity are required in details' });
         }
@@ -417,15 +426,17 @@ exports.updateEvent = async (req, res) => {
           return res.status(400).json({ message: 'WaterQualityTesting: testTime is required in details' });
         }
         break;
+      }
 
-      case 'GrowthSampling':
+      case 'GrowthSampling': {
         const { samplingTime, totalWeight, totalCount } = details;
         if (!samplingTime || totalWeight === undefined || totalCount === undefined) {
           return res.status(400).json({ message: 'GrowthSampling: samplingTime, totalWeight, and totalCount are required in details' });
         }
         break;
+      }
 
-      case 'Feeding':
+      case 'Feeding': {
         const { feedTime, inventoryItemId: feedInventoryItemId, quantity } = details;
         if (!feedTime || !feedInventoryItemId || quantity === undefined) {
           return res.status(400).json({ message: 'Feeding: feedTime, inventoryItemId, and quantity are required in details' });
@@ -439,6 +450,7 @@ exports.updateEvent = async (req, res) => {
           return res.status(400).json({ message: 'Feeding: Selected inventory item is not a Feed type' });
         }
         break;
+      }
 
       case 'Inspection':
         // Inspection events don't have strict required fields beyond the basics
@@ -448,23 +460,23 @@ exports.updateEvent = async (req, res) => {
       default:
         return res.status(400).json({ message: 'Invalid event type' });
     }
-    
+
     const event = await Event.findByIdAndUpdate(
       req.params.id,
-      { 
-        eventType, 
-        date, 
-        pondId, 
+      {
+        eventType,
+        date,
+        pondId,
         nurseryBatchId,
         seasonId,
         details
       },
       { new: true, runValidators: true }
     )
-    .populate('pondId', 'name')
-    .populate('nurseryBatchId', 'batchName')
-    .populate('seasonId', 'name');
-    
+      .populate('pondId', 'name')
+      .populate('nurseryBatchId', 'batchName')
+      .populate('seasonId', 'name');
+
     if (!event) {
       return res.status(404).json({ message: 'Event not found' });
     }
@@ -484,7 +496,7 @@ exports.updateEvent = async (req, res) => {
     // For now, we assume manual inventory adjustments will be made for corrections.
     // If the inventoryItemId or quantity changes, the user would need to manually
     // create a correction adjustment in the inventory system.
-    
+
     res.json(event);
   } catch (error) {
     if (error.name === 'CastError') {
@@ -500,7 +512,7 @@ exports.deleteEvent = async (req, res) => {
   logger.info(`Deleting event by ID: ${req.params.id}`);
   try {
     const event = await Event.findById(req.params.id); // Find first to get details for reversal
-    
+
     if (!event) {
       return res.status(404).json({ message: 'Event not found' });
     }
@@ -518,9 +530,9 @@ exports.deleteEvent = async (req, res) => {
           relatedDocument: event._id,
           relatedDocumentModel: 'Event'
         }
-      }, { status: () => ({ json: () => {} }) });
+      }, { status: () => ({ json: () => { } }) });
     }
-    
+
     // Reverse inventory adjustment for Feeding
     if (event.eventType === 'Feeding' && event.details.inventoryItemId && event.details.quantity !== undefined) {
       await inventoryController.createInventoryAdjustment({
@@ -532,9 +544,9 @@ exports.deleteEvent = async (req, res) => {
           relatedDocument: event._id,
           relatedDocumentModel: 'Event'
         }
-      }, { status: () => ({ json: () => {} }) });
+      }, { status: () => ({ json: () => { } }) });
     }
-    
+
     res.json({ message: 'Event deleted successfully' });
   } catch (error) {
     if (error.name === 'CastError') {
@@ -550,19 +562,19 @@ exports.getEventsByPondId = async (req, res) => {
   logger.info(`Getting events for pond ID: ${req.params.pondId}`);
   try {
     const { pondId } = req.params;
-    
+
     // Check if pond exists
     const pond = await Pond.findById(pondId);
     if (!pond) {
       return res.status(404).json({ message: 'Pond not found' });
     }
-    
+
     const events = await Event.find({ pondId })
       .populate('pondId', 'name')
       .populate('nurseryBatchId', 'batchName')
       .populate('seasonId', 'name')
       .sort({ date: -1 });
-      
+
     // Conditionally populate inventoryItemId for ChemicalApplication and Feeding events
     for (let i = 0; i < events.length; i++) {
       if (events[i].eventType === 'ChemicalApplication' && events[i].details.inventoryItemId) {
@@ -588,19 +600,19 @@ exports.getEventsBySeasonId = async (req, res) => {
   logger.info(`Getting events for season ID: ${req.params.seasonId}`);
   try {
     const { seasonId } = req.params;
-    
+
     // Check if season exists
     const season = await Season.findById(seasonId);
     if (!season) {
       return res.status(404).json({ message: 'Season not found' });
     }
-    
+
     const events = await Event.find({ seasonId })
       .populate('pondId', 'name')
       .populate('nurseryBatchId', 'batchName')
       .populate('seasonId', 'name')
       .sort({ date: -1 });
-      
+
     // Conditionally populate inventoryItemId for ChemicalApplication and Feeding events
     for (let i = 0; i < events.length; i++) {
       if (events[i].eventType === 'ChemicalApplication' && events[i].details.inventoryItemId) {
@@ -626,19 +638,19 @@ exports.getEventsByNurseryBatchId = async (req, res) => {
   logger.info(`Getting events for nursery batch ID: ${req.params.nurseryBatchId}`);
   try {
     const { nurseryBatchId } = req.params;
-    
+
     // Check if nursery batch exists
     const nurseryBatch = await NurseryBatch.findById(nurseryBatchId);
     if (!nurseryBatch) {
       return res.status(404).json({ message: 'Nursery batch not found' });
     }
-    
+
     const events = await Event.find({ nurseryBatchId })
       .populate('pondId', 'name')
       .populate('nurseryBatchId', 'batchName')
       .populate('seasonId', 'name')
       .sort({ date: -1 });
-      
+
     // Conditionally populate inventoryItemId for ChemicalApplication and Feeding events
     for (let i = 0; i < events.length; i++) {
       if (events[i].eventType === 'ChemicalApplication' && events[i].details.inventoryItemId) {
@@ -664,22 +676,22 @@ exports.getEventsByDateRange = async (req, res) => {
   logger.info('Getting events by date range', { query: req.query });
   try {
     const { startDate, endDate } = req.query;
-    
+
     if (!startDate || !endDate) {
       return res.status(400).json({ message: 'Start date and end date are required as query parameters' });
     }
-    
+
     const events = await Event.find({
       date: {
         $gte: new Date(startDate),
         $lte: new Date(endDate)
       }
     })
-    .populate('pondId', 'name')
-    .populate('nurseryBatchId', 'batchName')
-    .populate('seasonId', 'name')
-    .sort({ date: -1 });
-    
+      .populate('pondId', 'name')
+      .populate('nurseryBatchId', 'batchName')
+      .populate('seasonId', 'name')
+      .sort({ date: -1 });
+
     // Conditionally populate inventoryItemId for ChemicalApplication and Feeding events
     for (let i = 0; i < events.length; i++) {
       if (events[i].eventType === 'ChemicalApplication' && events[i].details.inventoryItemId) {

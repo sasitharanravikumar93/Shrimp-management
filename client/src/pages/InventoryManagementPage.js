@@ -1,4 +1,8 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
+import HistoryIcon from '@mui/icons-material/History';
+import SearchIcon from '@mui/icons-material/Search';
 import {
   Container,
   Typography,
@@ -17,19 +21,16 @@ import {
   InputAdornment,
   IconButton,
   ToggleButton,
-  ToggleButtonGroup,
+  ToggleButtonGroup
 } from '@mui/material';
-import SearchIcon from '@mui/icons-material/Search';
-import AddIcon from '@mui/icons-material/Add';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import HistoryIcon from '@mui/icons-material/History';
-import InventoryForm from '../components/InventoryForm';
-import AdjustmentHistoryModal from '../components/AdjustmentHistoryModal'; // New import
-import CurrentStockView from '../components/CurrentStockView'; // New import
-import useApi from '../hooks/useApi';
-import { useSeason } from '../context/SeasonContext';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+
+import AdjustmentHistoryModal from '../components/features/inventory/AdjustmentHistoryModal'; // New import
+import CurrentStockView from '../components/features/inventory/CurrentStockView'; // New import
+import InventoryForm from '../components/features/inventory/InventoryForm';
+import { useSeason } from '../context/SeasonContext';
+import useApi from '../hooks/useApi';
 
 const InventoryManagementPage = () => {
   const { t, i18n } = useTranslation();
@@ -55,7 +56,7 @@ const InventoryManagementPage = () => {
       setError(null);
       return;
     }
-    
+
     setLoading(true);
     setError(null);
     try {
@@ -67,7 +68,7 @@ const InventoryManagementPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [selectedSeason?._id]);
+  }, [selectedSeason, api, t]);
 
   useEffect(() => {
     if (view === 'bought') {
@@ -77,7 +78,7 @@ const InventoryManagementPage = () => {
     }
   }, [view, fetchInventoryItems]);
 
-  const handleSearchChange = (event) => {
+  const handleSearchChange = event => {
     setSearchTerm(event.target.value);
   };
 
@@ -91,22 +92,28 @@ const InventoryManagementPage = () => {
     let items = inventoryItems;
 
     if (filter !== 'all') {
-      items = items.filter(item => item.itemType && item.itemType.toLowerCase() === filter.toLowerCase());
+      items = items.filter(
+        item => item.itemType && item.itemType.toLowerCase() === filter.toLowerCase()
+      );
     }
 
-    return items.filter(item =>
-      (item.itemName &&
-        (typeof item.itemName === 'object'
-          ? (item.itemName[i18n.language] || item.itemName.en || '').toLowerCase().includes(searchTerm.toLowerCase())
-          : item.itemName.toLowerCase().includes(searchTerm.toLowerCase()))) ||
-      (item.itemType && item.itemType.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (item.supplier && item.supplier.toLowerCase().includes(searchTerm.toLowerCase()))
+    return items.filter(
+      item =>
+        (item.itemName &&
+          (typeof item.itemName === 'object'
+            ? (item.itemName[i18n.language] || item.itemName.en || '')
+                .toLowerCase()
+                .includes(searchTerm.toLowerCase())
+            : item.itemName.toLowerCase().includes(searchTerm.toLowerCase()))) ||
+        (item.itemType && item.itemType.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (item.supplier && item.supplier.toLowerCase().includes(searchTerm.toLowerCase()))
     );
   }, [inventoryItems, searchTerm, i18n.language, filter]);
 
-  const itemTypes = useMemo(() => 
-    Array.from(new Set(inventoryItems.map(item => item.itemType).filter(Boolean)))
-  , [inventoryItems]);
+  const itemTypes = useMemo(
+    () => Array.from(new Set(inventoryItems.map(item => item.itemType).filter(Boolean))),
+    [inventoryItems]
+  );
 
   const handleOpenForm = (item = null) => {
     setEditingItem(item);
@@ -119,11 +126,11 @@ const InventoryManagementPage = () => {
     fetchInventoryItems(); // Refresh data after form submission
   };
 
-  const handleSaveForm = (savedItem) => {
+  const handleSaveForm = _savedItem => {
     fetchInventoryItems(); // Refresh data
   };
 
-  const handleOpenHistoryModal = (item) => {
+  const handleOpenHistoryModal = item => {
     setHistoryItem(item);
     setOpenHistoryModal(true);
   };
@@ -133,8 +140,12 @@ const InventoryManagementPage = () => {
     setHistoryItem(null);
   };
 
-  const handleDeleteItem = async (id) => {
-    if (window.confirm(`${t('areYouSure')} ${t('delete')} ${t('inventory_item')}? ${t('action_not_reversible')}`)) {
+  const handleDeleteItem = async id => {
+    if (
+      window.confirm(
+        `${t('areYouSure')} ${t('delete')} ${t('inventory_item')}? ${t('action_not_reversible')}`
+      )
+    ) {
       try {
         await api.delete(`/inventory-items/${id}`);
         fetchInventoryItems(); // Refresh list
@@ -146,7 +157,7 @@ const InventoryManagementPage = () => {
   };
 
   // Helper to get item name based on language
-  const getItemName = (item) => {
+  const getItemName = item => {
     if (typeof item.itemName === 'object') {
       return item.itemName[i18n.language] || item.itemName.en || '';
     }
@@ -154,32 +165,30 @@ const InventoryManagementPage = () => {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4" component="h1">
+    <Container maxWidth='lg' sx={{ mt: 4, mb: 4 }}>
+      <Box display='flex' justifyContent='space-between' alignItems='center' mb={3}>
+        <Typography variant='h4' component='h1'>
           {t('inventory_management')}
         </Typography>
-        <Button
-          variant="contained"
-          startIcon={<AddIcon />}
-          onClick={() => handleOpenForm()}
-        >
+        <Button variant='contained' startIcon={<AddIcon />} onClick={() => handleOpenForm()}>
           {t('add_new_item')}
         </Button>
       </Box>
 
       <Box sx={{ mb: 2 }}>
         <ToggleButtonGroup
-          color="primary"
+          color='primary'
           value={view}
           exclusive
-          onChange={(e, newView) => { if (newView) setView(newView); }}
-          aria-label="text alignment"
+          onChange={(e, newView) => {
+            if (newView) setView(newView);
+          }}
+          aria-label='text alignment'
         >
-          <ToggleButton value="bought" aria-label="left aligned">
+          <ToggleButton value='bought' aria-label='left aligned'>
             {t('inventory_bought')}
           </ToggleButton>
-          <ToggleButton value="stock" aria-label="centered">
+          <ToggleButton value='stock' aria-label='centered'>
             {t('current_stock')}
           </ToggleButton>
         </ToggleButtonGroup>
@@ -190,25 +199,20 @@ const InventoryManagementPage = () => {
           <TextField
             fullWidth
             label={t('search_inventory')}
-            variant="outlined"
+            variant='outlined'
             value={searchTerm}
             onChange={handleSearchChange}
             InputProps={{
               endAdornment: (
-                <InputAdornment position="end">
+                <InputAdornment position='end'>
                   <SearchIcon />
                 </InputAdornment>
-              ),
+              )
             }}
             sx={{ flexGrow: 1, minWidth: 300 }}
           />
-          <ToggleButtonGroup
-            size="small"
-            value={filter}
-            exclusive
-            onChange={handleFilterChange}
-          >
-            <ToggleButton value="all">{t('all')}</ToggleButton>
+          <ToggleButtonGroup size='small' value={filter} exclusive onChange={handleFilterChange}>
+            <ToggleButton value='all'>{t('all')}</ToggleButton>
             {itemTypes.map(type => (
               <ToggleButton key={type} value={type.toLowerCase()}>
                 {t(type.toLowerCase())}
@@ -219,13 +223,13 @@ const InventoryManagementPage = () => {
       </Paper>
 
       {loading && (
-        <Box display="flex" justifyContent="center" mt={5}>
+        <Box display='flex' justifyContent='center' mt={5}>
           <CircularProgress />
         </Box>
       )}
 
       {error && (
-        <Alert severity="error" sx={{ mt: 2 }}>
+        <Alert severity='error' sx={{ mt: 2 }}>
           {error}
         </Alert>
       )}
@@ -241,38 +245,45 @@ const InventoryManagementPage = () => {
                   <TableCell>{t('purchaseDate')}</TableCell>
                   <TableCell>{t('supplier')}</TableCell>
                   <TableCell>{t('unit')}</TableCell>
-                  <TableCell align="right">{t('costPerUnit')}</TableCell>
-                  <TableCell align="right">{t('quantity_bought')}</TableCell>
+                  <TableCell align='right'>{t('costPerUnit')}</TableCell>
+                  <TableCell align='right'>{t('quantity_bought')}</TableCell>
                   <TableCell>{t('actions')}</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {filteredItems.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} align="center">
+                    <TableCell colSpan={8} align='center'>
                       {t('no_inventory_items_found')}
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredItems.map((item) => (
-                    <TableRow key={item._id} sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                      <TableCell component="th" scope="row">
+                  filteredItems.map(item => (
+                    <TableRow
+                      key={item._id}
+                      sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                    >
+                      <TableCell component='th' scope='row'>
                         {getItemName(item)}
                       </TableCell>
                       <TableCell>{item.itemType}</TableCell>
-                      <TableCell>{item.purchaseDate ? new Date(item.purchaseDate).toLocaleDateString() : 'N/A'}</TableCell>
+                      <TableCell>
+                        {item.purchaseDate
+                          ? new Date(item.purchaseDate).toLocaleDateString()
+                          : 'N/A'}
+                      </TableCell>
                       <TableCell>{item.supplier}</TableCell>
                       <TableCell>{item.unit}</TableCell>
-                      <TableCell align="right">{item.costPerUnit}</TableCell>
-                      <TableCell align="right">{item.quantityBought}</TableCell>
+                      <TableCell align='right'>{item.costPerUnit}</TableCell>
+                      <TableCell align='right'>{item.quantityBought}</TableCell>
                       <TableCell>
-                        <IconButton color="primary" onClick={() => handleOpenForm(item)}>
+                        <IconButton color='primary' onClick={() => handleOpenForm(item)}>
                           <EditIcon />
                         </IconButton>
                         <IconButton onClick={() => handleOpenHistoryModal(item)}>
                           <HistoryIcon />
                         </IconButton>
-                        <IconButton color="error" onClick={() => handleDeleteItem(item._id)}>
+                        <IconButton color='error' onClick={() => handleDeleteItem(item._id)}>
                           <DeleteIcon />
                         </IconButton>
                       </TableCell>

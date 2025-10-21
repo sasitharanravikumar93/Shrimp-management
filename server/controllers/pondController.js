@@ -1,16 +1,15 @@
-const logger = require('../logger');
+const { logger } = require('../utils/logger');
 const Pond = require('../models/Pond');
 const Season = require('../models/Season');
-const User = require('../models/User');
 const { clearCache } = require('../middleware/cache');
 
 /**
  * Helper function to get the appropriate language for a user
  * Priority: User profile > Accept-Language header > Default (en)
- * @param {Object} req - Express request object
- * @param {Object} req.user - Authenticated user object
+ * @param {object} req - Express request object
+ * @param {object} req.user - Authenticated user object
  * @param {string} req.user.language - User's preferred language
- * @param {Object} req.headers - Request headers
+ * @param {object} req.headers - Request headers
  * @param {string} req.headers['accept-language'] - Browser's accepted languages
  * @returns {string} Language code (en, hi, ta, kn, te)
  */
@@ -37,12 +36,12 @@ const getLanguageForUser = (req) => {
 /**
  * Helper function to translate a document with multilingual fields
  * Converts multilingual Map/Object fields to single language strings
- * @param {Object|mongoose.Document} doc - Document to translate
+ * @param {object|mongoose.Document} doc - Document to translate
  * @param {string} language - Target language code
- * @returns {Object} Translated document with string fields instead of Maps
+ * @returns {object} Translated document with string fields instead of Maps
  */
 const translateDocument = (doc, language) => {
-  if (!doc) return doc;
+  if (!doc) { return doc; }
 
   // Convert Mongoose document to plain object if needed
   const plainDoc = doc.toObject ? doc.toObject() : doc;
@@ -56,8 +55,8 @@ const translateDocument = (doc, language) => {
       // It's a plain object
       if (plainDoc.name[language]) {
         plainDoc.name = plainDoc.name[language];
-      } else if (plainDoc.name['en']) {
-        plainDoc.name = plainDoc.name['en'];
+      } else if (plainDoc.name.en) {
+        plainDoc.name = plainDoc.name.en;
       } else {
         plainDoc.name = '';
       }
@@ -76,8 +75,8 @@ const translateDocument = (doc, language) => {
         // It's a plain object
         if (plainDoc.seasonId.name[language]) {
           plainDoc.seasonId.name = plainDoc.seasonId.name[language];
-        } else if (plainDoc.seasonId.name['en']) {
-          plainDoc.seasonId.name = plainDoc.seasonId.name['en'];
+        } else if (plainDoc.seasonId.name.en) {
+          plainDoc.seasonId.name = plainDoc.seasonId.name.en;
         } else {
           plainDoc.seasonId.name = '';
         }
@@ -92,9 +91,9 @@ const translateDocument = (doc, language) => {
 
 /**
  * Helper function to translate an array of documents
- * @param {Array<Object|mongoose.Document>} docs - Array of documents to translate
+ * @param {Array<object|mongoose.Document>} docs - Array of documents to translate
  * @param {string} language - Target language code
- * @returns {Array<Object>} Array of translated documents
+ * @returns {Array<object>} Array of translated documents
  */
 const translateDocuments = (docs, language) => {
   return docs.map(doc => translateDocument(doc, language));
@@ -104,14 +103,14 @@ const translateDocuments = (docs, language) => {
  * Create a new pond
  * @async
  * @function createPond
- * @param {Object} req - Express request object
- * @param {Object} req.body - Request body
- * @param {string|Object} req.body.name - Pond name (string or multilingual object)
+ * @param {object} req - Express request object
+ * @param {object} req.body - Request body
+ * @param {string|object} req.body.name - Pond name (string or multilingual object)
  * @param {number} req.body.size - Pond size in square meters
  * @param {number} req.body.capacity - Pond capacity in liters or fish count
  * @param {string} req.body.seasonId - Associated season ID
  * @param {string} [req.body.status='active'] - Pond status
- * @param {Object} res - Express response object
+ * @param {object} res - Express response object
  * @returns {Promise<void>} JSON response with created pond or error
  * @description Creates a new pond with validation, season verification, and cache clearing
  */
@@ -190,12 +189,12 @@ exports.createPond = async (req, res) => {
  * Get all ponds with pagination
  * @async
  * @function getAllPonds
- * @param {Object} req - Express request object
- * @param {Object} req.query - Query parameters
+ * @param {object} req - Express request object
+ * @param {object} req.query - Query parameters
  * @param {number} [req.query.page=1] - Page number for pagination
  * @param {number} [req.query.limit=25] - Number of items per page
- * @param {Object} req.user - Authenticated user object
- * @param {Object} res - Express response object
+ * @param {object} req.user - Authenticated user object
+ * @param {object} res - Express response object
  * @returns {Promise<void>} JSON response with paginated ponds data
  * @description Retrieves all ponds with pagination, season population, and language translation
  */
@@ -205,8 +204,8 @@ exports.getAllPonds = async (req, res) => {
     const language = getLanguageForUser(req);
 
     // Pagination parameters
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 25;
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 25;
     const skip = (page - 1) * limit;
 
     // Get total count for pagination metadata
@@ -283,11 +282,11 @@ exports.getAllPonds = async (req, res) => {
  * Get a pond by ID
  * @async
  * @function getPondById
- * @param {Object} req - Express request object
- * @param {Object} req.params - Route parameters
+ * @param {object} req - Express request object
+ * @param {object} req.params - Route parameters
  * @param {string} req.params.id - Pond ID
- * @param {Object} req.user - Authenticated user object
- * @param {Object} res - Express response object
+ * @param {object} req.user - Authenticated user object
+ * @param {object} res - Express response object
  * @returns {Promise<void>} JSON response with pond data or error
  * @description Retrieves a single pond by ID with season population and language translation
  */
@@ -340,16 +339,16 @@ exports.getPondById = async (req, res) => {
  * Update a pond by ID
  * @async
  * @function updatePond
- * @param {Object} req - Express request object
- * @param {Object} req.params - Route parameters
+ * @param {object} req - Express request object
+ * @param {object} req.params - Route parameters
  * @param {string} req.params.id - Pond ID
- * @param {Object} req.body - Request body with update data
+ * @param {object} req.body - Request body with update data
  * @param {string|Object} [req.body.name] - Updated pond name
  * @param {number} [req.body.size] - Updated pond size
  * @param {number} [req.body.capacity] - Updated pond capacity
  * @param {string} [req.body.seasonId] - Updated season ID
  * @param {string} [req.body.status] - Updated pond status
- * @param {Object} res - Express response object
+ * @param {object} res - Express response object
  * @returns {Promise<void>} JSON response with updated pond or error
  * @description Updates pond with validation, season verification, and cache clearing
  */
@@ -370,9 +369,15 @@ exports.updatePond = async (req, res) => {
         updateData.name = name;
       }
     }
-    if (size !== undefined) updateData.size = size;
-    if (capacity !== undefined) updateData.capacity = capacity;
-    if (status !== undefined) updateData.status = status;
+    if (size !== undefined) {
+      updateData.size = size;
+    }
+    if (capacity !== undefined) {
+      updateData.capacity = capacity;
+    }
+    if (status !== undefined) {
+      updateData.status = status;
+    }
 
     // If seasonId is provided, check if season exists
     if (seasonId !== undefined) {
@@ -415,10 +420,10 @@ exports.updatePond = async (req, res) => {
  * Delete a pond by ID
  * @async
  * @function deletePond
- * @param {Object} req - Express request object
- * @param {Object} req.params - Route parameters
+ * @param {object} req - Express request object
+ * @param {object} req.params - Route parameters
  * @param {string} req.params.id - Pond ID
- * @param {Object} res - Express response object
+ * @param {object} res - Express response object
  * @returns {Promise<void>} JSON response with success message or error
  * @description Deletes a pond and clears related cache entries
  */
@@ -450,10 +455,10 @@ exports.deletePond = async (req, res) => {
  * Get pond Key Performance Indicators (KPIs)
  * @async
  * @function getPondKpis
- * @param {Object} req - Express request object
- * @param {Object} req.params - Route parameters
+ * @param {object} req - Express request object
+ * @param {object} req.params - Route parameters
  * @param {string} req.params.id - Pond ID
- * @param {Object} res - Express response object
+ * @param {object} res - Express response object
  * @returns {Promise<void>} JSON response with pond KPIs or error
  * @description Calculates and returns pond performance metrics
  * @todo Replace placeholder calculations with actual data from FeedInput, WaterQualityInput, GrowthSampling
@@ -479,7 +484,7 @@ exports.getPondKpis = async (req, res) => {
       currentBiomass,
     });
   } catch (error) {
-    console.error(error);
+    logger.error('Error fetching pond KPIs:', { error: error.message, stack: error.stack });
     res.status(500).json({ message: 'Error fetching pond KPIs' });
   }
 };
@@ -490,10 +495,10 @@ const Event = require('../models/Event');
  * Get all events for a specific pond
  * @async
  * @function getPondEvents
- * @param {Object} req - Express request object
- * @param {Object} req.params - Route parameters
+ * @param {object} req - Express request object
+ * @param {object} req.params - Route parameters
  * @param {string} req.params.id - Pond ID
- * @param {Object} res - Express response object
+ * @param {object} res - Express response object
  * @returns {Promise<void>} JSON response with pond events or error
  * @description Retrieves all events associated with a pond, sorted by date (newest first)
  */
@@ -504,7 +509,7 @@ exports.getPondEvents = async (req, res) => {
     const events = await Event.find({ pondId: id }).sort({ date: -1 });
     res.json(events);
   } catch (error) {
-    console.error(error);
+    logger.error('Error fetching pond events:', { error: error.message, stack: error.stack });
     res.status(500).json({ message: 'Error fetching pond events' });
   }
 };
@@ -517,10 +522,10 @@ const GrowthSampling = require('../models/GrowthSampling');
  * Get comprehensive logs for a pond's full cycle
  * @async
  * @function getFullCycleLogs
- * @param {Object} req - Express request object
- * @param {Object} req.params - Route parameters
+ * @param {object} req - Express request object
+ * @param {object} req.params - Route parameters
  * @param {string} req.params.id - Pond ID
- * @param {Object} res - Express response object
+ * @param {object} res - Express response object
  * @returns {Promise<void>} JSON response with complete pond cycle data or error
  * @description Retrieves all data related to a pond's cycle including feed inputs, water quality, growth samplings, and events
  */
@@ -546,7 +551,7 @@ exports.getFullCycleLogs = async (req, res) => {
       events,
     });
   } catch (error) {
-    console.error(error);
+    logger.error('Error fetching full cycle logs:', { error: error.message, stack: error.stack });
     res.status(500).json({ message: 'Error fetching full cycle logs' });
   }
 };
@@ -555,11 +560,11 @@ exports.getFullCycleLogs = async (req, res) => {
  * Get all ponds for a specific season
  * @async
  * @function getPondsBySeasonId
- * @param {Object} req - Express request object
- * @param {Object} req.params - Route parameters
+ * @param {object} req - Express request object
+ * @param {object} req.params - Route parameters
  * @param {string} req.params.seasonId - Season ID
- * @param {Object} req.user - Authenticated user object
- * @param {Object} res - Express response object
+ * @param {object} req.user - Authenticated user object
+ * @param {object} res - Express response object
  * @returns {Promise<void>} JSON response with ponds for the season or error
  * @description Retrieves all ponds associated with a specific season with language translation
  */

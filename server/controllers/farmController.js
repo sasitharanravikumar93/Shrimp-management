@@ -3,27 +3,15 @@ const FeedInput = require('../models/FeedInput');
 const WaterQualityInput = require('../models/WaterQualityInput');
 const GrowthSampling = require('../models/GrowthSampling');
 const Event = require('../models/Event');
-const InventoryItem = require('../models/InventoryItem');
-const InventoryAdjustment = require('../models/InventoryAdjustment');
 const {
   asyncHandler,
   sendSuccessResponse,
   ValidationError,
   NotFoundError
 } = require('../utils/errorHandler');
-const logger = require('../logger');
-const moment = require('moment');
-const WaterQualityInput = require('../models/WaterQualityInput');
-const GrowthSampling = require('../models/GrowthSampling');
-const Event = require('../models/Event');
+const { logger } = require('../utils/logger');
 const Season = require('../models/Season');
-const logger = require('../logger');
-const {
-  asyncHandler,
-  sendSuccessResponse,
-  ValidationError,
-  NotFoundError
-} = require('../utils/errorHandler');
+const mongoose = require('mongoose');
 
 /**
  * Get comprehensive farm-level KPIs
@@ -687,6 +675,8 @@ const getFarmReport = asyncHandler(async (req, res) => {
 
 /**
  * Helper function to calculate farm KPIs (reusable)
+ * @param {string} seasonId - The season ID to calculate KPIs for
+ * @returns {Promise<object>} The calculated farm KPIs
  */
 async function calculateFarmKpis(seasonId) {
   // Simplified version of the KPI calculation for report generation
@@ -734,8 +724,12 @@ async function calculateFarmKpis(seasonId) {
 
 /**
  * Generate recommendations based on farm data
+ * @param {object} farmKpis - The farm KPIs data
+ * @param {object} waterQuality - The water quality data
+ * @param {object} _growthData - The growth data (unused)
+ * @returns {Array<object>} Array of recommendations
  */
-function generateRecommendations(farmKpis, waterQuality, growthData) {
+function generateRecommendations(farmKpis, waterQuality, _growthData) {
   const recommendations = [];
 
   // Water quality recommendations
@@ -793,6 +787,8 @@ function generateRecommendations(farmKpis, waterQuality, growthData) {
 
 /**
  * Helper function to flatten report data for CSV export
+ * @param {object} report - The report data to flatten
+ * @returns {string} CSV formatted string
  */
 function flattenReportForCSV(report) {
   // Simple CSV generation - in production, use a proper CSV library

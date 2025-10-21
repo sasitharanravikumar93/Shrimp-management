@@ -40,4 +40,7 @@ router.get('/date-range', requireResourcePermission('feedInputs', 'read'), feedI
 // GET /api/feed-inputs/season/:seasonId - Get feed inputs by season ID
 router.get('/season/:seasonId', requireResourcePermission('feedInputs', 'read'), feedInputController.getFeedInputsBySeasonId);
 
+// GET /api/feed-inputs/histogram - Get aggregated histogram data for charts
+router.get('/histogram', requireResourcePermission('feedInputs', 'read'), feedInputController.getFeedHistogramData);
+
 module.exports = router;

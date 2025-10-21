@@ -1,12 +1,13 @@
-import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
+import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
+
 import NurseryBatchDetailPage from './NurseryBatchDetailPage';
 
 // Mock the react-i18next useTranslation hook
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (key) => key,
+    t: key => key,
     i18n: {
       language: 'en'
     }
@@ -23,11 +24,9 @@ jest.mock('../hooks/useApi', () => ({
 }));
 
 // Mock the CustomCalendar component
-jest.mock('../components/CustomCalendar', () => {
-  return function MockCustomCalendar() {
-    return <div data-testid="custom-calendar">Custom Calendar</div>;
-  };
-});
+const CustomCalendarMock = () => <div data-testid='custom-calendar'>Custom Calendar</div>;
+CustomCalendarMock.displayName = 'CustomCalendar';
+jest.mock('../components/CustomCalendar', () => CustomCalendarMock);
 
 // Mock react-router-dom useParams and useNavigate
 const mockNavigate = jest.fn();
@@ -46,9 +45,9 @@ describe('NurseryBatchDetailPage', () => {
 
   test('renders without crashing', async () => {
     const { useApiData } = require('../hooks/useApi');
-    
+
     // Mock successful API responses
-    useApiData.mockImplementation((apiFunction) => {
+    useApiData.mockImplementation(apiFunction => {
       if (apiFunction.name === 'getNurseryBatchById') {
         return {
           data: {
@@ -68,7 +67,7 @@ describe('NurseryBatchDetailPage', () => {
           refetch: jest.fn()
         };
       }
-      
+
       if (apiFunction.name === 'getEventsForNurseryBatch') {
         return {
           data: [],
@@ -77,7 +76,7 @@ describe('NurseryBatchDetailPage', () => {
           refetch: jest.fn()
         };
       }
-      
+
       if (apiFunction.name === 'getInventoryItems') {
         return {
           data: [],
@@ -86,7 +85,7 @@ describe('NurseryBatchDetailPage', () => {
           refetch: jest.fn()
         };
       }
-      
+
       return {
         data: null,
         loading: false,
@@ -114,9 +113,9 @@ describe('NurseryBatchDetailPage', () => {
 
   test('shows loading state', async () => {
     const { useApiData } = require('../hooks/useApi');
-    
+
     // Mock loading state
-    useApiData.mockImplementation((apiFunction) => {
+    useApiData.mockImplementation(apiFunction => {
       if (apiFunction.name === 'getNurseryBatchById') {
         return {
           data: null,
@@ -125,7 +124,7 @@ describe('NurseryBatchDetailPage', () => {
           refetch: jest.fn()
         };
       }
-      
+
       return {
         data: null,
         loading: false,
@@ -146,9 +145,9 @@ describe('NurseryBatchDetailPage', () => {
 
   test('shows error state', async () => {
     const { useApiData } = require('../hooks/useApi');
-    
+
     // Mock error state
-    useApiData.mockImplementation((apiFunction) => {
+    useApiData.mockImplementation(apiFunction => {
       if (apiFunction.name === 'getNurseryBatchById') {
         return {
           data: null,
@@ -157,7 +156,7 @@ describe('NurseryBatchDetailPage', () => {
           refetch: jest.fn()
         };
       }
-      
+
       return {
         data: null,
         loading: false,

@@ -1,4 +1,4 @@
-const logger = require('../logger');
+const { logger } = require('../utils/logger');
 const FeedInput = require('../models/FeedInput');
 const Pond = require('../models/Pond');
 const Season = require('../models/Season');
@@ -8,23 +8,22 @@ const Event = require('../models/Event'); // New import
 const {
   asyncHandler,
   sendSuccessResponse,
-  ValidationError,
-  NotFoundError
+  ValidationError
 } = require('../utils/errorHandler');
 
 /**
  * Create a new feed input
  * @async
  * @function createFeedInput
- * @param {Object} req - Express request object
- * @param {Object} req.body - Request body
+ * @param {object} req - Express request object
+ * @param {object} req.body - Request body
  * @param {Date} req.body.date - Feed input date
  * @param {string} req.body.time - Feed input time (HH:MM format)
  * @param {string} req.body.pondId - Associated pond ID
  * @param {string} req.body.inventoryItemId - Feed inventory item ID
  * @param {number} req.body.quantity - Feed quantity
  * @param {string} req.body.seasonId - Associated season ID
- * @param {Object} res - Express response object
+ * @param {object} res - Express response object
  * @returns {Promise<void>} JSON response with created feed input or error
  * @description Creates a new feed input with validation for pond, season, inventory item, and stocking events
  */
@@ -99,10 +98,10 @@ exports.createFeedInput = async (req, res) => {
  * Create multiple feed inputs in batch
  * @async
  * @function createFeedInputsBatch
- * @param {Object} req - Express request object
- * @param {Object} req.body - Request body
- * @param {Array<Object>} req.body.feedInputs - Array of feed input objects
- * @param {Object} res - Express response object
+ * @param {object} req - Express request object
+ * @param {object} req.body - Request body
+ * @param {Array<object>} req.body.feedInputs - Array of feed input objects
+ * @param {object} res - Express response object
  * @returns {Promise<void>} JSON response with batch operation results
  * @description Processes multiple feed inputs with conflict resolution and inventory updates
  */
@@ -136,6 +135,7 @@ exports.createFeedInputsBatch = async (req, res) => {
         }
 
         // Check if pond exists
+        // eslint-disable-next-line no-await-in-loop
         const pond = await Pond.findById(pondId);
         if (!pond) {
           results.errors.push({
@@ -146,6 +146,7 @@ exports.createFeedInputsBatch = async (req, res) => {
         }
 
         // Check if season exists
+        // eslint-disable-next-line no-await-in-loop
         const season = await Season.findById(seasonId);
         if (!season) {
           results.errors.push({
@@ -252,11 +253,11 @@ exports.getAllFeedInputs = async (req, res) => {
     const { seasonId } = req.query;
 
     // Pagination parameters
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 25;
+    const page = parseInt(req.query.page, 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 25;
     const skip = (page - 1) * limit;
 
-    let query = {};
+    const query = {};
     if (seasonId) {
       query.seasonId = seasonId;
     }
@@ -312,17 +313,17 @@ exports.getFeedInputById = async (req, res) => {
  * Update a feed input by ID
  * @async
  * @function updateFeedInput
- * @param {Object} req - Express request object
- * @param {Object} req.params - Route parameters
+ * @param {object} req - Express request object
+ * @param {object} req.params - Route parameters
  * @param {string} req.params.id - Feed input ID
- * @param {Object} req.body - Request body with update data
+ * @param {object} req.body - Request body with update data
  * @param {Date} req.body.date - Updated feed input date
  * @param {string} req.body.time - Updated feed input time
  * @param {string} req.body.pondId - Updated pond ID
  * @param {string} req.body.inventoryItemId - Updated inventory item ID
  * @param {number} req.body.quantity - Updated feed quantity
  * @param {string} req.body.seasonId - Updated season ID
- * @param {Object} res - Express response object
+ * @param {object} res - Express response object
  * @returns {Promise<void>} JSON response with updated feed input or error
  * @description Updates feed input with validation for pond, season, and inventory item
  */
@@ -381,10 +382,10 @@ exports.updateFeedInput = async (req, res) => {
  * Delete a feed input by ID
  * @async
  * @function deleteFeedInput
- * @param {Object} req - Express request object
- * @param {Object} req.params - Route parameters
+ * @param {object} req - Express request object
+ * @param {object} req.params - Route parameters
  * @param {string} req.params.id - Feed input ID
- * @param {Object} res - Express response object
+ * @param {object} res - Express response object
  * @returns {Promise<void>} JSON response with success message or error
  * @description Deletes feed input and reverses inventory adjustment
  */
@@ -427,12 +428,12 @@ exports.deleteFeedInput = async (req, res) => {
  * Get feed inputs by pond ID
  * @async
  * @function getFeedInputsByPondId
- * @param {Object} req - Express request object
- * @param {Object} req.params - Route parameters
+ * @param {object} req - Express request object
+ * @param {object} req.params - Route parameters
  * @param {string} req.params.pondId - Pond ID
- * @param {Object} req.query - Query parameters
+ * @param {object} req.query - Query parameters
  * @param {string} [req.query.seasonId] - Optional season filter
- * @param {Object} res - Express response object
+ * @param {object} res - Express response object
  * @returns {Promise<void>} JSON response with feed inputs for the pond or error
  * @description Retrieves all feed inputs for a specific pond with optional season filtering
  */
@@ -448,7 +449,7 @@ exports.getFeedInputsByPondId = async (req, res) => {
       return res.status(404).json({ message: 'Pond not found' });
     }
 
-    let query = { pondId };
+    const query = { pondId };
     if (seasonId) {
       query.seasonId = seasonId;
     }
@@ -471,12 +472,12 @@ exports.getFeedInputsByPondId = async (req, res) => {
  * Get feed inputs by date range
  * @async
  * @function getFeedInputsByDateRange
- * @param {Object} req - Express request object
- * @param {Object} req.query - Query parameters
+ * @param {object} req - Express request object
+ * @param {object} req.query - Query parameters
  * @param {Date} req.query.startDate - Start date for range
  * @param {Date} req.query.endDate - End date for range
  * @param {string} [req.query.seasonId] - Optional season filter
- * @param {Object} res - Express response object
+ * @param {object} res - Express response object
  * @returns {Promise<void>} JSON response with feed inputs in date range or error
  * @description Retrieves feed inputs within specified date range with optional season filtering
  */
@@ -489,7 +490,7 @@ exports.getFeedInputsByDateRange = async (req, res) => {
       return res.status(400).json({ message: 'Start date and end date are required as query parameters' });
     }
 
-    let query = {
+    const query = {
       date: {
         $gte: new Date(startDate),
         $lte: new Date(endDate)
@@ -516,10 +517,10 @@ exports.getFeedInputsByDateRange = async (req, res) => {
  * Get feed inputs by season ID
  * @async
  * @function getFeedInputsBySeasonId
- * @param {Object} req - Express request object
- * @param {Object} req.params - Route parameters
+ * @param {object} req - Express request object
+ * @param {object} req.params - Route parameters
  * @param {string} req.params.seasonId - Season ID
- * @param {Object} res - Express response object
+ * @param {object} res - Express response object
  * @returns {Promise<void>} JSON response with feed inputs for the season or error
  * @description Retrieves all feed inputs for a specific season with populated references
  */
@@ -577,7 +578,7 @@ exports.getFilteredFeedInputs = asyncHandler(async (req, res) => {
   }
 
   // Build query object
-  let query = {
+  const query = {
     date: {
       $gte: new Date(startDate),
       $lte: new Date(endDate)
@@ -635,6 +636,115 @@ exports.getFilteredFeedInputs = asyncHandler(async (req, res) => {
   sendSuccessResponse(res, response, 'Filtered feed inputs retrieved successfully');
 });
 
+/**
+ * Get aggregated feed data for histogram chart
+ * @async
+ * @function getFeedHistogramData
+ * @param {object} req - Express request object
+ * @param {object} req.query - Query parameters
+ * @param {Date} req.query.startDate - Start date for range
+ * @param {Date} req.query.endDate - End date for range
+ * @param {string} [req.query.seasonId] - Optional season filter
+ * @param {string} [req.query.pondId] - Optional pond filter
+ * @param {object} res - Express response object
+ * @returns {Promise<void>} JSON response with histogram data
+ * @description Returns aggregated feed data grouped by date and feed type for chart visualization
+ */
+exports.getFeedHistogramData = async (req, res) => {
+  logger.info('Getting feed histogram data', { query: req.query });
+  try {
+    const { startDate, endDate, seasonId, pondId } = req.query;
+
+    if (!startDate || !endDate) {
+      return res.status(400).json({ message: 'Start date and end date are required' });
+    }
+
+    const query = {
+      date: {
+        $gte: new Date(startDate),
+        $lte: new Date(endDate)
+      }
+    };
+
+    if (seasonId) {
+      query.seasonId = seasonId;
+    }
+
+    if (pondId) {
+      query.pondId = pondId;
+    }
+
+    const feedInputs = await FeedInput.find(query)
+      .populate('inventoryItemId', 'itemName itemType')
+      .sort({ date: 1, inventoryItemId: 1 });
+
+    // Aggregate data by date and feed type
+    const histogramData = {};
+    const feedTypes = new Set();
+
+    feedInputs.forEach(feed => {
+      const dateKey = feed.date.toISOString().split('T')[0];
+      const feedType = feed.inventoryItemId?.itemName || 'Unknown';
+
+      feedTypes.add(feedType);
+
+      if (!histogramData[dateKey]) {
+        histogramData[dateKey] = { date: dateKey };
+      }
+
+      if (!histogramData[dateKey][feedType]) {
+        histogramData[dateKey][feedType] = 0;
+      }
+
+      histogramData[dateKey][feedType] += feed.quantity;
+    });
+
+    // Convert to array format for charts
+    const data = Object.values(histogramData).sort((a, b) =>
+      new Date(a.date) - new Date(b.date)
+    );
+
+    // Fill in missing dates with zeros
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const completeData = [];
+    let currentDate = new Date(start);
+
+    while (currentDate <= end) {
+      const dateKey = currentDate.toISOString().split('T')[0];
+      const existingData = histogramData[dateKey] || { date: dateKey };
+
+      // Ensure all feed types have entries for this date
+      Array.from(feedTypes).forEach(type => {
+        if (!existingData[type]) {
+          existingData[type] = 0;
+        }
+      });
+
+      completeData.push(existingData);
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    // Calculate summary statistics
+    const summary = {
+      totalDays: completeData.length,
+      feedTypes: Array.from(feedTypes),
+      totalQuantity: feedInputs.reduce((sum, feed) => sum + feed.quantity, 0),
+      averageDaily: completeData.length > 0 ?
+        feedInputs.reduce((sum, feed) => sum + feed.quantity, 0) / completeData.length : 0
+    };
+
+    res.json({
+      data: completeData,
+      summary
+    });
+
+  } catch (error) {
+    logger.error('Error getting feed histogram data', { error: error.message, stack: error.stack });
+    res.status(500).json({ message: 'Error fetching feed histogram data' });
+  }
+};
+
 const { stringify } = require('csv-stringify');
 
 exports.exportFeedData = async (req, res) => {
@@ -646,7 +756,7 @@ exports.exportFeedData = async (req, res) => {
       return res.status(400).json({ message: 'Start date and end date are required for export' });
     }
 
-    let query = {
+    const query = {
       date: {
         $gte: new Date(startDate),
         $lte: new Date(endDate)

@@ -53,10 +53,12 @@
   "type": "commonjs",
   "dependencies": {
     "bcryptjs": "^3.0.2",
+    "compression": "^1.8.1",
     "cors": "^2.8.5",
     "csv-stringify": "^6.4.0",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
+    "express-mongo-sanitize": "^2.2.0",
     "express-rate-limit": "^8.0.1",
     "express-validator": "^7.2.1",
     "helmet": "^8.1.0",
@@ -65,6 +67,7 @@
     "mongoose": "^8.17.1",
     "mongoose-sanitize": "^1.5.0",
     "node-cache": "^5.1.2",
+    "recharts": "^3.1.2",
     "winston": "^3.17.0"
   },
   "devDependencies": {

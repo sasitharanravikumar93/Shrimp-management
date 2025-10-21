@@ -1,9 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Typography, 
-  Grid, 
-  TextField, 
-  Button, 
+// eslint-disable-next-line max-lines-per-function, complexity, max-lines
+import {
+  Add as AddIcon,
+  Delete as DeleteIcon,
+  Edit as EditIcon,
+  CalendarToday as CalendarIcon,
+  Restaurant as FeedIcon,
+  WaterDrop as WaterIcon,
+  Science as GrowthIcon,
+  Warning as WarningIcon,
+  CheckCircle as CheckIcon,
+  Close as CloseIcon,
+  TrendingUp as TrendingUpIcon,
+  Search as SearchIcon
+} from '@mui/icons-material';
+import {
+  Typography,
+  Grid,
+  TextField,
+  Button,
   Box,
   Tabs,
   Tab,
@@ -24,31 +38,20 @@ import {
   ToggleButtonGroup,
   InputAdornment,
   CircularProgress,
-  Alert
+  Alert,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails
 } from '@mui/material';
-import { 
-  Add as AddIcon, 
-  Delete as DeleteIcon, 
-  Edit as EditIcon,
-  CalendarToday as CalendarIcon,
-  Restaurant as FeedIcon,
-  WaterDrop as WaterIcon,
-  Science as GrowthIcon,
-  Warning as WarningIcon,
-  CheckCircle as CheckIcon,
-  Close as CloseIcon,
-  TrendingUp as TrendingUpIcon,
-  Search as SearchIcon
-} from '@mui/icons-material';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
-import { useSeason } from '../context/SeasonContext';
+import React, { useState, useEffect } from 'react';
+import { useForm, Controller } from 'react-hook-form';
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useApiData, useApiMutation } from '../hooks/useApi';
-import useApi from '../hooks/useApi';
-import { 
+import {
   ResponsiveContainer,
   BarChart,
   LineChart,
@@ -63,37 +66,51 @@ import {
   Line,
   Scatter
 } from 'recharts';
-import { 
-  getPondById, 
-  getFeedInputsByPondId, 
-  getWaterQualityInputsByPondId, 
+
+import AquacultureTooltip from '../components/features/farm/AquacultureTooltip';
+import EventSuggestions from '../components/features/farm/EventSuggestions';
+import FeedCalculator from '../components/features/feeding/FeedCalculator';
+import FeedLog from '../components/features/feeding/FeedLog';
+import HarvestProjection from '../components/features/feeding/HarvestProjection';
+import PondCard from '../components/features/ponds/PondCard';
+import { useGlobalError } from '../components/features/shared/error-handling/GlobalErrorProvider';
+import CustomCalendar from '../components/features/shared/forms/CustomCalendar';
+import WaterQualityAlert from '../components/features/water-quality/WaterQualityAlert';
+import { useSeason } from '../context/SeasonContext';
+import useApi, { useApiData, useApiMutation } from '../hooks/useApi';
+import {
+  getPondById,
+  getFeedInputsByPondId,
+  getWaterQualityInputsByPondId,
   getGrowthSamplingsByPondId,
   getEventsByPondId,
+  // eslint-disable-next-line no-unused-vars
   createFeedInput,
+  // eslint-disable-next-line no-unused-vars
   createWaterQualityInput,
+  // eslint-disable-next-line no-unused-vars
   createGrowthSampling,
   createEvent
 } from '../services/api';
-import CustomCalendar from '../components/CustomCalendar';
-import { useForm, Controller } from 'react-hook-form';
-import AquacultureTooltip from '../components/AquacultureTooltip';
-import HarvestProjection from '../components/HarvestProjection';
-import FeedCalculator from '../components/FeedCalculator';
-import WaterQualityAlert from '../components/WaterQualityAlert';
-import EventSuggestions from '../components/EventSuggestions';
-import PondCard from '../components/PondCard';
-import { useTranslation } from 'react-i18next';
+import logger from '../utils/logger';
 
+// eslint-disable-next-line max-lines-per-function, complexity, max-lines
 const PondManagementPage = () => {
   const { t, i18n } = useTranslation();
   const api = useApi(); // Initialize useApi
   const navigate = useNavigate();
   const { selectedSeason } = useSeason();
   const { pondId } = useParams();
+  const { showError } = useGlobalError();
+
+  const API_DATA_CACHE_DURATION = 3;
+  const POND_DISPLAY_LIMIT = 3;
+  const KG_TO_GRAMS_CONVERSION = 1000;
+  const ZAXIS_RANGE_VALUE = 100;
 
   const [ponds, setPonds] = useState([]);
-  const [pondsLoading, setPondsLoading] = useState(false);
-  const [pondsError, setPondsError] = useState(null);
+  const [_pondsLoading, setPondsLoading] = useState(false); // eslint-disable-line no-unused-vars
+  const [_pondsError, setPondsError] = useState(null); // eslint-disable-line no-unused-vars
   const [showAllPonds, setShowAllPonds] = useState(false);
 
   const [feedInventoryItems, setFeedInventoryItems] = useState([]);
@@ -105,7 +122,7 @@ const PondManagementPage = () => {
   const [chemicalProbioticInventoryError, setChemicalProbioticInventoryError] = useState(null);
   const [feedType, setFeedType] = useState('');
   const [chemicalType, setChemicalType] = useState('');
-  const [nurseryBatches, setNurseryBatches] = useState([]);
+  const [_nurseryBatches, setNurseryBatches] = useState([]); // eslint-disable-line no-unused-vars
 
   useEffect(() => {
     const fetchNurseryBatches = async () => {
@@ -117,7 +134,9 @@ const PondManagementPage = () => {
         const response = await api.get(`/nursery-batches/season/${selectedSeason._id}`);
         setNurseryBatches(response || []);
       } catch (err) {
-        console.error('Error fetching nursery batches:', err);
+        logger.error('Error fetching nursery batches:', err);
+        // Show sanitised error modal for API errors
+        showError(err);
       }
     };
     fetchNurseryBatches();
@@ -125,26 +144,26 @@ const PondManagementPage = () => {
 
   useEffect(() => {
     const fetchPonds = async () => {
-      console.log('Fetching ponds for season:', selectedSeason);
+      logger.debug('Fetching ponds for season:', selectedSeason);
       if (!selectedSeason || !selectedSeason._id) {
-        console.log('No selected season, setting ponds to empty array');
+        logger.debug('No selected season, setting ponds to empty array');
         setPonds([]);
         return;
       }
-      
+
       setPondsLoading(true);
       setPondsError(null);
-      
+
       try {
-        console.log('Making API call to fetch ponds for season ID:', selectedSeason._id);
+        logger.debug('Making API call to fetch ponds for season ID:', selectedSeason._id);
         // Add cache-busting parameter to ensure we get fresh data
         const cacheBuster = `_=${new Date().getTime()}`;
         const url = `/ponds/season/${selectedSeason._id}?${cacheBuster}`;
-        console.log('API URL with cache buster:', url);
-        
+        logger.debug('API URL with cache buster:', url);
+
         const response = await api.get(url);
-        console.log('Received response from ponds API:', response);
-        
+        logger.debug('Received response from ponds API:', response);
+
         // Check if response is an array or an object with data property
         let pondsData = [];
         if (Array.isArray(response)) {
@@ -154,23 +173,23 @@ const PondManagementPage = () => {
         } else if (response && typeof response === 'object' && response.data) {
           // Handle pagination response format
           pondsData = Array.isArray(response.data) ? response.data : [];
-          console.log('Pagination response detected:', {
+          logger.debug('Pagination response detected:', {
             page: response.pagination?.page,
             total: response.pagination?.total,
             pages: response.pagination?.pages
           });
         } else if (response) {
           // Handle case where response is a single object (unexpected)
-          console.warn('Unexpected response format from ponds API:', response);
+          logger.warn('Unexpected response format from ponds API:', response);
           pondsData = [];
         }
-        
-        console.log('Processed ponds data:', pondsData);
-        console.log('Ponds data length:', pondsData.length);
-        
+
+        logger.debug('Processed ponds data:', pondsData);
+        logger.debug('Ponds data length:', pondsData.length);
+
         // Log details of each pond
         pondsData.forEach((pond, index) => {
-          console.log(`Pond ${index + 1}:`, {
+          logger.debug(`Pond ${index + 1}:`, {
             id: pond._id || pond.id,
             name: pond.name,
             seasonId: pond.seasonId || pond.season,
@@ -178,19 +197,19 @@ const PondManagementPage = () => {
             capacity: pond.capacity
           });
         });
-        
+
         setPonds(pondsData);
         if (pondsData && pondsData.length > 0) {
           if (!pondId) {
-            console.log('No pondId in URL, navigating to first pond:', pondsData[0]._id);
+            logger.debug('No pondId in URL, navigating to first pond:', pondsData[0]._id);
             navigate(`/pond/${pondsData[0]._id}`);
           }
         } else {
-          console.log('No ponds found for season');
+          logger.debug('No ponds found for season');
         }
       } catch (err) {
-        console.error('Error fetching ponds:', err);
-        console.error('Error details:', {
+        logger.error('Error fetching ponds:', err);
+        logger.error('Error details:', {
           message: err.message,
           stack: err.stack,
           name: err.name
@@ -200,7 +219,7 @@ const PondManagementPage = () => {
         setPondsLoading(false);
       }
     };
-    
+
     fetchPonds();
   }, [selectedSeason, pondId, navigate, api, t]);
 
@@ -208,10 +227,12 @@ const PondManagementPage = () => {
     const fetchFeedInventory = async () => {
       if (!selectedSeason || !selectedSeason._id) return;
       try {
-        const response = await api.get(`/inventory-items?itemType=Feed&seasonId=${selectedSeason._id}`);
+        const response = await api.get(
+          `/inventory-items?itemType=Feed&seasonId=${selectedSeason._id}`
+        );
         setFeedInventoryItems(response || []);
       } catch (err) {
-        console.error('Error fetching feed inventory:', err);
+        logger.error('Error fetching feed inventory:', err);
         setFeedInventoryError('Failed to load feed types.');
       } finally {
         setFeedInventoryLoading(false);
@@ -221,11 +242,18 @@ const PondManagementPage = () => {
     const fetchChemicalProbioticInventory = async () => {
       if (!selectedSeason || !selectedSeason._id) return;
       try {
-        const chemicalResponse = await api.get(`/inventory-items?itemType=Chemical&seasonId=${selectedSeason._id}`);
-        const probioticResponse = await api.get(`/inventory-items?itemType=Probiotic&seasonId=${selectedSeason._id}`);
-        setChemicalProbioticInventoryItems([...(chemicalResponse || []), ...(probioticResponse || [])]);
+        const chemicalResponse = await api.get(
+          `/inventory-items?itemType=Chemical&seasonId=${selectedSeason._id}`
+        );
+        const probioticResponse = await api.get(
+          `/inventory-items?itemType=Probiotic&seasonId=${selectedSeason._id}`
+        );
+        setChemicalProbioticInventoryItems([
+          ...(chemicalResponse || []),
+          ...(probioticResponse || [])
+        ]);
       } catch (err) {
-        console.error('Error fetching chemical/probiotic inventory:', err);
+        logger.error('Error fetching chemical/probiotic inventory:', err);
         setChemicalProbioticInventoryError('Failed to load chemical/probiotic types.');
       } finally {
         setChemicalProbioticInventoryLoading(false);
@@ -244,45 +272,86 @@ const PondManagementPage = () => {
   const [openEventModal, setOpenEventModal] = useState(false);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [openAddModal, setOpenAddModal] = useState(false);
-  
-  const { 
-    data: pondData, 
-    loading: pondLoading, 
+
+  const {
+    data: pondData,
+    loading: pondLoading,
     error: pondError
-  } = useApiData(() => pondId && getPondById(pondId), [pondId], `pond-${pondId}`, 3);
-  
-  const { 
-    data: feedEntriesData, 
-    loading: feedEntriesLoading, 
+  } = useApiData(
+    () => pondId && getPondById(pondId),
+    [pondId],
+    `pond-${pondId}`,
+    API_DATA_CACHE_DURATION
+  );
+
+  const {
+    data: feedEntriesData,
+    loading: feedEntriesLoading,
     error: feedEntriesError,
     refetch: refetchFeedEntries
-  } = useApiData(() => pondId && getFeedInputsByPondId(pondId), [pondId], `feed-${pondId}`, 3);
-  
-  const { 
-    data: waterQualityEntriesData, 
-    loading: waterQualityEntriesLoading, 
+  } = useApiData(
+    () => pondId && getFeedInputsByPondId(pondId),
+    [pondId],
+    `feed-${pondId}`,
+    API_DATA_CACHE_DURATION
+  );
+
+  const {
+    data: waterQualityEntriesData,
+    loading: waterQualityEntriesLoading,
     error: waterQualityEntriesError,
     refetch: refetchWaterQualityEntries
-  } = useApiData(() => pondId && getWaterQualityInputsByPondId(pondId), [pondId], `water-${pondId}`, 3);
-  
-  const { 
-    data: growthSamplingEntriesData, 
-    loading: growthSamplingEntriesLoading, 
+  } = useApiData(
+    () => pondId && getWaterQualityInputsByPondId(pondId),
+    [pondId],
+    `water-${pondId}`,
+    API_DATA_CACHE_DURATION
+  );
+
+  const {
+    data: growthSamplingEntriesData,
+    loading: growthSamplingEntriesLoading,
     error: growthSamplingEntriesError,
     refetch: refetchGrowthSamplingEntries
-  } = useApiData(() => pondId && getGrowthSamplingsByPondId(pondId), [pondId], `growth-${pondId}`, 3);
-  
-  const { 
-    data: eventsData, 
-    loading: eventsLoading, 
+  } = useApiData(
+    () => pondId && getGrowthSamplingsByPondId(pondId),
+    [pondId],
+    `growth-${pondId}`,
+    API_DATA_CACHE_DURATION
+  );
+
+  const {
+    data: eventsData,
+    loading: eventsLoading,
     error: eventsError,
     refetch: refetchEvents
-  } = useApiData(() => pondId && getEventsByPondId(pondId), [pondId], `events-${pondId}`, 3);
-  
-  const { mutate: createFeedInputMutation, loading: createFeedInputLoading, error: createFeedInputError } = useApiMutation(createFeedInput, 3);
-  const { mutate: createWaterQualityInputMutation, loading: createWaterQualityInputLoading, error: createWaterQualityInputError } = useApiMutation(createWaterQualityInput, 3);
-  const { mutate: createGrowthSamplingMutation, loading: createGrowthSamplingLoading, error: createGrowthSamplingError } = useApiMutation(createGrowthSampling, 3);
-  const { mutate: createEventMutation, loading: createEventLoading, error: createEventError } = useApiMutation(createEvent, 3);
+  } = useApiData(
+    () => pondId && getEventsByPondId(pondId),
+    [pondId],
+    `events-${pondId}`,
+    API_DATA_CACHE_DURATION
+  );
+
+  const {
+    mutate: _createFeedInputMutation,
+    loading: createFeedInputLoading,
+    error: createFeedInputError
+  } = useApiMutation(createFeedInput, API_DATA_CACHE_DURATION);
+  const {
+    mutate: _createWaterQualityInputMutation,
+    loading: createWaterQualityInputLoading,
+    error: createWaterQualityInputError
+  } = useApiMutation(createWaterQualityInput, API_DATA_CACHE_DURATION);
+  const {
+    mutate: _createGrowthSamplingMutation,
+    loading: createGrowthSamplingLoading,
+    error: createGrowthSamplingError
+  } = useApiMutation(createGrowthSampling, API_DATA_CACHE_DURATION);
+
+  const { mutate: createEventMutation, loading: createEventLoading } = useApiMutation(
+    createEvent,
+    API_DATA_CACHE_DURATION
+  );
 
   const { control, handleSubmit, reset, setValue, watch } = useForm({
     defaultValues: {
@@ -309,23 +378,23 @@ const PondManagementPage = () => {
     setActiveTab(newValue);
   };
 
-  const handleViewModeChange = (mode) => {
+  const handleViewModeChange = mode => {
     setViewMode(mode);
     if (mode === 'calendar') {
       setCalendarView('week');
     }
   };
 
-  const handleEventSelect = (event) => {
+  const handleEventSelect = event => {
     setSelectedEvent(event);
     setOpenEventModal(true);
   };
 
-  const handleDateChange = (date) => {
+  const handleDateChange = date => {
     setCalendarDate(date);
   };
 
-  const handleRangeChange = (range) => {
+  const handleRangeChange = range => {
     if (Array.isArray(range)) {
       setCalendarDate(range[0]);
     } else if (range.start) {
@@ -352,13 +421,55 @@ const PondManagementPage = () => {
     setOpenAddModal(true);
   };
 
-  const handleEventSubmit = async (data) => {
+  const handleDeleteFeedEntry = async feedEntryId => {
+    if (!feedEntryId) {
+      logger.error('No feed entry ID provided for deletion');
+      return;
+    }
+
+    try {
+      // Show confirmation dialog if needed
+      const confirmed = window.confirm('Are you sure you want to delete this feed entry?');
+      if (!confirmed) return;
+
+      await api.delete(`/feed-inputs/${feedEntryId}`);
+
+      // Refresh the feed entries data
+      refetchFeedEntries();
+      logger.info('Feed entry deleted successfully:', feedEntryId);
+    } catch (error) {
+      logger.error('Error deleting feed entry:', error);
+      showError(error); // Show error using global error handler
+    }
+  };
+
+  // Direct feed input handler
+  const handleFeedInputSubmit = async data => {
+    try {
+      await createFeedInput({
+        date: data.date.toISOString().split('T')[0],
+        time: data.time.toLocaleTimeString('en-US', {
+          hour12: false,
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        pondId: pondId,
+        inventoryItemId: feedType,
+        quantity: parseFloat(data.quantity),
+        seasonId: selectedSeason._id
+      });
+      refetchFeedEntries();
+      logger.info('Feed input created successfully');
+    } catch (error) {
+      logger.error('Error creating feed input:', error);
+      showError(error);
+    }
+  };
+
+  const handleEventSubmit = async data => {
     try {
       const details = {};
-      if (data.eventType === 'Feeding') {
-        details.inventoryItemId = feedType;
-        details.quantity = parseFloat(data.quantity);
-      } else if (data.eventType === 'Water Quality') {
+      if (data.eventType === 'Water Quality') {
         details.pH = parseFloat(data.pH);
         details.dissolvedOxygen = parseFloat(data.dissolvedOxygen);
         details.temperature = parseFloat(data.temperature);
@@ -385,10 +496,12 @@ const PondManagementPage = () => {
         details
       });
       refetchEvents();
-      
+
       setOpenAddModal(false);
     } catch (error) {
-      console.error('Error submitting event:', error);
+      logger.error('Error submitting event:', error);
+      // Show sanitised error modal for API errors
+      showError(error);
     }
   };
 
@@ -401,7 +514,7 @@ const PondManagementPage = () => {
     setOpenAddModal(false);
   };
 
-  const formatDate = (date) => {
+  const formatDate = date => {
     try {
       return new Date(date).toLocaleDateString(i18n.language);
     } catch (e) {
@@ -409,9 +522,12 @@ const PondManagementPage = () => {
     }
   };
 
-  const formatTime = (time) => {
+  const formatTime = time => {
     try {
-      return new Date(time).toLocaleTimeString(i18n.language, { hour: '2-digit', minute: '2-digit' });
+      return new Date(time).toLocaleTimeString(i18n.language, {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
     } catch (e) {
       return t('invalid_time');
     }
@@ -429,72 +545,98 @@ const PondManagementPage = () => {
     temp: entry.temperature
   }));
 
-  const growthChartData = (growthSamplingEntriesData || []).map(entry => ({
-    date: formatDate(entry.date),
-    avgWeight: entry.totalCount > 0 ? (entry.totalWeight * 1000 / entry.totalCount).toFixed(2) : 0
+  // eslint-disable-next-line no-unused-vars
+  const _growthChartData = (growthSamplingEntriesData || []).map(entry => ({
+    x: entry.date ? new Date(entry.date).getTime() : 0,
+    y: entry.totalWeight && entry.totalCount > 0 ? (entry.totalWeight * 1000) / entry.totalCount : 0
   }));
 
   const growthScatterData = (growthSamplingEntriesData || []).map((entry, index) => ({
-    x: index + 1,
-    y: entry.totalCount > 0 ? (entry.totalWeight * 1000 / entry.totalCount).toFixed(2) : 0,
+    x: index,
+    y: (entry.totalWeight * 1000) / entry.totalCount,
     date: formatDate(entry.date)
   }));
 
-  const getFilteredCalendarEvents = (allEvents) => {
+  const getFilteredCalendarEvents = allEvents => {
     let filtered = allEvents || [];
     if (calendarSearchTerm) {
-      filtered = filtered.filter(event =>
-        event.title.toLowerCase().includes(calendarSearchTerm.toLowerCase()) ||
-        event.type.toLowerCase().includes(calendarSearchTerm.toLowerCase()) ||
-        (event.resource && event.resource.description && 
-         event.resource.description.toLowerCase().includes(calendarSearchTerm.toLowerCase()))
+      filtered = filtered.filter(
+        event =>
+          event.title.toLowerCase().includes(calendarSearchTerm.toLowerCase()) ||
+          event.type.toLowerCase().includes(calendarSearchTerm.toLowerCase()) ||
+          (event.resource &&
+            event.resource.description &&
+            event.resource.description.toLowerCase().includes(calendarSearchTerm.toLowerCase()))
       );
     }
     if (calendarEventTypeFilter !== 'all') {
-      filtered = filtered.filter(event =>
-        event.type === calendarEventTypeFilter
-      );
+      filtered = filtered.filter(event => event.type === calendarEventTypeFilter);
     }
 
     return filtered;
   };
 
-  const isLoading = pondLoading || feedEntriesLoading || waterQualityEntriesLoading || 
-                   growthSamplingEntriesLoading || eventsLoading;
-  
-  const hasError = pondError || feedEntriesError || waterQualityEntriesError || 
-                   growthSamplingEntriesError || eventsError;
+  const isLoading =
+    pondLoading ||
+    feedEntriesLoading ||
+    waterQualityEntriesLoading ||
+    growthSamplingEntriesLoading ||
+    eventsLoading;
 
-  
+  const hasError =
+    pondError ||
+    feedEntriesError ||
+    waterQualityEntriesError ||
+    growthSamplingEntriesError ||
+    eventsError;
 
   if (isLoading) {
     return (
-      <Container maxWidth="lg" sx={{ mt: 2, mb: 4, display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+      <Container
+        maxWidth='lg'
+        sx={{
+          mt: 2,
+          mb: 4,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh'
+        }}
+      >
         <CircularProgress />
       </Container>
     );
   }
 
   if (hasError) {
-    const getErrorMessage = (error) => {
+    const getErrorMessage = error => {
       if (!error) return null;
       if (typeof error === 'string') return error;
       if (typeof error === 'object' && error.message) return error.message;
       return 'An unknown error occurred';
     };
 
-    const errorMessages = [pondError, feedEntriesError, waterQualityEntriesError, growthSamplingEntriesError, eventsError]
+    const errorMessages = [
+      pondError,
+      feedEntriesError,
+      waterQualityEntriesError,
+      growthSamplingEntriesError,
+      eventsError
+    ]
       .map(getErrorMessage)
       .filter(Boolean)
       .join(', ');
 
+    // Show global error modal for critical errors
+    showError(new Error(`Error loading pond data: ${errorMessages}`));
+
     return (
-      <Container maxWidth="lg" sx={{ mt: 2, mb: 4 }}>
-        <Alert severity="error">
+      <Container maxWidth='lg' sx={{ mt: 2, mb: 4 }}>
+        <Alert severity='error'>
           Error loading pond data: {errorMessages}
           <Box sx={{ mt: 2 }}>
-            <Button 
-              variant="outlined" 
+            <Button
+              variant='outlined'
               onClick={() => {
                 refetchFeedEntries();
                 refetchWaterQualityEntries();
@@ -510,11 +652,11 @@ const PondManagementPage = () => {
     );
   }
 
-  const pond = pondData || { 
-    id: pondId, 
-    name: 'Pond', 
-    season: selectedSeason?.name || 'Season', 
-    status: 'Active', 
+  const pond = pondData || {
+    id: pondId,
+    name: 'Pond',
+    season: selectedSeason?.name || 'Season',
+    status: 'Active',
     health: 'Good',
     projectedHarvest: '28 days'
   };
@@ -524,21 +666,71 @@ const PondManagementPage = () => {
   const growthSamplingEntries = growthSamplingEntriesData || [];
   const events = eventsData || [];
 
+  const getHealthColor = health => {
+    const actualHealth = health || 'Good';
+    if (actualHealth === 'Good') {
+      return 'success';
+    }
+    if (actualHealth === 'Fair') {
+      return 'warning';
+    }
+    return 'error';
+  };
+
+  const getHealthIcon = health => {
+    const actualHealth = health || 'Good';
+    return actualHealth === 'Good' ? <CheckIcon /> : <WarningIcon />;
+  };
+
+  const getEventTypeColor = eventType => {
+    switch (eventType) {
+      case 'Routine':
+      case 'Feeding':
+        return 'primary';
+      case 'Monitoring':
+      case 'Water Quality':
+        return 'success';
+      case 'Maintenance':
+        return 'warning';
+      case 'Growth Sampling':
+        return 'secondary';
+      default:
+        return 'default';
+    }
+  };
+
+  const getEventTypeBorderColor = eventType => {
+    switch (eventType) {
+      case 'Routine':
+      case 'Feeding':
+        return '#007BFF';
+      case 'Monitoring':
+      case 'Water Quality':
+        return '#28A745';
+      case 'Maintenance':
+        return '#FD7E14';
+      case 'Growth Sampling':
+        return '#6f42c1';
+      default:
+        return '#9e9e9e';
+    }
+  };
+
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
-      <Container maxWidth="lg" sx={{ mt: 2, mb: 4 }}>
+      <Container maxWidth='lg' sx={{ mt: 2, mb: 4 }}>
         <Grid container spacing={2} sx={{ mb: 2 }}>
-          {(showAllPonds ? ponds : ponds.slice(0, 3)).map((p) => (
+          {(showAllPonds ? ponds : ponds.slice(0, POND_DISPLAY_LIMIT)).map(p => (
             <Grid item xs={12} md={4} key={p._id}>
-              <PondCard 
-                pond={p} 
-                onClick={() => navigate(`/pond/${p._id}`)} 
+              <PondCard
+                pond={p}
+                onClick={() => navigate(`/pond/${p._id}`)}
                 selected={p._id === pondId}
               />
             </Grid>
           ))}
         </Grid>
-        {ponds.length > 3 && (
+        {ponds.length > POND_DISPLAY_LIMIT && (
           <Box sx={{ mb: 2, textAlign: 'center' }}>
             <Button onClick={() => setShowAllPonds(!showAllPonds)}>
               {showAllPonds ? t('show_less') : t('show_more')}
@@ -548,203 +740,258 @@ const PondManagementPage = () => {
 
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <Box>
-            <Typography variant="h4" component="h1" gutterBottom>
-              {pond.name && typeof pond.name === 'object' ? (pond.name[i18n.language] || pond.name.en || 'Pond') : pond.name} Management
+            <Typography variant='h4' component='h1' gutterBottom>
+              {/* eslint-disable-next-line no-nested-ternary */}
+              {pond.name && typeof pond.name === 'object'
+                ? pond.name[i18n.language] || pond.name.en || 'Pond'
+                : pond.name}{' '}
+              Management
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
-              <Chip 
-                label={ (pond && pond.seasonId && pond.seasonId.name) ? (typeof pond.seasonId.name === 'object' ? (pond.seasonId.name[i18n.language] || pond.seasonId.name.en) : pond.seasonId.name) : (pond && typeof pond.season === 'string' ? pond.season : (selectedSeason?.name || 'Season'))}
-                color="primary" 
-                variant="outlined" 
+              <Chip
+                label={
+                  pond && pond.seasonId && pond.seasonId.name
+                    ? typeof pond.seasonId.name === 'object'
+                      ? pond.seasonId.name[i18n.language] || pond.seasonId.name.en
+                      : pond.seasonId.name
+                    : pond && typeof pond.season === 'string'
+                    ? pond.season
+                    : selectedSeason?.name || 'Season'
+                }
+                color='primary'
+                variant='outlined'
               />
-              <Chip 
-                label={pond.status || 'Active'} 
-                color={(pond.status || 'Active') === 'Active' ? 'success' : 'default'} 
+              <Chip
+                label={pond.status || 'Active'}
+                color={(pond.status || 'Active') === 'Active' ? 'success' : 'default'}
               />
-              <Chip 
-                label={pond.health || 'Good'} 
-                color={
-                  (pond.health || 'Good') === 'Good' ? 'success' : 
-                  (pond.health || 'Good') === 'Fair' ? 'warning' : 'error'
-                } 
-                icon={(pond.health || 'Good') === 'Good' ? <CheckIcon /> : <WarningIcon />}
+              <Chip
+                label={pond.health || 'Good'}
+                color={getHealthColor(pond.health)}
+                icon={getHealthIcon(pond.health)}
               />
-              <Chip 
+              <Chip
                 label={`Harvest: ${pond.projectedHarvest || '30 days'}`}
-                color="info" 
+                color='info'
                 icon={<TrendingUpIcon />}
               />
             </Box>
           </Box>
-          <Button 
-            variant="contained" 
+          <Button
+            variant='contained'
             startIcon={viewMode === 'tabs' ? <CalendarIcon /> : <FeedIcon />}
             onClick={() => handleViewModeChange(viewMode === 'tabs' ? 'calendar' : 'tabs')}
           >
             {viewMode === 'tabs' ? 'Calendar View' : 'Data View'}
           </Button>
         </Box>
-        
+
         <Grid container spacing={3} sx={{ mb: 3 }}>
           <Grid item xs={12} md={6} lg={4}>
-            <HarvestProjection 
+            <HarvestProjection
               currentWeight={152} // Example current weight in grams
               targetWeight={250} // Example target harvest weight in grams
               growthRate={5.2} // Example growth rate in grams per day
-              startDate="2023-06-01"
-              pondName={pond.name && typeof pond.name === 'object' ? (pond.name[i18n.language] || pond.name.en || 'Pond') : pond.name}
+              startDate='2023-06-01'
+              pondName={
+                pond.name && typeof pond.name === 'object'
+                  ? pond.name[i18n.language] || pond.name.en || 'Pond'
+                  : pond.name
+              }
             />
           </Grid>
         </Grid>
-        
+
         {viewMode === 'tabs' ? (
           <Card elevation={3}>
             <CardHeader
-              title="Data Management"
-              subheader="Record and view historical data for this pond"
+              title='Data Management'
+              subheader='Record and view historical data for this pond'
               action={
-                <Button 
-                  variant="contained" 
-                  startIcon={<AddIcon />} 
-                  onClick={handleAddEvent}
-                >
+                <Button variant='contained' startIcon={<AddIcon />} onClick={handleAddEvent}>
                   Add New Event
                 </Button>
               }
             />
             <CardContent>
-              <Tabs 
-                value={activeTab} 
-                onChange={handleTabChange} 
-                aria-label="pond management tabs"
-                variant="scrollable"
-                scrollButtons="auto"
+              <Tabs
+                value={activeTab}
+                onChange={handleTabChange}
+                aria-label='pond management tabs'
+                variant='scrollable'
+                scrollButtons='auto'
                 sx={{ mb: 3 }}
               >
-                <Tab icon={<FeedIcon />} label="Feed" />
-                <Tab icon={<WaterIcon />} label="Water Quality" />
-                <Tab icon={<GrowthIcon />} label="Growth Sampling" />
+                <Tab icon={<FeedIcon />} label={t('feed.feed')} />
+                <Tab icon={<WaterIcon />} label={t('water_quality')} />
+                <Tab icon={<GrowthIcon />} label={t('growth.sampling')} />
               </Tabs>
-              
+
               <Divider sx={{ mb: 3 }} />
-              
+
               {activeTab === 0 && (
                 <Grid container spacing={3}>
                   <Grid item xs={12} lg={6}>
-                    <Card variant="outlined">
-                      <CardHeader title="Record Feed Input" />
+                    <Card variant='outlined'>
+                      <CardHeader title='Record Feed Input' />
                       <CardContent>
                         {createFeedInputError && (
-                          <Alert severity="error" sx={{ mb: 2 }}>
+                          <Alert severity='error' sx={{ mb: 2 }}>
                             {createFeedInputError.message}
                           </Alert>
                         )}
-                        <FeedCalculator 
-                          initialBiomass={500} 
-                          initialShrimpCount={25000} 
-                          onCalculate={(feedQty) => {
+                        <FeedCalculator
+                          initialBiomass={500}
+                          initialShrimpCount={25000}
+                          onCalculate={feedQty => {
                             setValue('quantity', feedQty.toFixed(2));
                           }}
                         />
-                        <form onSubmit={handleSubmit(handleEventSubmit)}>
+                        <form onSubmit={handleSubmit(handleFeedInputSubmit)}>
                           <Grid container spacing={2}>
                             <Grid item xs={12} md={6}>
                               <Controller
-                                name="date"
+                                name='date'
                                 control={control}
                                 render={({ field }) => (
                                   <DatePicker
-                                    label="Date"
+                                    label='Date'
                                     value={field.value}
                                     onChange={field.onChange}
-                                    renderInput={(params) => <TextField {...params} fullWidth />}
+                                    renderInput={params => <TextField {...params} fullWidth />}
                                   />
                                 )}
                               />
                             </Grid>
-                            
+
                             <Grid item xs={12} md={6}>
                               <Controller
-                                name="time"
+                                name='time'
                                 control={control}
                                 render={({ field }) => (
                                   <TimePicker
-                                    label="Time"
+                                    label='Time'
                                     value={field.value}
                                     onChange={field.onChange}
-                                    renderInput={(params) => <TextField {...params} fullWidth />}
+                                    renderInput={params => <TextField {...params} fullWidth />}
                                   />
                                 )}
                               />
                             </Grid>
-                            
+
                             <Grid item xs={12}>
                               <TextField
-                                label="Feed Type"
+                                label='Feed Type'
                                 fullWidth
                                 select
                                 disabled={feedInventoryLoading}
-                                error={!!feedInventoryError}
-                                helperText={feedInventoryError || (feedInventoryLoading ? 'Loading feed types...' : '')}
+                                error={
+                                  !!feedInventoryError ||
+                                  (Array.isArray(feedInventoryItems) &&
+                                    feedInventoryItems.length === 0)
+                                }
+                                required
+                                helperText={
+                                  feedInventoryError
+                                    ? `Error: ${feedInventoryError}`
+                                    : feedInventoryLoading
+                                    ? 'Loading feed types...'
+                                    : Array.isArray(feedInventoryItems) &&
+                                      feedInventoryItems.length === 0
+                                    ? 'No feed inventory available for this season. Please add feed inventory first.'
+                                    : ''
+                                }
                                 value={feedType}
-                                onChange={(e) => setFeedType(e.target.value)}
+                                onChange={e => setFeedType(e.target.value)}
                               >
-                                {Array.isArray(feedInventoryItems) && feedInventoryItems.map((item) => {
-                                  const itemName = typeof item.itemName === 'object' ? (item.itemName[i18n.language] || item.itemName.en) : item.itemName;
-                                  return (
-                                    <MenuItem key={item._id} value={item._id}>
-                                      {itemName}
-                                    </MenuItem>
-                                  )
-                                })}
+                                {Array.isArray(feedInventoryItems) &&
+                                feedInventoryItems.length > 0 ? (
+                                  feedInventoryItems.map(item => {
+                                    const itemName =
+                                      typeof item.itemName === 'object'
+                                        ? item.itemName[i18n.language] || item.itemName.en
+                                        : item.itemName;
+                                    return (
+                                      <MenuItem key={item._id} value={item._id}>
+                                        {itemName}
+                                      </MenuItem>
+                                    );
+                                  })
+                                ) : (
+                                  <MenuItem disabled value=''>
+                                    No feed inventory available
+                                  </MenuItem>
+                                )}
                               </TextField>
                             </Grid>
-                            
+
                             <Grid item xs={12}>
                               <Controller
-                                name="quantity"
+                                name='quantity'
                                 control={control}
-                                render={({ field }) => (
+                                rules={{
+                                  required: 'Quantity is required',
+                                  min: { value: 0.1, message: 'Quantity must be greater than 0' }
+                                }}
+                                render={({ field, fieldState }) => (
                                   <TextField
                                     {...field}
-                                    label="Quantity (kg)"
-                                    type="number"
+                                    label='Quantity (kg)'
+                                    type='number'
                                     fullWidth
+                                    required
+                                    error={!!fieldState.error}
+                                    helperText={
+                                      fieldState.error?.message ||
+                                      'Enter the amount of feed to be used'
+                                    }
                                   />
                                 )}
                               />
                             </Grid>
-                            
+
                             <Grid item xs={12}>
-                              <Button 
-                                type="submit" 
-                                variant="contained" 
+                              <Button
+                                type='submit'
+                                variant='contained'
                                 startIcon={<AddIcon />}
-                                disabled={createFeedInputLoading}
+                                disabled={
+                                  createFeedInputLoading ||
+                                  (Array.isArray(feedInventoryItems) &&
+                                    feedInventoryItems.length === 0)
+                                }
                               >
-                                {createFeedInputLoading ? 'Adding...' : 'Add Feed Entry'}
+                                {createFeedInputLoading
+                                  ? 'Adding...'
+                                  : Array.isArray(feedInventoryItems) &&
+                                    feedInventoryItems.length === 0
+                                  ? 'No Feed Inventory Available'
+                                  : 'Add Feed Entry'}
                               </Button>
                             </Grid>
                           </Grid>
                         </form>
-                        
-                        <Box sx={{ mt: 3, p: 2, bgcolor: 'rgba(0, 123, 255, 0.1)', borderRadius: 1 }}>
-                          <Typography variant="body2" sx={{ fontStyle: 'italic' }}>
-                            <AquacultureTooltip term="Feed Conversion Ratio (FCR)">
-                              <strong>Tip:</strong> Based on current biomass, recommended daily feed amount is 45-55kg.
+
+                        <Box
+                          sx={{ mt: 3, p: 2, bgcolor: 'rgba(0, 123, 255, 0.1)', borderRadius: 1 }}
+                        >
+                          <Typography variant='body2' sx={{ fontStyle: 'italic' }}>
+                            <AquacultureTooltip term='Feed Conversion Ratio (FCR)'>
+                              <strong>Tip:</strong> Based on current biomass, recommended daily feed
+                              amount is 45-55kg.
                             </AquacultureTooltip>
                           </Typography>
                         </Box>
                       </CardContent>
                     </Card>
                   </Grid>
-                  
+
                   <Grid item xs={12} lg={6}>
-                    <Card variant="outlined">
-                      <CardHeader 
-                        title="Feed History" 
+                    <Card variant='outlined'>
+                      <CardHeader
+                        title='Feed History'
                         action={
-                          <Tooltip title="Export data">
+                          <Tooltip title='Export data'>
                             <IconButton>
                               <FeedIcon />
                             </IconButton>
@@ -752,76 +999,175 @@ const PondManagementPage = () => {
                         }
                       />
                       <CardContent>
-                        <Box sx={{ height: 300, mb: 2 }}>
-                          <ResponsiveContainer width="100%" height="100%">
-                            <BarChart
-                              data={feedChartData}
-                              margin={{ top: 5, right: 30, left: 20, bottom: 50 }}
-                            >
-                              <CartesianGrid strokeDasharray="3 3" />
-                              <XAxis dataKey="date" />
-                              <YAxis />
-                              <RechartsTooltip />
-                              <Legend />
-                              <Bar dataKey="quantity" name="Feed Quantity (kg)" fill="#007BFF" />
-                            </BarChart>
-                          </ResponsiveContainer>
-                        </Box>
-                        
+                        <FeedLog pondId={pondId} seasonId={selectedSeason?._id} />
+
                         <Divider sx={{ my: 2 }} />
-                        
-                        <Box sx={{ maxHeight: 300, overflow: 'auto' }}>
-                          <Grid container spacing={1}>
-                            {feedEntries.map((entry) => (
-                              <Grid item xs={12} key={entry._id || entry.id}>
-                                <Card variant="outlined" sx={{ p: 1 }}>
-                                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                    <Box>
-                                      <Typography variant="body2" fontWeight="bold">
-                                        {entry.feedType}
-                                      </Typography>
-                                      <Typography variant="body2" color="text.secondary">
-                                        {formatDate(entry.date)} at {formatTime(entry.time)}
-                                      </Typography>
-                                    </Box>
-                                    <Box sx={{ textAlign: 'right' }}>
-                                      <Typography variant="body2" fontWeight="bold">
-                                        {entry.quantity} kg
-                                      </Typography>
-                                      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 0.5 }}>
-                                        <IconButton size="small">
-                                          <EditIcon sx={{ fontSize: 16 }} />
-                                        </IconButton>
-                                        <IconButton size="small">
-                                          <DeleteIcon sx={{ fontSize: 16 }} />
-                                        </IconButton>
+
+                        <Box sx={{ maxHeight: 400, overflow: 'auto' }}>
+                          {Array.isArray(feedEntries) && feedEntries.length > 0 ? (
+                            Object.entries(
+                              feedEntries.reduce((groups, entry) => {
+                                const dateKey = formatDate(entry.date);
+                                if (!groups[dateKey]) {
+                                  groups[dateKey] = [entry];
+                                } else {
+                                  groups[dateKey].push(entry);
+                                }
+                                return groups;
+                              }, {})
+                            )
+                              .sort(([a], [b]) => new Date(a) - new Date(b))
+                              .reverse() // Show most recent dates first
+                              .map(([date, entries]) => {
+                                const totalsByFeedType = entries.reduce((totals, entry) => {
+                                  const feedTypeName = entry.feedType || 'Unknown';
+                                  if (!totals[feedTypeName]) {
+                                    totals[feedTypeName] = 0;
+                                  }
+                                  totals[feedTypeName] += parseFloat(entry.quantity) || 0;
+                                  return totals;
+                                }, {});
+
+                                const totalQuantity = Object.values(totalsByFeedType).reduce(
+                                  (sum, qty) => sum + qty,
+                                  0
+                                );
+
+                                return (
+                                  <Accordion key={date} sx={{ mb: 1 }}>
+                                    <AccordionSummary expandIcon={<FeedIcon />}>
+                                      <Box
+                                        sx={{
+                                          display: 'flex',
+                                          justifyContent: 'space-between',
+                                          width: '100%',
+                                          alignItems: 'center'
+                                        }}
+                                      >
+                                        <Box>
+                                          <Typography variant='subtitle1' fontWeight='bold'>
+                                            {date}
+                                          </Typography>
+                                          <Typography variant='body2' color='text.secondary'>
+                                            {entries.length} feedings
+                                          </Typography>
+                                        </Box>
+                                        <Box sx={{ textAlign: 'right' }}>
+                                          <Typography
+                                            variant='body2'
+                                            color='primary'
+                                            fontWeight='bold'
+                                          >
+                                            Total: {totalQuantity.toFixed(1)} kg
+                                          </Typography>
+                                          {Object.entries(totalsByFeedType).length > 1 && (
+                                            <Typography
+                                              variant='caption'
+                                              color='text.secondary'
+                                              sx={{ display: 'block' }}
+                                            >
+                                              {Object.entries(totalsByFeedType)
+                                                .map(
+                                                  ([type, qty]) => `${type}: ${qty.toFixed(1)}kg`
+                                                )
+                                                .join(' | ')}
+                                            </Typography>
+                                          )}
+                                        </Box>
                                       </Box>
-                                    </Box>
-                                  </Box>
-                                </Card>
-                              </Grid>
-                            ))}
-                          </Grid>
+                                    </AccordionSummary>
+                                    <AccordionDetails
+                                      sx={{ bgcolor: 'rgba(0, 123, 255, 0.04)', p: 1 }}
+                                    >
+                                      {entries
+                                        .sort(
+                                          (a, b) =>
+                                            new Date(a.time || a.date) - new Date(b.time || b.date)
+                                        )
+                                        .map(entry => (
+                                          <Card
+                                            key={entry._id || entry.id}
+                                            variant='outlined'
+                                            sx={{ mb: 1, p: 1 }}
+                                          >
+                                            <Box
+                                              sx={{
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'center'
+                                              }}
+                                            >
+                                              <Box>
+                                                <Typography variant='body2' fontWeight='bold'>
+                                                  {entry.feedType || 'Unknown Feed Type'}
+                                                </Typography>
+                                                <Typography
+                                                  variant='caption'
+                                                  color='text.secondary'
+                                                >
+                                                  {formatTime(entry.time || entry.date)}
+                                                </Typography>
+                                              </Box>
+                                              <Box
+                                                sx={{
+                                                  display: 'flex',
+                                                  alignItems: 'center',
+                                                  gap: 1
+                                                }}
+                                              >
+                                                <Typography variant='body2' fontWeight='bold'>
+                                                  {(parseFloat(entry.quantity) || 0).toFixed(1)} kg
+                                                </Typography>
+                                                <IconButton size='small' title='Edit'>
+                                                  <EditIcon sx={{ fontSize: 16 }} />
+                                                </IconButton>
+                                                <IconButton
+                                                  size='small'
+                                                  title='Delete'
+                                                  onClick={() => handleDeleteFeedEntry(entry._id)}
+                                                >
+                                                  <DeleteIcon sx={{ fontSize: 16 }} />
+                                                </IconButton>
+                                              </Box>
+                                            </Box>
+                                          </Card>
+                                        ))}
+                                    </AccordionDetails>
+                                  </Accordion>
+                                );
+                              })
+                          ) : (
+                            <Box sx={{ textAlign: 'center', py: 4 }}>
+                              <FeedIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
+                              <Typography variant='body2' color='text.secondary'>
+                                No feed history available
+                              </Typography>
+                            </Box>
+                          )}
                         </Box>
                       </CardContent>
                     </Card>
                   </Grid>
                 </Grid>
               )}
-              
+
               {activeTab === 1 && (
                 <Grid container spacing={3}>
                   <Grid item xs={12} lg={6}>
-                    <Card variant="outlined">
-                      <CardHeader title="Record Water Quality" />
+                    <Card variant='outlined'>
+                      <CardHeader title='Record Water Quality' />
                       <CardContent>
                         {createWaterQualityInputError && (
-                          <Alert severity="error" sx={{ mb: 2 }}>
+                          <Alert severity='error' sx={{ mb: 2 }}>
                             {createWaterQualityInputError.message}
                           </Alert>
                         )}
-                        <WaterQualityAlert 
-                          pondName={pond.name && typeof pond.name === 'object' ? (pond.name[i18n.language] || pond.name.en || 'Pond') : pond.name}
+                        <WaterQualityAlert
+                          pondName={
+                            pond.name && typeof pond.name === 'object'
+                              ? pond.name[i18n.language] || pond.name.en || 'Pond'
+                              : pond.name
+                          }
                           pH={7.2}
                           dissolvedOxygen={5.5}
                           temperature={28.5}
@@ -833,88 +1179,83 @@ const PondManagementPage = () => {
                           <Grid container spacing={2}>
                             <Grid item xs={12} md={6}>
                               <Controller
-                                name="date"
+                                name='date'
                                 control={control}
                                 render={({ field }) => (
                                   <DatePicker
-                                    label="Date"
+                                    label='Date'
                                     value={field.value}
                                     onChange={field.onChange}
-                                    renderInput={(params) => <TextField {...params} fullWidth />}
+                                    renderInput={params => <TextField {...params} fullWidth />}
                                   />
                                 )}
                               />
                             </Grid>
-                            
+
                             <Grid item xs={12} md={6}>
                               <Controller
-                                name="time"
+                                name='time'
                                 control={control}
                                 render={({ field }) => (
                                   <TimePicker
-                                    label="Time"
+                                    label='Time'
                                     value={field.value}
                                     onChange={field.onChange}
-                                    renderInput={(params) => <TextField {...params} fullWidth />}
+                                    renderInput={params => <TextField {...params} fullWidth />}
                                   />
                                 )}
                               />
                             </Grid>
-                            
+
                             <Grid item xs={12} md={6}>
                               <Controller
-                                name="pH"
+                                name='pH'
+                                control={control}
+                                render={({ field }) => (
+                                  <TextField {...field} label='pH' type='number' fullWidth />
+                                )}
+                              />
+                            </Grid>
+
+                            <Grid item xs={12} md={6}>
+                              <Controller
+                                name='dissolvedOxygen'
                                 control={control}
                                 render={({ field }) => (
                                   <TextField
                                     {...field}
-                                    label="pH"
-                                    type="number"
+                                    label='Dissolved Oxygen (mg/L)'
+                                    type='number'
                                     fullWidth
                                   />
                                 )}
                               />
                             </Grid>
-                            
+
                             <Grid item xs={12} md={6}>
                               <Controller
-                                name="dissolvedOxygen"
+                                name='temperature'
                                 control={control}
                                 render={({ field }) => (
                                   <TextField
                                     {...field}
-                                    label="Dissolved Oxygen (mg/L)"
-                                    type="number"
+                                    label='Temperature (°C)'
+                                    type='number'
                                     fullWidth
                                   />
                                 )}
                               />
                             </Grid>
-                            
+
                             <Grid item xs={12} md={6}>
                               <Controller
-                                name="temperature"
+                                name='salinity'
                                 control={control}
                                 render={({ field }) => (
                                   <TextField
                                     {...field}
-                                    label="Temperature (°C)"
-                                    type="number"
-                                    fullWidth
-                                  />
-                                )}
-                              />
-                            </Grid>
-                            
-                            <Grid item xs={12} md={6}>
-                              <Controller
-                                name="salinity"
-                                control={control}
-                                render={({ field }) => (
-                                  <TextField
-                                    {...field}
-                                    label="Salinity (ppt)"
-                                    type="number"
+                                    label='Salinity (ppt)'
+                                    type='number'
                                     fullWidth
                                   />
                                 )}
@@ -923,71 +1264,85 @@ const PondManagementPage = () => {
 
                             <Grid item xs={12} md={6}>
                               <TextField
-                                label="Chemical/Probiotic Used"
+                                label='Chemical/Probiotic Used'
                                 fullWidth
                                 select
                                 disabled={chemicalProbioticInventoryLoading}
                                 error={!!chemicalProbioticInventoryError}
-                                helperText={chemicalProbioticInventoryError || (chemicalProbioticInventoryLoading ? 'Loading chemicals/probiotics...' : '')}
+                                helperText={
+                                  chemicalProbioticInventoryError ||
+                                  (chemicalProbioticInventoryLoading
+                                    ? 'Loading chemicals/probiotics...'
+                                    : '')
+                                }
                                 value={chemicalType}
-                                onChange={(e) => setChemicalType(e.target.value)}
+                                onChange={e => setChemicalType(e.target.value)}
                               >
-                                {Array.isArray(chemicalProbioticInventoryItems) && chemicalProbioticInventoryItems.map((item) => {
-                                  const itemName = typeof item.itemName === 'object' ? (item.itemName[i18n.language] || item.itemName.en) : item.itemName;
-                                  return (
-                                    <MenuItem key={item._id} value={item._id}>
-                                      {itemName}
-                                    </MenuItem>
-                                  )
-                                })}
+                                {Array.isArray(chemicalProbioticInventoryItems) &&
+                                  chemicalProbioticInventoryItems.map(item => {
+                                    const itemName =
+                                      typeof item.itemName === 'object'
+                                        ? item.itemName[i18n.language] || item.itemName.en
+                                        : item.itemName;
+                                    return (
+                                      <MenuItem key={item._id} value={item._id}>
+                                        {itemName}
+                                      </MenuItem>
+                                    );
+                                  })}
                               </TextField>
                             </Grid>
 
                             <Grid item xs={12} md={6}>
                               <Controller
-                                name="quantityUsed"
+                                name='quantityUsed'
                                 control={control}
                                 render={({ field }) => (
                                   <TextField
                                     {...field}
-                                    label="Quantity Used (unit)"
-                                    type="number"
+                                    label='Quantity Used (unit)'
+                                    type='number'
                                     fullWidth
                                   />
                                 )}
                               />
                             </Grid>
-                            
+
                             <Grid item xs={12}>
-                              <Button 
-                                type="submit" 
-                                variant="contained" 
+                              <Button
+                                type='submit'
+                                variant='contained'
                                 startIcon={<AddIcon />}
                                 disabled={createWaterQualityInputLoading}
                               >
-                                {createWaterQualityInputLoading ? 'Adding...' : 'Add Water Quality Entry'}
+                                {createWaterQualityInputLoading
+                                  ? 'Adding...'
+                                  : 'Add Water Quality Entry'}
                               </Button>
                             </Grid>
                           </Grid>
                         </form>
-                        
-                        <Box sx={{ mt: 3, p: 2, bgcolor: 'rgba(40, 167, 69, 0.1)', borderRadius: 1 }}>
-                          <Typography variant="body2" sx={{ fontStyle: 'italic' }}>
-                            <AquacultureTooltip term="Dissolved Oxygen (DO)">
-                              <strong>Tip:</strong> Optimal DO levels: 5-7 mg/L. pH should be between 6.5-8.5.
+
+                        <Box
+                          sx={{ mt: 3, p: 2, bgcolor: 'rgba(40, 167, 69, 0.1)', borderRadius: 1 }}
+                        >
+                          <Typography variant='body2' sx={{ fontStyle: 'italic' }}>
+                            <AquacultureTooltip term='Dissolved Oxygen (DO)'>
+                              <strong>Tip:</strong> Optimal DO levels: 5-7 mg/L. pH should be
+                              between 6.5-8.5.
                             </AquacultureTooltip>
                           </Typography>
                         </Box>
                       </CardContent>
                     </Card>
                   </Grid>
-                  
+
                   <Grid item xs={12} lg={6}>
-                    <Card variant="outlined">
-                      <CardHeader 
-                        title="Water Quality History" 
+                    <Card variant='outlined'>
+                      <CardHeader
+                        title='Water Quality History'
                         action={
-                          <Tooltip title="Export data">
+                          <Tooltip title='Export data'>
                             <IconButton>
                               <WaterIcon />
                             </IconButton>
@@ -996,25 +1351,45 @@ const PondManagementPage = () => {
                       />
                       <CardContent>
                         <Box sx={{ height: 300, mb: 2 }}>
-                          <ResponsiveContainer width="100%" height="100%">
+                          <ResponsiveContainer width='100%' height='100%'>
                             <LineChart
                               data={waterQualityChartData}
                               margin={{ top: 5, right: 30, left: 20, bottom: 50 }}
                             >
-                              <CartesianGrid strokeDasharray="3 3" />
-                              <XAxis dataKey="date" />
+                              <CartesianGrid strokeDasharray='3 3' />
+                              <XAxis dataKey='date' />
                               <YAxis />
                               <RechartsTooltip />
                               <Legend />
-                              <Line type="monotone" dataKey="pH" name="pH Level" stroke="#007BFF" activeDot={{ r: 8 }} />
-                              <Line type="monotone" dataKey="do" name="Dissolved Oxygen (mg/L)" stroke="#28A745" />
-                              <Line type="monotone" dataKey="temp" name="Temperature (°C)" stroke="#FD7E14" />
+                              <Line
+                                type='monotone'
+                                dataKey='pH'
+                                name='pH Level'
+                                stroke='#007BFF'
+                                activeDot={{ r: 8 }}
+                              />
+                              <Line
+                                type='monotone'
+                                dataKey='do'
+                                name='Dissolved Oxygen (mg/L)'
+                                stroke='#28A745'
+                              />
+                              <Line
+                                type='monotone'
+                                dataKey='temp'
+                                name='Temperature (°C)'
+                                stroke='#FD7E14'
+                              />
                             </LineChart>
                           </ResponsiveContainer>
                         </Box>
-                        
-                        <WaterQualityAlert 
-                          pondName={pond.name && typeof pond.name === 'object' ? (pond.name[i18n.language] || pond.name.en || 'Pond') : pond.name}
+
+                        <WaterQualityAlert
+                          pondName={
+                            pond.name && typeof pond.name === 'object'
+                              ? pond.name[i18n.language] || pond.name.en || 'Pond'
+                              : pond.name
+                          }
                           pH={7.2}
                           dissolvedOxygen={5.5}
                           temperature={28.5}
@@ -1024,30 +1399,43 @@ const PondManagementPage = () => {
                         />
 
                         <Divider sx={{ my: 2 }} />
-                        
+
                         <Box sx={{ maxHeight: 300, overflow: 'auto' }}>
                           <Grid container spacing={1}>
-                            {waterQualityEntries.map((entry) => (
+                            {waterQualityEntries.map(entry => (
                               <Grid item xs={12} key={entry._id || entry.id}>
-                                <Card variant="outlined" sx={{ p: 1 }}>
-                                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Card variant='outlined' sx={{ p: 1 }}>
+                                  <Box
+                                    sx={{
+                                      display: 'flex',
+                                      justifyContent: 'space-between',
+                                      alignItems: 'center'
+                                    }}
+                                  >
                                     <Box>
-                                      <Typography variant="body2" fontWeight="bold">
+                                      <Typography variant='body2' fontWeight='bold'>
                                         Water Quality Check
                                       </Typography>
-                                      <Typography variant="body2" color="text.secondary">
+                                      <Typography variant='body2' color='text.secondary'>
                                         {formatDate(entry.date)} at {formatTime(entry.time)}
                                       </Typography>
                                     </Box>
                                     <Box sx={{ textAlign: 'right' }}>
-                                      <Typography variant="body2">
-                                        pH: {entry.pH} | DO: {entry.dissolvedOxygen} | Temp: {entry.temperature}°C
+                                      <Typography variant='body2'>
+                                        pH: {entry.pH} | DO: {entry.dissolvedOxygen} | Temp:{' '}
+                                        {entry.temperature}°C
                                       </Typography>
-                                      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 0.5 }}>
-                                        <IconButton size="small">
+                                      <Box
+                                        sx={{
+                                          display: 'flex',
+                                          justifyContent: 'flex-end',
+                                          gap: 0.5
+                                        }}
+                                      >
+                                        <IconButton size='small'>
                                           <EditIcon sx={{ fontSize: 16 }} />
                                         </IconButton>
-                                        <IconButton size="small">
+                                        <IconButton size='small'>
                                           <DeleteIcon sx={{ fontSize: 16 }} />
                                         </IconButton>
                                       </Box>
@@ -1063,15 +1451,15 @@ const PondManagementPage = () => {
                   </Grid>
                 </Grid>
               )}
-              
+
               {activeTab === 2 && (
                 <Grid container spacing={3}>
                   <Grid item xs={12} lg={6}>
-                    <Card variant="outlined">
-                      <CardHeader title="Record Growth Sampling" />
+                    <Card variant='outlined'>
+                      <CardHeader title='Record Growth Sampling' />
                       <CardContent>
                         {createGrowthSamplingError && (
-                          <Alert severity="error" sx={{ mb: 2 }}>
+                          <Alert severity='error' sx={{ mb: 2 }}>
                             {createGrowthSamplingError.message}
                           </Alert>
                         )}
@@ -1079,94 +1467,99 @@ const PondManagementPage = () => {
                           <Grid container spacing={2}>
                             <Grid item xs={12} md={6}>
                               <Controller
-                                name="date"
+                                name='date'
                                 control={control}
                                 render={({ field }) => (
                                   <DatePicker
-                                    label="Date"
+                                    label='Date'
                                     value={field.value}
                                     onChange={field.onChange}
-                                    renderInput={(params) => <TextField {...params} fullWidth />}
+                                    renderInput={params => <TextField {...params} fullWidth />}
                                   />
                                 )}
                               />
                             </Grid>
-                            
+
                             <Grid item xs={12} md={6}>
                               <Controller
-                                name="time"
+                                name='time'
                                 control={control}
                                 render={({ field }) => (
                                   <TimePicker
-                                    label="Time"
+                                    label='Time'
                                     value={field.value}
                                     onChange={field.onChange}
-                                    renderInput={(params) => <TextField {...params} fullWidth />}
+                                    renderInput={params => <TextField {...params} fullWidth />}
                                   />
                                 )}
                               />
                             </Grid>
-                            
+
                             <Grid item xs={12} md={6}>
                               <Controller
-                                name="totalWeight"
+                                name='totalWeight'
                                 control={control}
                                 render={({ field }) => (
                                   <TextField
                                     {...field}
-                                    label="Total Weight (kg)"
-                                    type="number"
+                                    label='Total Weight (kg)'
+                                    type='number'
                                     fullWidth
                                   />
                                 )}
                               />
                             </Grid>
-                            
+
                             <Grid item xs={12} md={6}>
                               <Controller
-                                name="totalCount"
+                                name='totalCount'
                                 control={control}
                                 render={({ field }) => (
                                   <TextField
                                     {...field}
-                                    label="Total Count"
-                                    type="number"
+                                    label='Total Count'
+                                    type='number'
                                     fullWidth
                                   />
                                 )}
                               />
                             </Grid>
-                            
+
                             <Grid item xs={12}>
-                              <Button 
-                                type="submit" 
-                                variant="contained" 
+                              <Button
+                                type='submit'
+                                variant='contained'
                                 startIcon={<AddIcon />}
                                 disabled={createGrowthSamplingLoading}
                               >
-                                {createGrowthSamplingLoading ? 'Adding...' : 'Add Growth Sampling Entry'}
+                                {createGrowthSamplingLoading
+                                  ? 'Adding...'
+                                  : 'Add Growth Sampling Entry'}
                               </Button>
                             </Grid>
                           </Grid>
                         </form>
-                        
-                        <Box sx={{ mt: 3, p: 2, bgcolor: 'rgba(220, 53, 69, 0.1)', borderRadius: 1 }}>
-                          <Typography variant="body2" sx={{ fontStyle: 'italic' }}>
-                            <AquacultureTooltip term="Harvest Size">
-                              <strong>Tip:</strong> Current average weight is 152g. Target harvest size is 250g.
+
+                        <Box
+                          sx={{ mt: 3, p: 2, bgcolor: 'rgba(220, 53, 69, 0.1)', borderRadius: 1 }}
+                        >
+                          <Typography variant='body2' sx={{ fontStyle: 'italic' }}>
+                            <AquacultureTooltip term='Harvest Size'>
+                              <strong>Tip:</strong> Current average weight is 152g. Target harvest
+                              size is 250g.
                             </AquacultureTooltip>
                           </Typography>
                         </Box>
                       </CardContent>
                     </Card>
                   </Grid>
-                  
+
                   <Grid item xs={12} lg={6}>
-                    <Card variant="outlined">
-                      <CardHeader 
-                        title="Growth Sampling History" 
+                    <Card variant='outlined'>
+                      <CardHeader
+                        title='Growth Sampling History'
                         action={
-                          <Tooltip title="Export data">
+                          <Tooltip title='Export data'>
                             <IconButton>
                               <GrowthIcon />
                             </IconButton>
@@ -1175,49 +1568,70 @@ const PondManagementPage = () => {
                       />
                       <CardContent>
                         <Box sx={{ height: 300, mb: 2 }}>
-                          <ResponsiveContainer width="100%" height="100%">
-                            <ScatterChart
-                              margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
-                            >
+                          <ResponsiveContainer width='100%' height='100%'>
+                            <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
                               <CartesianGrid />
-                              <XAxis type="number" dataKey="x" name="Sample #" />
-                              <YAxis type="number" dataKey="y" name="Avg Weight (g)" />
-                              <ZAxis range={[100]} />
+                              <XAxis type='number' dataKey='x' name='Sample #' />
+                              <YAxis type='number' dataKey='y' name='Avg Weight (g)' />
+                              <ZAxis range={[ZAXIS_RANGE_VALUE]} />
                               <RechartsTooltip cursor={{ strokeDasharray: '3 3' }} />
                               <Legend />
-                              <Scatter name="Growth Samples" data={growthScatterData} fill="#007BFF" />
+                              <Scatter
+                                name='Growth Samples'
+                                data={growthScatterData}
+                                fill='#007BFF'
+                              />
                             </ScatterChart>
                           </ResponsiveContainer>
                         </Box>
-                        
+
                         <Divider sx={{ my: 2 }} />
-                        
+
                         <Box sx={{ maxHeight: 300, overflow: 'auto' }}>
                           <Grid container spacing={1}>
-                            {growthSamplingEntries.map((entry) => (
+                            {growthSamplingEntries.map(entry => (
                               <Grid item xs={12} key={entry._id || entry.id}>
-                                <Card variant="outlined" sx={{ p: 1 }}>
-                                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <Card variant='outlined' sx={{ p: 1 }}>
+                                  <Box
+                                    sx={{
+                                      display: 'flex',
+                                      justifyContent: 'space-between',
+                                      alignItems: 'center'
+                                    }}
+                                  >
                                     <Box>
-                                      <Typography variant="body2" fontWeight="bold">
+                                      <Typography variant='body2' fontWeight='bold'>
                                         Growth Sampling
                                       </Typography>
-                                      <Typography variant="body2" color="text.secondary">
+                                      <Typography variant='body2' color='text.secondary'>
                                         {formatDate(entry.date)} at {formatTime(entry.time)}
                                       </Typography>
                                     </Box>
                                     <Box sx={{ textAlign: 'right' }}>
-                                      <Typography variant="body2">
-                                        Avg. Weight: {entry.totalCount > 0 ? (entry.totalWeight * 1000 / entry.totalCount).toFixed(2) : 0}g
+                                      <Typography variant='body2'>
+                                        Avg. Weight:{' '}
+                                        {entry.totalCount > 0
+                                          ? (
+                                              (entry.totalWeight * KG_TO_GRAMS_CONVERSION) /
+                                              entry.totalCount
+                                            ).toFixed(2)
+                                          : 0}
+                                        g
                                       </Typography>
-                                      <Typography variant="body2">
+                                      <Typography variant='body2'>
                                         Total: {entry.totalWeight}kg / {entry.totalCount} pcs
                                       </Typography>
-                                      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 0.5 }}>
-                                        <IconButton size="small">
+                                      <Box
+                                        sx={{
+                                          display: 'flex',
+                                          justifyContent: 'flex-end',
+                                          gap: 0.5
+                                        }}
+                                      >
+                                        <IconButton size='small'>
                                           <EditIcon sx={{ fontSize: 16 }} />
                                         </IconButton>
-                                        <IconButton size="small">
+                                        <IconButton size='small'>
                                           <DeleteIcon sx={{ fontSize: 16 }} />
                                         </IconButton>
                                       </Box>
@@ -1238,14 +1652,10 @@ const PondManagementPage = () => {
         ) : (
           <Card elevation={3} sx={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
             <CardHeader
-              title="Events Calendar"
-              subheader="View and manage events for this pond"
+              title='Events Calendar'
+              subheader='View and manage events for this pond'
               action={
-                <Button 
-                  variant="contained" 
-                  startIcon={<AddIcon />} 
-                  onClick={handleAddEvent}
-                >
+                <Button variant='contained' startIcon={<AddIcon />} onClick={handleAddEvent}>
                   Add New Event
                 </Button>
               }
@@ -1253,20 +1663,20 @@ const PondManagementPage = () => {
             <CardContent sx={{ pt: 0, pb: 2 }}>
               <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap', alignItems: 'center' }}>
                 <TextField
-                  placeholder="Search events..."
+                  placeholder='Search events...'
                   value={calendarSearchTerm}
-                  onChange={(e) => setCalendarSearchTerm(e.target.value)}
+                  onChange={e => setCalendarSearchTerm(e.target.value)}
                   InputProps={{
                     startAdornment: (
-                      <InputAdornment position="start">
+                      <InputAdornment position='start'>
                         <SearchIcon />
                       </InputAdornment>
-                    ),
+                    )
                   }}
                   sx={{ minWidth: 200 }}
                 />
                 <ToggleButtonGroup
-                  size="small"
+                  size='small'
                   value={calendarEventTypeFilter}
                   exclusive
                   onChange={(e, newFilter) => {
@@ -1275,13 +1685,13 @@ const PondManagementPage = () => {
                     }
                   }}
                 >
-                  <ToggleButton value="all">All</ToggleButton>
-                  <ToggleButton value="Feeding">Feeding</ToggleButton>
-                  <ToggleButton value="Water Quality">Water Quality</ToggleButton>
-                  <ToggleButton value="Growth Sampling">Growth Sampling</ToggleButton>
-                  <ToggleButton value="Routine">Routine</ToggleButton>
-                  <ToggleButton value="Maintenance">Maintenance</ToggleButton>
-                  <ToggleButton value="Monitoring">Monitoring</ToggleButton>
+                  <ToggleButton value='all'>All</ToggleButton>
+                  <ToggleButton value='Feeding'>Feeding</ToggleButton>
+                  <ToggleButton value='Water Quality'>Water Quality</ToggleButton>
+                  <ToggleButton value='Growth Sampling'>Growth Sampling</ToggleButton>
+                  <ToggleButton value='Routine'>Routine</ToggleButton>
+                  <ToggleButton value='Maintenance'>Maintenance</ToggleButton>
+                  <ToggleButton value='Monitoring'>Monitoring</ToggleButton>
                 </ToggleButtonGroup>
               </Box>
             </CardContent>
@@ -1295,61 +1705,65 @@ const PondManagementPage = () => {
                     onRangeChange={handleRangeChange}
                     date={calendarDate}
                     view={calendarView}
-                    onViewChange={(view) => setCalendarView(view)}
+                    onViewChange={view => setCalendarView(view)}
                   />
                 </Grid>
-                
+
                 <Grid item xs={12}>
-                  <Card variant="outlined">
-                    <CardHeader title="Upcoming Events" />
+                  <Card variant='outlined'>
+                    <CardHeader title='Upcoming Events' />
                     <CardContent>
                       <Grid container spacing={2}>
-                        {(events || []).slice(0, 3).map((event) => (
+                        {(events || []).slice(0, POND_DISPLAY_LIMIT).map(event => (
                           <Grid item xs={12} md={6} lg={4} key={event._id || event.id}>
-                            <Card 
-                              variant="outlined" 
-                              sx={{ 
+                            <Card
+                              variant='outlined'
+                              sx={{
                                 height: '100%',
-                                borderLeft: `4px solid ${
-                                  event.type === 'Routine' ? '#007BFF' : 
-                                  event.type === 'Monitoring' ? '#28A745' : 
-                                  event.type === 'Maintenance' ? '#FD7E14' :
-                                  event.type === 'Feeding' ? '#007BFF' :
-                                  event.type === 'Water Quality' ? '#28A745' :
-                                  event.type === 'Growth Sampling' ? '#6f42c1' :
-                                  '#9e9e9e'
-                                }`
+                                borderLeft: `4px solid ${getEventTypeBorderColor(event.type)}`
                               }}
                             >
                               <CardContent>
-                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                <Box
+                                  sx={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'flex-start'
+                                  }}
+                                >
                                   <Box>
-                                    <Typography variant="body1" fontWeight="bold">
+                                    <Typography variant='body1' fontWeight='bold'>
                                       {event.title}
                                     </Typography>
-                                    <Typography variant="body2" color="text.secondary">
-                                      {new Date(event.start).toLocaleDateString(i18n.language, { year: 'numeric', month: 'short', day: 'numeric' })}
+                                    <Typography variant='body2' color='text.secondary'>
+                                      {new Date(event.start).toLocaleDateString(i18n.language, {
+                                        year: 'numeric',
+                                        month: 'short',
+                                        day: 'numeric'
+                                      })}
                                     </Typography>
-                                    <Typography variant="body2" color="text.secondary">
-                                      {new Date(event.start).toLocaleTimeString(i18n.language, { hour: '2-digit', minute: '2-digit' })} - {new Date(event.end).toLocaleTimeString(i18n.language, { hour: '2-digit', minute: '2-digit' })}
+                                    <Typography variant='body2' color='text.secondary'>
+                                      {new Date(event.start).toLocaleTimeString(i18n.language, {
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                      })}{' '}
+                                      -{' '}
+                                      {new Date(event.end).toLocaleTimeString(i18n.language, {
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                      })}
                                     </Typography>
                                   </Box>
-                                  <Chip 
-                                    label={event.type} 
-                                    size="small" 
-                                    color={
-                                      event.type === 'Routine' ? 'primary' : 
-                                      event.type === 'Monitoring' ? 'success' : 
-                                      event.type === 'Maintenance' ? 'warning' :
-                                      event.type === 'Feeding' ? 'primary' :
-                                      event.type === 'Water Quality' ? 'success' :
-                                      event.type === 'Growth Sampling' ? 'secondary' :
-                                      'default'
-                                    }
+                                  <Chip
+                                    label={event.type}
+                                    size='small'
+                                    color={getEventTypeColor(event.type)}
                                   />
                                 </Box>
-                                <Typography variant="body2" sx={{ mt: 1, fontStyle: 'italic' }}>
-                                  {event.resource && event.resource.description ? event.resource.description : 'No description'}
+                                <Typography variant='body2' sx={{ mt: 1, fontStyle: 'italic' }}>
+                                  {event.resource && event.resource.description
+                                    ? event.resource.description
+                                    : 'No description'}
                                 </Typography>
                               </CardContent>
                             </Card>
@@ -1359,9 +1773,9 @@ const PondManagementPage = () => {
                     </CardContent>
                   </Card>
                 </Grid>
-                
+
                 <Grid item xs={12}>
-                  <EventSuggestions 
+                  <EventSuggestions
                     pondStatus={pond.status}
                     waterQuality={{
                       do: 5.5,
@@ -1369,9 +1783,9 @@ const PondManagementPage = () => {
                       temp: 28.5
                     }}
                     growthRate={5.2}
-                    lastFeeding="2023-06-16"
-                    onSuggestionClick={(suggestion) => {
-                      console.log('Suggested event:', suggestion);
+                    lastFeeding='2023-06-16'
+                    onSuggestionClick={suggestion => {
+                      logger.debug('Suggested event:', suggestion);
                     }}
                   />
                 </Grid>
@@ -1380,12 +1794,12 @@ const PondManagementPage = () => {
           </Card>
         )}
       </Container>
-      
-      <Dialog open={openEventModal} onClose={handleCloseModal} maxWidth="sm" fullWidth>
+
+      <Dialog open={openEventModal} onClose={handleCloseModal} maxWidth='sm' fullWidth>
         <DialogTitle>
           {selectedEvent?.title}
           <IconButton
-            aria-label="close"
+            aria-label='close'
             onClick={handleCloseModal}
             sx={{ position: 'absolute', right: 8, top: 8 }}
           >
@@ -1395,36 +1809,53 @@ const PondManagementPage = () => {
         <DialogContent>
           {selectedEvent && (
             <Box>
-              <Typography variant="body1" sx={{ mb: 2 }}>
-                <strong>{t('date')}:</strong> {new Date(selectedEvent.start).toLocaleDateString(i18n.language, { year: 'numeric', month: 'short', day: 'numeric' })}
+              <Typography variant='body1' sx={{ mb: 2 }}>
+                <strong>{t('date')}:</strong>{' '}
+                {new Date(selectedEvent.start).toLocaleDateString(i18n.language, {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric'
+                })}
               </Typography>
-              <Typography variant="body1" sx={{ mb: 2 }}>
-                <strong>{t('time')}:</strong> {new Date(selectedEvent.start).toLocaleTimeString(i18n.language, { hour: '2-digit', minute: '2-digit' })} - {new Date(selectedEvent.end).toLocaleTimeString(i18n.language, { hour: '2-digit', minute: '2-digit' })}
+              <Typography variant='body1' sx={{ mb: 2 }}>
+                <strong>{t('time')}:</strong>{' '}
+                {new Date(selectedEvent.start).toLocaleTimeString(i18n.language, {
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}{' '}
+                -{' '}
+                {new Date(selectedEvent.end).toLocaleTimeString(i18n.language, {
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
               </Typography>
-              <Typography variant="body1" sx={{ mb: 2 }}>
+              <Typography variant='body1' sx={{ mb: 2 }}>
                 <strong>Type:</strong> {selectedEvent.type}
               </Typography>
-              <Typography variant="body1" sx={{ mb: 2 }}>
-                <strong>Description:</strong> {selectedEvent.resource && selectedEvent.resource.description ? selectedEvent.resource.description : 'No description'}
+              <Typography variant='body1' sx={{ mb: 2 }}>
+                <strong>Description:</strong>{' '}
+                {selectedEvent.resource && selectedEvent.resource.description
+                  ? selectedEvent.resource.description
+                  : 'No description'}
               </Typography>
             </Box>
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseModal} color="primary">
+          <Button onClick={handleCloseModal} color='primary'>
             Close
           </Button>
-          <Button variant="contained" startIcon={<EditIcon />} onClick={handleCloseModal}>
+          <Button variant='contained' startIcon={<EditIcon />} onClick={handleCloseModal}>
             Edit Event
           </Button>
         </DialogActions>
       </Dialog>
-      
-      <Dialog open={openAddModal} onClose={handleCloseAddModal} maxWidth="sm" fullWidth>
+
+      <Dialog open={openAddModal} onClose={handleCloseAddModal} maxWidth='sm' fullWidth>
         <DialogTitle>
           Add New Event
           <IconButton
-            aria-label="close"
+            aria-label='close'
             onClick={handleCloseAddModal}
             sx={{ position: 'absolute', right: 8, top: 8 }}
           >
@@ -1436,23 +1867,16 @@ const PondManagementPage = () => {
             <Grid container spacing={2} sx={{ mt: 1 }}>
               <Grid item xs={12}>
                 <Controller
-                  name="eventType"
+                  name='eventType'
                   control={control}
                   render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="Event Type"
-                      fullWidth
-                      select
-                      required
-                    >
-                      <MenuItem value="Routine">Routine</MenuItem>
-                      <MenuItem value="Monitoring">Monitoring</MenuItem>
-                      <MenuItem value="Maintenance">Maintenance</MenuItem>
-                      <MenuItem value="Feeding">Feeding</MenuItem>
-                      <MenuItem value="Water Quality">Water Quality</MenuItem>
-                      <MenuItem value="Growth Sampling">Growth Sampling</MenuItem>
-                      <MenuItem value="Stocking">Stocking</MenuItem>
+                    <TextField {...field} label='Event Type' fullWidth select required>
+                      <MenuItem value='Routine'>Routine</MenuItem>
+                      <MenuItem value='Monitoring'>Monitoring</MenuItem>
+                      <MenuItem value='Maintenance'>Maintenance</MenuItem>
+                      <MenuItem value='Water Quality'>Water Quality</MenuItem>
+                      <MenuItem value='Growth Sampling'>Growth Sampling</MenuItem>
+                      <MenuItem value='Stocking'>Stocking</MenuItem>
                     </TextField>
                   )}
                 />
@@ -1460,81 +1884,105 @@ const PondManagementPage = () => {
 
               <Grid item xs={12}>
                 <Controller
-                  name="title"
+                  name='title'
                   control={control}
-                  render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="Event Title"
-                      fullWidth
-                    />
-                  )}
+                  render={({ field }) => <TextField {...field} label='Event Title' fullWidth />}
                 />
               </Grid>
-              
+
               <Grid item xs={12} md={6}>
                 <Controller
-                  name="date"
+                  name='date'
                   control={control}
                   render={({ field }) => (
                     <DatePicker
-                      label="Date"
+                      label='Date'
                       value={field.value}
                       onChange={field.onChange}
-                      renderInput={(params) => <TextField {...params} fullWidth required />}
+                      renderInput={params => <TextField {...params} fullWidth required />}
                     />
                   )}
                 />
               </Grid>
-              
+
               <Grid item xs={12} md={6}>
                 <Controller
-                  name="time"
+                  name='time'
                   control={control}
                   render={({ field }) => (
                     <TimePicker
-                      label="Start Time"
+                      label='Start Time'
                       value={field.value}
                       onChange={field.onChange}
-                      renderInput={(params) => <TextField {...params} fullWidth required />}
+                      renderInput={params => <TextField {...params} fullWidth required />}
                     />
                   )}
                 />
               </Grid>
-              
+
               {eventType === 'Feeding' && (
                 <>
                   <Grid item xs={12}>
                     <TextField
-                      label="Feed Type"
+                      label='Feed Type'
                       fullWidth
                       select
                       disabled={feedInventoryLoading}
-                      error={!!feedInventoryError}
-                      helperText={feedInventoryError || (feedInventoryLoading ? 'Loading feed types...' : '')}
+                      error={
+                        !!feedInventoryError ||
+                        (Array.isArray(feedInventoryItems) && feedInventoryItems.length === 0)
+                      }
+                      required
+                      helperText={
+                        feedInventoryError
+                          ? `Error: ${feedInventoryError}`
+                          : feedInventoryLoading
+                          ? 'Loading feed types...'
+                          : Array.isArray(feedInventoryItems) && feedInventoryItems.length === 0
+                          ? 'No feed inventory available for this season. Please add feed inventory first.'
+                          : ''
+                      }
                       value={feedType}
-                      onChange={(e) => setFeedType(e.target.value)}
+                      onChange={e => setFeedType(e.target.value)}
                     >
-                      {Array.isArray(feedInventoryItems) && feedInventoryItems.map((item) => {
-                        const itemName = typeof item.itemName === 'object' ? (item.itemName[i18n.language] || item.itemName.en) : item.itemName;
-                        return (
-                          <MenuItem key={item._id} value={item._id}>
-                            {itemName}
-                          </MenuItem>
-                        )
-                      })}
+                      {Array.isArray(feedInventoryItems) && feedInventoryItems.length > 0 ? (
+                        feedInventoryItems.map(item => {
+                          const itemName =
+                            typeof item.itemName === 'object'
+                              ? item.itemName[i18n.language] || item.itemName.en
+                              : item.itemName;
+                          return (
+                            <MenuItem key={item._id} value={item._id}>
+                              {itemName}
+                            </MenuItem>
+                          );
+                        })
+                      ) : (
+                        <MenuItem disabled value=''>
+                          No feed inventory available
+                        </MenuItem>
+                      )}
                     </TextField>
                   </Grid>
                   <Grid item xs={12}>
                     <Controller
-                      name="quantity"
+                      name='quantity'
                       control={control}
-                      render={({ field }) => (
+                      rules={{
+                        required: 'Quantity is required',
+                        min: { value: 0.1, message: 'Quantity must be greater than 0' }
+                      }}
+                      render={({ field, fieldState }) => (
                         <TextField
                           {...field}
-                          label="Quantity (kg)"
-                          type="number"
+                          label='Quantity (kg)'
+                          type='number'
                           fullWidth
+                          required
+                          error={!!fieldState.error}
+                          helperText={
+                            fieldState.error?.message || 'Enter the amount of feed to be used'
+                          }
                         />
                       )}
                     />
@@ -1546,13 +1994,22 @@ const PondManagementPage = () => {
                 <>
                   <Grid item xs={12} md={6}>
                     <Controller
-                      name="pH"
+                      name='pH'
+                      control={control}
+                      render={({ field }) => (
+                        <TextField {...field} label='pH' type='number' fullWidth />
+                      )}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <Controller
+                      name='dissolvedOxygen'
                       control={control}
                       render={({ field }) => (
                         <TextField
                           {...field}
-                          label="pH"
-                          type="number"
+                          label='Dissolved Oxygen (mg/L)'
+                          type='number'
                           fullWidth
                         />
                       )}
@@ -1560,76 +2017,59 @@ const PondManagementPage = () => {
                   </Grid>
                   <Grid item xs={12} md={6}>
                     <Controller
-                      name="dissolvedOxygen"
+                      name='temperature'
                       control={control}
                       render={({ field }) => (
-                        <TextField
-                          {...field}
-                          label="Dissolved Oxygen (mg/L)"
-                          type="number"
-                          fullWidth
-                        />
+                        <TextField {...field} label='Temperature (°C)' type='number' fullWidth />
                       )}
                     />
                   </Grid>
                   <Grid item xs={12} md={6}>
                     <Controller
-                      name="temperature"
+                      name='salinity'
                       control={control}
                       render={({ field }) => (
-                        <TextField
-                          {...field}
-                          label="Temperature (°C)"
-                          type="number"
-                          fullWidth
-                        />
-                      )}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <Controller
-                      name="salinity"
-                      control={control}
-                      render={({ field }) => (
-                        <TextField
-                          {...field}
-                          label="Salinity (ppt)"
-                          type="number"
-                          fullWidth
-                        />
+                        <TextField {...field} label='Salinity (ppt)' type='number' fullWidth />
                       )}
                     />
                   </Grid>
                   <Grid item xs={12} md={6}>
                     <TextField
-                      label="Chemical/Probiotic Used"
+                      label='Chemical/Probiotic Used'
                       fullWidth
                       select
                       disabled={chemicalProbioticInventoryLoading}
                       error={!!chemicalProbioticInventoryError}
-                      helperText={chemicalProbioticInventoryError || (chemicalProbioticInventoryLoading ? 'Loading chemicals/probiotics...' : '')}
+                      helperText={
+                        chemicalProbioticInventoryError ||
+                        (chemicalProbioticInventoryLoading ? 'Loading chemicals/probiotics...' : '')
+                      }
                       value={chemicalType}
-                      onChange={(e) => setChemicalType(e.target.value)}
+                      onChange={e => setChemicalType(e.target.value)}
                     >
-                      {Array.isArray(chemicalProbioticInventoryItems) && chemicalProbioticInventoryItems.map((item) => {
-                        const itemName = typeof item.itemName === 'object' ? (item.itemName[i18n.language] || item.itemName.en) : item.itemName;
-                        return (
-                          <MenuItem key={item._id} value={item._id}>
-                            {itemName}
-                          </MenuItem>
-                        )
-                      })}
+                      {Array.isArray(chemicalProbioticInventoryItems) &&
+                        chemicalProbioticInventoryItems.map(item => {
+                          const itemName =
+                            typeof item.itemName === 'object'
+                              ? item.itemName[i18n.language] || item.itemName.en
+                              : item.itemName;
+                          return (
+                            <MenuItem key={item._id} value={item._id}>
+                              {itemName}
+                            </MenuItem>
+                          );
+                        })}
                     </TextField>
                   </Grid>
                   <Grid item xs={12} md={6}>
                     <Controller
-                      name="quantityUsed"
+                      name='quantityUsed'
                       control={control}
                       render={({ field }) => (
                         <TextField
                           {...field}
-                          label="Quantity Used (unit)"
-                          type="number"
+                          label='Quantity Used (unit)'
+                          type='number'
                           fullWidth
                         />
                       )}
@@ -1642,29 +2082,19 @@ const PondManagementPage = () => {
                 <>
                   <Grid item xs={12} md={6}>
                     <Controller
-                      name="totalWeight"
+                      name='totalWeight'
                       control={control}
                       render={({ field }) => (
-                        <TextField
-                          {...field}
-                          label="Total Weight (kg)"
-                          type="number"
-                          fullWidth
-                        />
+                        <TextField {...field} label='Total Weight (kg)' type='number' fullWidth />
                       )}
                     />
                   </Grid>
                   <Grid item xs={12} md={6}>
                     <Controller
-                      name="totalCount"
+                      name='totalCount'
                       control={control}
                       render={({ field }) => (
-                        <TextField
-                          {...field}
-                          label="Total Count"
-                          type="number"
-                          fullWidth
-                        />
+                        <TextField {...field} label='Total Count' type='number' fullWidth />
                       )}
                     />
                   </Grid>
@@ -1675,15 +2105,10 @@ const PondManagementPage = () => {
                 <>
                   <Grid item xs={12}>
                     <Controller
-                      name="nurseryBatchId"
+                      name='nurseryBatchId'
                       control={control}
                       render={({ field }) => (
-                        <TextField
-                          {...field}
-                          label="Nursery Batch"
-                          fullWidth
-                          select
-                        >
+                        <TextField {...field} label='Nursery Batch' fullWidth select>
                           {/* TODO: Populate with nursery batches */}
                         </TextField>
                       )}
@@ -1691,28 +2116,17 @@ const PondManagementPage = () => {
                   </Grid>
                   <Grid item xs={12}>
                     <Controller
-                      name="species"
+                      name='species'
                       control={control}
-                      render={({ field }) => (
-                        <TextField
-                          {...field}
-                          label="Species"
-                          fullWidth
-                        />
-                      )}
+                      render={({ field }) => <TextField {...field} label='Species' fullWidth />}
                     />
                   </Grid>
                   <Grid item xs={12}>
                     <Controller
-                      name="initialCount"
+                      name='initialCount'
                       control={control}
                       render={({ field }) => (
-                        <TextField
-                          {...field}
-                          label="Initial Count"
-                          type="number"
-                          fullWidth
-                        />
+                        <TextField {...field} label='Initial Count' type='number' fullWidth />
                       )}
                     />
                   </Grid>
@@ -1721,16 +2135,10 @@ const PondManagementPage = () => {
 
               <Grid item xs={12}>
                 <Controller
-                  name="description"
+                  name='description'
                   control={control}
                   render={({ field }) => (
-                    <TextField
-                      {...field}
-                      label="Description"
-                      fullWidth
-                      multiline
-                      rows={3}
-                    />
+                    <TextField {...field} label='Description' fullWidth multiline rows={3} />
                   )}
                 />
               </Grid>
@@ -1738,11 +2146,11 @@ const PondManagementPage = () => {
           </form>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseAddModal} color="primary">
+          <Button onClick={handleCloseAddModal} color='primary'>
             Cancel
           </Button>
-          <Button 
-            variant="contained" 
+          <Button
+            variant='contained'
             onClick={handleSubmit(handleEventSubmit)}
             disabled={createEventLoading}
           >

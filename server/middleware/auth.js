@@ -2,4 +2,282 @@
  * Authentication and Authorization Middleware
  */
 
-const jwt = require('jsonwebtoken'); \nconst User = require('../models/User'); \nconst { getConfig } = require('../config'); \nconst { \n  UnauthorizedError, \n  ForbiddenError, \n  asyncHandler\n } = require('../utils/errorHandler'); \n\nconst config = getConfig(); \n\n/**\n * Middleware to authenticate JWT tokens\n */\nconst authenticate = asyncHandler(async (req, res, next) => { \n  let token; \n  \n  // Get token from header\n  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {\n    token = req.headers.authorization.split(' ')[1];\n  }\n  \n  // Get token from cookie if not in header\n  if (!token && req.cookies && req.cookies.token) {\n    token = req.cookies.token;\n  }\n  \n  if (!token) {\n    throw new UnauthorizedError('Access token is required');\n  }\n  \n  try {\n    // Verify token\n    const decoded = jwt.verify(token, config.security.jwtSecret, {\n      issuer: 'shrimpfarm-api',\n      audience: 'shrimpfarm-client'\n    });\n    \n    // Get user from database\n    const user = await User.findById(decoded.userId);\n    \n    if (!user) {\n      throw new UnauthorizedError('User no longer exists');\n    }\n    \n    if (!user.isActive) {\n      throw new UnauthorizedError('User account is deactivated');\n    }\n    \n    if (user.isLocked) {\n      throw new UnauthorizedError('User account is locked');\n    }\n    \n    // Add user to request object\n    req.user = user;\n    next();\n  } catch (error) {\n    if (error.name === 'JsonWebTokenError') {\n      throw new UnauthorizedError('Invalid token');\n    }\n    if (error.name === 'TokenExpiredError') {\n      throw new UnauthorizedError('Token has expired');\n    }\n    throw error;\n  }\n});\n\n/**\n * Middleware to check if user has required role\n */\nconst requireRole = (...roles) => {\n  return (req, res, next) => {\n    if (!req.user) {\n      throw new UnauthorizedError('Authentication required');\n    }\n    \n    if (!roles.includes(req.user.role)) {\n      throw new ForbiddenError(`Access denied. Required role: ${roles.join(' or ')}`);\n    }\n    \n    next();\n  };\n};\n\n/**\n * Middleware to check if user has required permission\n */\nconst requirePermission = (...permissions) => {\n  return (req, res, next) => {\n    if (!req.user) {\n      throw new UnauthorizedError('Authentication required');\n    }\n    \n    const hasPermission = permissions.some(permission => \n      req.user.permissions.includes(permission)\n    );\n    \n    if (!hasPermission) {\n      throw new ForbiddenError(`Access denied. Required permission: ${permissions.join(' or ')}`);\n    }\n    \n    next();\n  };\n};\n\n/**\n * Middleware to check if user owns the resource or has admin role\n */\nconst requireOwnership = (userIdField = 'userId') => {\n  return (req, res, next) => {\n    if (!req.user) {\n      throw new UnauthorizedError('Authentication required');\n    }\n    \n    // Admin can access any resource\n    if (req.user.role === 'admin') {\n      return next();\n    }\n    \n    // Check if user owns the resource\n    const resourceUserId = req.params[userIdField] || req.body[userIdField];\n    \n    if (!resourceUserId || resourceUserId !== req.user._id.toString()) {\n      throw new ForbiddenError('Access denied. You can only access your own resources');\n    }\n    \n    next();\n  };\n};\n\n/**\n * Optional authentication middleware - sets user if token is valid but doesn't require it\n */\nconst optionalAuthenticate = asyncHandler(async (req, res, next) => {\n  let token;\n  \n  // Get token from header\n  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {\n    token = req.headers.authorization.split(' ')[1];\n  }\n  \n  // Get token from cookie if not in header\n  if (!token && req.cookies && req.cookies.token) {\n    token = req.cookies.token;\n  }\n  \n  if (token) {\n    try {\n      // Verify token\n      const decoded = jwt.verify(token, config.security.jwtSecret, {\n        issuer: 'shrimpfarm-api',\n        audience: 'shrimpfarm-client'\n      });\n      \n      // Get user from database\n      const user = await User.findById(decoded.userId);\n      \n      if (user && user.isActive && !user.isLocked) {\n        req.user = user;\n      }\n    } catch (error) {\n      // Silently fail - user remains unauthenticated\n    }\n  }\n  \n  next();\n});\n\n/**\n * Middleware for API key authentication (for system integrations)\n */\nconst authenticateApiKey = (req, res, next) => {\n  const apiKey = req.headers['x-api-key'];\n  \n  if (!apiKey) {\n    throw new UnauthorizedError('API key is required');\n  }\n  \n  // In a real implementation, you would validate the API key against a database\n  // For now, we'll use environment variable\n  if (apiKey !== process.env.API_KEY) {\n    throw new UnauthorizedError('Invalid API key');\n  }\n  \n  // Set a system user for API key requests\n  req.user = {\n    _id: 'system',\n    username: 'system',\n    role: 'system',\n    permissions: ['*'] // All permissions\n  };\n  \n  next();\n};\n\n/**\n * Helper function to generate permissions for a resource\n */\nconst generateResourcePermissions = (resource) => {\n  return {\n    read: `read:${resource}`,\n    write: `write:${resource}`,\n    delete: `delete:${resource}`\n  };\n};\n\n/**\n * Middleware factory for resource-based permissions\n */\nconst requireResourcePermission = (resource, action) => {\n  const permission = `${action}:${resource}`;\n  return requirePermission(permission);\n};\n\nmodule.exports = {\n  authenticate,\n  optionalAuthenticate,\n  authenticateApiKey,\n  requireRole,\n  requirePermission,\n  requireOwnership,\n  requireResourcePermission,\n  generateResourcePermissions\n};
+const jwt = require('jsonwebtoken');
+const User = require('../models/User');
+const { getConfig } = require('../config');
+const {
+  UnauthorizedError,
+  ForbiddenError,
+  asyncHandler
+} = require('../utils/errorHandler');
+
+const config = getConfig();
+
+/**
+ * Middleware to authenticate JWT tokens
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware function
+ * @returns {Promise<void>}
+ */
+const authenticate = asyncHandler(async (req, res, next) => {
+  // Check if we should bypass authentication in development mode
+  if (config.server.env === 'development' && process.env.DEV_BYPASS_AUTH === 'true') {
+    // Create a mock admin user for development
+    req.user = {
+      _id: 'dev-user-id',
+      username: 'devuser',
+      email: 'dev@example.com',
+      firstName: 'Development',
+      lastName: 'User',
+      role: 'admin',
+      language: 'en',
+      isActive: true,
+      isLocked: false,
+      permissions: [
+        'read:ponds', 'write:ponds', 'delete:ponds',
+        'read:seasons', 'write:seasons', 'delete:seasons',
+        'read:feedInputs', 'write:feedInputs', 'delete:feedInputs',
+        'read:growthSamplings', 'write:growthSamplings', 'delete:growthSamplings',
+        'read:waterQualityInputs', 'write:waterQualityInputs', 'delete:waterQualityInputs',
+        'read:expenses', 'write:expenses', 'delete:expenses',
+        'read:inventory', 'write:inventory', 'delete:inventory',
+        'read:nurseryBatches', 'write:nurseryBatches', 'delete:nurseryBatches',
+        'read:employees', 'write:employees', 'delete:employees',
+        'read:events', 'write:events', 'delete:events',
+        'read:farm', 'write:farm', 'delete:farm',
+        'read:settings', 'write:settings', 'delete:settings',
+        'read:historicalInsights', 'write:historicalInsights', 'delete:historicalInsights'
+      ]
+    };
+    return next();
+  }
+
+  let token;
+
+  // Get token from header
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    token = req.headers.authorization.split(' ')[1];
+  }
+
+  // Get token from cookie if not in header
+  if (!token && req.cookies && req.cookies.token) {
+    token = req.cookies.token;
+  }
+
+  if (!token) {
+    throw new UnauthorizedError('Access token is required');
+  }
+
+  try {
+    // Verify token
+    const decoded = jwt.verify(token, config.security.jwtSecret, {
+      issuer: 'shrimpfarm-api',
+      audience: 'shrimpfarm-client'
+    });
+
+    // Get user from database
+    const user = await User.findById(decoded.userId);
+
+    if (!user) {
+      throw new UnauthorizedError('User no longer exists');
+    }
+
+    if (!user.isActive) {
+      throw new UnauthorizedError('User account is deactivated');
+    }
+
+    if (user.isLocked) {
+      throw new UnauthorizedError('User account is locked');
+    }
+
+    // Add user to request object
+    req.user = user;
+    next();
+  } catch (error) {
+    if (error.name === 'JsonWebTokenError') {
+      throw new UnauthorizedError('Invalid token');
+    }
+    if (error.name === 'TokenExpiredError') {
+      throw new UnauthorizedError('Token has expired');
+    }
+    throw error;
+  }
+});
+
+/**
+ * Middleware to check if user has required role
+ * @param {...string} roles - Roles that are allowed access
+ * @returns {Function} Express middleware function
+ */
+const requireRole = (...roles) => {
+  return (req, res, next) => {
+    if (!req.user) {
+      throw new UnauthorizedError('Authentication required');
+    }
+
+    if (!roles.includes(req.user.role)) {
+      throw new ForbiddenError(`Access denied. Required role: ${roles.join(' or ')}`);
+    }
+
+    next();
+  };
+};
+
+/**
+ * Middleware to check if user has required permission
+ * @param {...string} permissions - Permissions that are allowed access
+ * @returns {Function} Express middleware function
+ */
+const requirePermission = (...permissions) => {
+  return (req, res, next) => {
+    if (!req.user) {
+      throw new UnauthorizedError('Authentication required');
+    }
+
+    const hasPermission = permissions.some(permission =>
+      req.user.permissions.includes(permission)
+    );
+
+    if (!hasPermission) {
+      throw new ForbiddenError(`Access denied. Required permission: ${permissions.join(' or ')}`);
+    }
+
+    next();
+  };
+};
+
+/**
+ * Middleware to check if user owns the resource or has admin role
+ * @param {string} userIdField - Field name containing the user ID in request params or body
+ * @returns {Function} Express middleware function
+ */
+const requireOwnership = (userIdField = 'userId') => {
+  return (req, res, next) => {
+    if (!req.user) {
+      throw new UnauthorizedError('Authentication required');
+    }
+
+    // Admin can access any resource
+    if (req.user.role === 'admin') {
+      return next();
+    }
+
+    // Check if user owns the resource
+    const resourceUserId = req.params[userIdField] || req.body[userIdField];
+
+    if (!resourceUserId || resourceUserId !== req.user._id.toString()) {
+      throw new ForbiddenError('Access denied. You can only access your own resources');
+    }
+
+    next();
+  };
+};
+
+/**
+ * Optional authentication middleware - sets user if token is valid but doesn't require it
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware function
+ * @returns {Promise<void>}
+ */
+const optionalAuthenticate = asyncHandler(async (req, res, next) => {
+  let token;
+
+  // Get token from header
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    token = req.headers.authorization.split(' ')[1];
+  }
+
+  // Get token from cookie if not in header
+  if (!token && req.cookies && req.cookies.token) {
+    token = req.cookies.token;
+  }
+
+  if (token) {
+    try {
+      // Verify token
+      const decoded = jwt.verify(token, config.security.jwtSecret, {
+        issuer: 'shrimpfarm-api',
+        audience: 'shrimpfarm-client'
+      });
+
+      // Get user from database
+      const user = await User.findById(decoded.userId);
+
+      if (user && user.isActive && !user.isLocked) {
+        req.user = user;
+      }
+    } catch (error) {
+      // Silently fail - user remains unauthenticated
+    }
+  }
+
+  next();
+});
+
+/**
+ * Middleware for API key authentication (for system integrations)
+ * @param {object} req - Express request object
+ * @param {object} res - Express response object
+ * @param {Function} next - Express next middleware function
+ * @returns {void}
+ */
+const authenticateApiKey = (req, res, next) => {
+  const apiKey = req.headers['x-api-key'];
+
+  if (!apiKey) {
+    throw new UnauthorizedError('API key is required');
+  }
+
+  // In a real implementation, you would validate the API key against a database
+  // For now, we'll use environment variable
+  if (apiKey !== process.env.API_KEY) {
+    throw new UnauthorizedError('Invalid API key');
+  }
+
+  // Set a system user for API key requests
+  req.user = {
+    _id: 'system',
+    username: 'system',
+    role: 'system',
+    permissions: ['*'] // All permissions
+  };
+
+  next();
+};
+
+/**
+ * Helper function to generate permissions for a resource
+ * @param {string} resource - The resource name
+ * @returns {object} Object containing read, write, and delete permissions for the resource
+ */
+const generateResourcePermissions = (resource) => {
+  return {
+    read: `read:${resource}`,
+    write: `write:${resource}`,
+    delete: `delete:${resource}`
+  };
+};
+
+/**
+ * Middleware factory for resource-based permissions
+ * @param {string} resource - The resource name
+ * @param {string} action - The action to perform on the resource (read, write, delete)
+ * @returns {Function} Express middleware function
+ */
+const requireResourcePermission = (resource, action) => {
+  const permission = `${action}:${resource}`;
+  return requirePermission(permission);
+};
+
+module.exports = {
+  authenticate,
+  optionalAuthenticate,
+  authenticateApiKey,
+  requireRole,
+  requirePermission,
+  requireOwnership,
+  requireResourcePermission,
+  generateResourcePermissions
+};

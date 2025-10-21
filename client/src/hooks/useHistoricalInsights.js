@@ -1,7 +1,7 @@
 import { useApiData, useApiMutation } from '../hooks/useApi';
-import { 
-  getHistoricalSeasons, 
-  getHistoricalPondsForCurrentSeason, 
+import {
+  getHistoricalSeasons,
+  getHistoricalPondsForCurrentSeason,
   getHistoricalPondsBySeasonId,
   comparePondsCurrentSeason,
   comparePondsHistorical,
@@ -23,8 +23,8 @@ export const useHistoricalPondsBySeason = (seasonId, dependencies = []) => {
   // Don't fetch if seasonId is empty
   const shouldFetch = seasonId && seasonId !== '';
   return useApiData(
-    shouldFetch ? () => getHistoricalPondsBySeasonId(seasonId) : null, 
-    dependencies, 
+    shouldFetch ? () => getHistoricalPondsBySeasonId(seasonId) : null,
+    dependencies,
     `historical-ponds-${seasonId}`
   );
 };

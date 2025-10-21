@@ -1,8 +1,9 @@
-const logger = require('../logger');
+const { logger } = require('../utils/logger');
 const InventoryItem = require('../models/InventoryItem');
 const InventoryAdjustment = require('../models/InventoryAdjustment');
+const FeedInput = require('../models/FeedInput');
+const WaterQualityInput = require('../models/WaterQualityInput');
 const mongoose = require('mongoose');
-const User = require('../models/User');
 
 // Helper function to get the appropriate language for a user
 const getLanguageForUser = (req) => {
@@ -10,7 +11,7 @@ const getLanguageForUser = (req) => {
   if (req.user && req.user.language) {
     return req.user.language;
   }
-  
+
   // Priority 2: Accept-Language header
   if (req.headers['accept-language']) {
     const acceptedLanguages = req.headers['accept-language'].split(',').map(lang => lang.trim().split(';')[0]);
@@ -20,18 +21,18 @@ const getLanguageForUser = (req) => {
       }
     }
   }
-  
+
   // Priority 3: Default language
   return 'en';
 };
 
 // Helper function to translate a document with multilingual fields
 const translateDocument = (doc, language) => {
-  if (!doc) return doc;
-  
+  if (!doc) { return doc; }
+
   // Convert Mongoose document to plain object if needed
   const plainDoc = doc.toObject ? doc.toObject() : doc;
-  
+
   // Process itemName field if it's a Map
   if (plainDoc.itemName && typeof plainDoc.itemName === 'object' && !(plainDoc.itemName instanceof Date)) {
     if (plainDoc.itemName.get) {
@@ -40,13 +41,13 @@ const translateDocument = (doc, language) => {
     } else if (plainDoc.itemName[language]) {
       // It's a plain object
       plainDoc.itemName = plainDoc.itemName[language];
-    } else if (plainDoc.itemName['en']) {
-      plainDoc.itemName = plainDoc.itemName['en'];
+    } else if (plainDoc.itemName.en) {
+      plainDoc.itemName = plainDoc.itemName.en;
     } else {
       plainDoc.itemName = '';
     }
   }
-  
+
   return plainDoc;
 };
 
@@ -73,7 +74,7 @@ exports.createInventoryItem = async (req, res) => {
     if (!itemName || !itemType || !purchaseDate || !unit || costPerUnit === undefined || quantityBought === undefined || !seasonId) {
       return res.status(400).json({ message: 'Item name, type, purchase date, unit, cost per unit, quantity bought, and season are required' });
     }
-    
+
     // Convert simple string to multilingual map if needed
     let processedItemName;
     if (typeof itemName === 'string') {
@@ -114,7 +115,7 @@ exports.getAllInventoryItems = async (req, res) => {
   try {
     const language = getLanguageForUser(req);
     const { itemType, search, includeInactive, seasonId } = req.query;
-    let query = { isActive: true };
+    const query = { isActive: true };
 
     if (!seasonId) {
       return res.status(400).json({ message: 'Season ID is required' });
@@ -190,12 +191,12 @@ exports.updateInventoryItem = async (req, res) => {
         return res.status(400).json({ message: 'Item name must be a non-empty string or a non-empty object with language keys (e.g., { "en": "Item A", "ta": "உருப்படி ஏ" })' });
       }
     }
-    if (itemType !== undefined) updateData.itemType = itemType;
-    if (supplier !== undefined) updateData.supplier = supplier;
-    if (purchaseDate !== undefined) updateData.purchaseDate = purchaseDate;
-    if (unit !== undefined) updateData.unit = unit;
-    if (costPerUnit !== undefined) updateData.costPerUnit = costPerUnit;
-    if (quantityBought !== undefined) updateData.quantityBought = quantityBought;
+    if (itemType !== undefined) { updateData.itemType = itemType; }
+    if (supplier !== undefined) { updateData.supplier = supplier; }
+    if (purchaseDate !== undefined) { updateData.purchaseDate = purchaseDate; }
+    if (unit !== undefined) { updateData.unit = unit; }
+    if (costPerUnit !== undefined) { updateData.costPerUnit = costPerUnit; }
+    if (quantityBought !== undefined) { updateData.quantityBought = quantityBought; }
 
     const inventoryItem = await InventoryItem.findByIdAndUpdate(
       req.params.id,
@@ -341,18 +342,18 @@ exports.getAggregatedStock = async (req, res) => {
         $addFields: {
           currentQuantity: { $sum: '$adjustments.quantityChange' },
           translatedItemName: {
-            $ifNull: [`$itemName.${language}`, `$itemName.en`]
+            $ifNull: [`$itemName.${language}`, '$itemName.en']
           }
         }
       },
       {
         $group: {
           _id: {
-            itemName: "$translatedItemName",
-            itemType: "$itemType",
-            unit: "$unit"
+            itemName: '$translatedItemName',
+            itemType: '$itemType',
+            unit: '$unit'
           },
-          currentQuantity: { $sum: "$currentQuantity" },
+          currentQuantity: { $sum: '$currentQuantity' },
         }
       },
       {
@@ -385,13 +386,13 @@ exports.getAggregatedInventoryData = async (req, res) => {
 
     // --- Aggregation for Current Calculated Quantity --- 
     const currentQuantityAggregation = await InventoryAdjustment.aggregate([
-      { 
+      {
         $group: {
           _id: '$inventoryItemId',
           totalQuantityChange: { $sum: '$quantityChange' }
         }
       },
-      { 
+      {
         $lookup: {
           from: 'inventoryitems', // The collection name for InventoryItem model
           localField: '_id',
@@ -399,10 +400,10 @@ exports.getAggregatedInventoryData = async (req, res) => {
           as: 'itemDetails'
         }
       },
-      { 
-        $unwind: '$itemDetails' 
+      {
+        $unwind: '$itemDetails'
       },
-      { 
+      {
         $project: {
           _id: 0,
           inventoryItemId: '$_id',
@@ -413,11 +414,11 @@ exports.getAggregatedInventoryData = async (req, res) => {
           currentCalculatedQuantity: '$totalQuantityChange'
         }
       },
-      { 
+      {
         $match: { 'itemDetails.isActive': true } // Only include active inventory items
       }
     ]);
-    
+
     // Translate item names in the aggregation result
     const translatedCurrentQuantityAggregation = currentQuantityAggregation.map(item => {
       if (item.itemName && typeof item.itemName === 'object') {
@@ -427,8 +428,8 @@ exports.getAggregatedInventoryData = async (req, res) => {
         } else if (item.itemName[language]) {
           // It's a plain object
           item.itemName = item.itemName[language];
-        } else if (item.itemName['en']) {
-          item.itemName = item.itemName['en'];
+        } else if (item.itemName.en) {
+          item.itemName = item.itemName.en;
         } else {
           item.itemName = '';
         }
@@ -441,13 +442,13 @@ exports.getAggregatedInventoryData = async (req, res) => {
     // Note: This assumes FeedInput and WaterQualityInput models have 'inventoryItemId' and 'quantity' fields
     // and 'pondId' and 'seasonId' for filtering.
 
-    let usageQuery = {};
-    if (seasonId) usageQuery.seasonId = new mongoose.Types.ObjectId(seasonId);
-    if (pondId) usageQuery.pondId = new mongoose.Types.ObjectId(pondId);
+    const usageQuery = {};
+    if (seasonId) { usageQuery.seasonId = new mongoose.Types.ObjectId(seasonId); }
+    if (pondId) { usageQuery.pondId = new mongoose.Types.ObjectId(pondId); }
 
     const feedUsageAggregation = await FeedInput.aggregate([
       { $match: usageQuery },
-      { 
+      {
         $lookup: {
           from: 'inventoryitems',
           localField: 'inventoryItemId',
@@ -457,7 +458,7 @@ exports.getAggregatedInventoryData = async (req, res) => {
       },
       { $unwind: '$itemDetails' },
       { $match: { 'itemDetails.itemType': 'Feed' } }, // Ensure it's a feed item
-      { 
+      {
         $group: {
           _id: {
             pond: '$pondId',
@@ -469,7 +470,7 @@ exports.getAggregatedInventoryData = async (req, res) => {
           totalCostUsed: { $sum: { $multiply: ['$quantity', '$itemDetails.costPerUnit'] } }
         }
       },
-      { 
+      {
         $project: {
           _id: 0,
           pondId: '$_id.pond',
@@ -481,7 +482,7 @@ exports.getAggregatedInventoryData = async (req, res) => {
         }
       }
     ]);
-    
+
     // Translate item names in the feed usage aggregation
     const translatedFeedUsageAggregation = feedUsageAggregation.map(item => {
       if (item.itemName && typeof item.itemName === 'object') {
@@ -491,8 +492,8 @@ exports.getAggregatedInventoryData = async (req, res) => {
         } else if (item.itemName[language]) {
           // It's a plain object
           item.itemName = item.itemName[language];
-        } else if (item.itemName['en']) {
-          item.itemName = item.itemName['en'];
+        } else if (item.itemName.en) {
+          item.itemName = item.itemName.en;
         } else {
           item.itemName = '';
         }
@@ -502,7 +503,7 @@ exports.getAggregatedInventoryData = async (req, res) => {
 
     const waterQualityUsageAggregation = await WaterQualityInput.aggregate([
       { $match: usageQuery },
-      { 
+      {
         $lookup: {
           from: 'inventoryitems',
           localField: 'chemicalInventoryItemId', // Assuming chemical usage
@@ -512,7 +513,7 @@ exports.getAggregatedInventoryData = async (req, res) => {
       },
       { $unwind: '$chemicalItemDetails' },
       { $match: { 'chemicalItemDetails.itemType': { $in: ['Chemical', 'Probiotic'] } } }, // Ensure it's a chemical/probiotic item
-      { 
+      {
         $group: {
           _id: {
             pond: '$pondId',
@@ -524,7 +525,7 @@ exports.getAggregatedInventoryData = async (req, res) => {
           totalCostUsed: { $sum: { $multiply: ['$chemicalQuantityUsed', '$chemicalItemDetails.costPerUnit'] } }
         }
       },
-      { 
+      {
         $project: {
           _id: 0,
           pondId: '$_id.pond',
@@ -536,7 +537,7 @@ exports.getAggregatedInventoryData = async (req, res) => {
         }
       }
     ]);
-    
+
     // Translate item names in the water quality usage aggregation
     const translatedWaterQualityUsageAggregation = waterQualityUsageAggregation.map(item => {
       if (item.itemName && typeof item.itemName === 'object') {
@@ -546,8 +547,8 @@ exports.getAggregatedInventoryData = async (req, res) => {
         } else if (item.itemName[language]) {
           // It's a plain object
           item.itemName = item.itemName[language];
-        } else if (item.itemName['en']) {
-          item.itemName = item.itemName['en'];
+        } else if (item.itemName.en) {
+          item.itemName = item.itemName.en;
         } else {
           item.itemName = '';
         }

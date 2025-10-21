@@ -1,0 +1,734 @@
+
+> client@0.1.0 lint
+> eslint src --ext .js,.jsx,.ts,.tsx --max-warnings 0
+
+
+/Users/sasi/operation/client/src/components/features/dashboard/KPICard.js
+   23:3   warning  Arrow function has too many lines (116). Maximum allowed is 100                                                                                                                                                               max-lines-per-function
+  143:3   warning  Arrow function has too many lines (126). Maximum allowed is 100                                                                                                                                                               max-lines-per-function
+  143:5   warning  Replace `⏎····title,⏎····value,⏎····icon,⏎····color·=·'#1976d2',⏎····change·=·0,⏎····changeText·=·'',⏎····size,⏎····delay·=·0⏎·` with `·title,·value,·icon,·color·=·'#1976d2',·change·=·0,·changeText·=·'',·size,·delay·=·0`  prettier/prettier
+  184:14  warning  Do not nest ternary expressions                                                                                                                                                                                               no-nested-ternary
+
+/Users/sasi/operation/client/src/components/features/dashboard/KPICard.standardized.js
+   59:3   warning  Arrow function has too many lines (276). Maximum allowed is 100                                                                                                                                                                                                                                                                                                                     max-lines-per-function
+   59:3   warning  Arrow function has a complexity of 36. Maximum allowed is 15                                                                                                                                                                                                                                                                                                                        complexity
+  127:20  warning  Replace `·size·===·'small'·?·KPI_CARD_SIZES.small.icon·:·size·===·'large'·?·KPI_CARD_SIZES.large.icon` with `⏎············size·===·'small'⏎··············?·KPI_CARD_SIZES.small.icon⏎··············:·size·===·'large'⏎··············?·KPI_CARD_SIZES.large.icon⏎·············`                                                                                                      prettier/prettier
+  127:21  warning  Do not nest ternary expressions                                                                                                                                                                                                                                                                                                                                                     no-nested-ternary
+  152:11  warning  Do not nest ternary expressions                                                                                                                                                                                                                                                                                                                                                     no-nested-ternary
+  197:51  warning  No magic number: 3                                                                                                                                                                                                                                                                                                                                                                  no-magic-numbers
+  226:17  warning  Replace `·size·===·'small'·?·KPI_CARD_SIZES.small.padding·:·size·===·'large'·?·KPI_CARD_SIZES.large.padding` with `⏎················size·===·'small'⏎··················?·KPI_CARD_SIZES.small.padding⏎··················:·size·===·'large'⏎··················?·KPI_CARD_SIZES.large.padding⏎·················`                                                                      prettier/prettier
+  226:18  warning  Do not nest ternary expressions                                                                                                                                                                                                                                                                                                                                                     no-nested-ternary
+  261:28  warning  Do not nest ternary expressions                                                                                                                                                                                                                                                                                                                                                     no-nested-ternary
+  270:38  warning  Replace `·size={size·===·'small'·?·KPI_CARD_SIZES.small.circularProgress·:·KPI_CARD_SIZES.medium.circularProgress}` with `⏎······················size={⏎························size·===·'small'⏎··························?·KPI_CARD_SIZES.small.circularProgress⏎··························:·KPI_CARD_SIZES.medium.circularProgress⏎······················}⏎···················`  prettier/prettier
+  318:28  warning  Replace `·size·===·'small'·?·KPI_CARD_SIZES.small.progress·:·size·===·'large'·?·KPI_CARD_SIZES.large.progress` with `⏎······················size·===·'small'⏎························?·KPI_CARD_SIZES.small.progress⏎························:·size·===·'large'⏎························?·KPI_CARD_SIZES.large.progress⏎·······················`                                    prettier/prettier
+  318:29  warning  Do not nest ternary expressions                                                                                                                                                                                                                                                                                                                                                     no-nested-ternary
+
+/Users/sasi/operation/client/src/components/features/dashboard/PredictiveInsight.test.js
+  5:1  warning  `prop-types` import should occur before import of `react`  import/order
+
+/Users/sasi/operation/client/src/components/features/dashboard/QuickActions.js
+  15:22  warning  Arrow function has too many lines (108). Maximum allowed is 100  max-lines-per-function
+
+/Users/sasi/operation/client/src/components/features/dashboard/QuickActions.test.js
+    5:1  warning  `prop-types` import should occur before import of `react`  import/order
+  100:7  warning  Unexpected `await` inside a loop                           no-await-in-loop
+
+/Users/sasi/operation/client/src/components/features/expenses/ExpenseDashboard.js
+  29:26  warning  Arrow function has too many lines (143). Maximum allowed is 100  max-lines-per-function
+
+/Users/sasi/operation/client/src/components/features/expenses/ExpenseForm.js
+  19:21  warning  Arrow function has too many lines (162). Maximum allowed is 100  max-lines-per-function
+
+/Users/sasi/operation/client/src/components/features/expenses/ExpenseForm.refactored.js
+   1:9   warning  Replace `·Dialog,·DialogTitle,·DialogContent,·DialogActions,·Button,·TextField,·MenuItem,·Grid,·Alert·` with `⏎··Dialog,⏎··DialogTitle,⏎··DialogContent,⏎··DialogActions,⏎··Button,⏎··TextField,⏎··MenuItem,⏎··Grid,⏎··Alert⏎`  prettier/prettier
+  10:21  warning  Arrow function has too many lines (260). Maximum allowed is 100                                                                                                                                                                 max-lines-per-function
+
+/Users/sasi/operation/client/src/components/features/expenses/ExpenseForm.validated.js
+   1:9   warning  Replace `·Dialog,·DialogTitle,·DialogContent,·DialogActions,·Button,·TextField,·MenuItem,·Grid,·Alert,·Box,·Chip·` with `⏎··Dialog,⏎··DialogTitle,⏎··DialogContent,⏎··DialogActions,⏎··Button,⏎··TextField,⏎··MenuItem,⏎··Grid,⏎··Alert,⏎··Box,⏎··Chip⏎`  prettier/prettier
+  24:30  warning  Arrow function has too many lines (365). Maximum allowed is 100                                                                                                                                                                                           max-lines-per-function
+  24:30  warning  Arrow function has a complexity of 31. Maximum allowed is 15                                                                                                                                                                                              complexity
+
+/Users/sasi/operation/client/src/components/features/expenses/ExpenseList.js
+   64:26  warning  Arrow function has too many lines (179). Maximum allowed is 100  max-lines-per-function
+  209:8   warning  Do not nest ternary expressions                                  no-nested-ternary
+
+/Users/sasi/operation/client/src/components/features/farm/EventSuggestions.js
+   24:26  warning  Arrow function has too many lines (176). Maximum allowed is 100  max-lines-per-function
+  155:23  warning  Do not nest ternary expressions                                  no-nested-ternary
+  168:23  warning  Do not nest ternary expressions                                  no-nested-ternary
+  170:27  warning  Do not nest ternary expressions                                  no-nested-ternary
+
+/Users/sasi/operation/client/src/components/features/farm/MobileFarmOverview.js
+   39:28  warning  Arrow function has too many lines (248). Maximum allowed is 100                                                                                                                                                             max-lines-per-function
+   51:1   warning  Delete `⏎⏎`                                                                                                                                                                                                                 prettier/prettier
+   80:9   warning  Insert `··`                                                                                                                                                                                                                 prettier/prettier
+   86:11  warning  Insert `··`                                                                                                                                                                                                                 prettier/prettier
+   87:11  warning  Insert `··`                                                                                                                                                                                                                 prettier/prettier
+   88:1   warning  Insert `··`                                                                                                                                                                                                                 prettier/prettier
+  119:6   warning  React Hook useMemo has missing dependencies: 'theme.palette.info.main', 'theme.palette.primary.main', 'theme.palette.secondary.main', and 'theme.palette.success.main'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  140:32  warning  Do not use Array index in keys                                                                                                                                                                                              react/no-array-index-key
+  167:33  warning  Do not use Array index in keys                                                                                                                                                                                              react/no-array-index-key
+
+/Users/sasi/operation/client/src/components/features/farm/MobileOptimized.js
+  352:14  warning  Do not use Array index in keys                         react/no-array-index-key
+  501:1   warning  File has too many lines (643). Maximum allowed is 500  max-lines
+
+/Users/sasi/operation/client/src/components/features/feeding/FeedCalculator.js
+  18:24  warning  Arrow function has too many lines (117). Maximum allowed is 100                                                                                                                           max-lines-per-function
+  32:9   warning  The 'feedingRates' object makes the dependencies of useEffect Hook (at line 65) change on every render. To fix this, wrap the initialization of 'feedingRates' in its own useMemo() Hook  react-hooks/exhaustive-deps
+
+/Users/sasi/operation/client/src/components/features/feeding/GrowthSamplingLog.js
+  23:1  warning  Delete `⏎⏎`  prettier/prettier
+
+/Users/sasi/operation/client/src/components/features/hr/SalaryManagement.js
+  36:26  warning  Arrow function has too many lines (206). Maximum allowed is 100  max-lines-per-function
+
+/Users/sasi/operation/client/src/components/features/inventory/AdjustmentHistoryModal.js
+  61:10  warning  Do not nest ternary expressions  no-nested-ternary
+  63:13  warning  Do not nest ternary expressions  no-nested-ternary
+
+/Users/sasi/operation/client/src/components/features/inventory/CurrentStockView.js
+   20:26  warning  Arrow function has too many lines (106). Maximum allowed is 100  max-lines-per-function
+  106:27  warning  Do not nest ternary expressions                                  no-nested-ternary
+
+/Users/sasi/operation/client/src/components/features/inventory/InventoryAdjustmentModal.js
+  17:1   warning  Delete `⏎`                                                       prettier/prettier
+  20:34  warning  Arrow function has too many lines (120). Maximum allowed is 100  max-lines-per-function
+  23:1   warning  Delete `··`                                                      prettier/prettier
+
+/Users/sasi/operation/client/src/components/features/inventory/InventoryAdjustmentModal.refactored.js
+   6:9   warning  Replace `·Dialog,·DialogTitle,·DialogContent,·DialogActions,·TextField,·Button,·Typography,·Alert·` with `⏎··Dialog,⏎··DialogTitle,⏎··DialogContent,⏎··DialogActions,⏎··TextField,⏎··Button,⏎··Typography,⏎··Alert⏎`  prettier/prettier
+  15:34  warning  Arrow function has too many lines (145). Maximum allowed is 100                                                                                                                                                       max-lines-per-function
+
+/Users/sasi/operation/client/src/components/features/inventory/InventoryForm.js
+  30:23  warning  Arrow function has too many lines (239). Maximum allowed is 100  max-lines-per-function
+
+/Users/sasi/operation/client/src/components/features/inventory/InventoryForm.refactored.js
+  31:23  warning  Arrow function has too many lines (289). Maximum allowed is 100  max-lines-per-function
+  31:23  warning  Arrow function has a complexity of 16. Maximum allowed is 15     complexity
+
+/Users/sasi/operation/client/src/components/features/inventory/InventoryForm.test.js
+  6:1  warning  `prop-types` import should occur before import of `react`  import/order
+
+/Users/sasi/operation/client/src/components/features/ponds/PondCard.test.js
+  5:1  warning  `prop-types` import should occur before import of `react`  import/order
+
+/Users/sasi/operation/client/src/components/features/ponds/PondDetail.js
+   26:8   warning  'PropTypes' is defined but never used. Allowed unused vars must match /^_/u  no-unused-vars
+  109:20  warning  Arrow function has too many lines (152). Maximum allowed is 100              max-lines-per-function
+  167:58  warning  Do not use Array index in keys                                               react/no-array-index-key
+  265:1   warning  Delete `⏎`                                                                   prettier/prettier
+
+/Users/sasi/operation/client/src/components/features/shared/DataTable.js
+   66:27  warning  Component definition is missing display name                                               react/display-name
+   66:32  warning  Arrow function has a complexity of 25. Maximum allowed is 15                               complexity
+  153:21  warning  Component definition is missing display name                                               react/display-name
+  177:25  warning  Do not use Array index in keys                                                             react/no-array-index-key
+  212:26  warning  Do not use Array index in keys                                                             react/no-array-index-key
+  223:23  warning  Component definition is missing display name                                               react/display-name
+  223:47  warning  No magic number: 5                                                                         no-magic-numbers
+  229:29  warning  Do not use Array index in keys                                                             react/no-array-index-key
+  237:26  warning  Do not use Array index in keys                                                             react/no-array-index-key
+  239:31  warning  Do not use Array index in keys                                                             react/no-array-index-key
+  251:19  warning  Component definition is missing display name                                               react/display-name
+  252:3   warning  Arrow function has too many lines (324). Maximum allowed is 100                            max-lines-per-function
+  252:3   warning  Arrow function has a complexity of 17. Maximum allowed is 15                               complexity
+  271:19  warning  No magic number: 10                                                                        no-magic-numbers
+  281:5   warning  'filters' is assigned a value but never used. Allowed unused vars must match /^_/u         no-unused-vars
+  282:5   warning  'onFilter' is assigned a value but never used. Allowed unused vars must match /^_/u        no-unused-vars
+  302:12  warning  'filterAnchorEl' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+  501:1   warning  File has too many lines (731). Maximum allowed is 500                                      max-lines
+  564:34  warning  No magic number: 5                                                                         no-magic-numbers
+  564:37  warning  No magic number: 10                                                                        no-magic-numbers
+  564:41  warning  No magic number: 25                                                                        no-magic-numbers
+  564:45  warning  No magic number: 50                                                                        no-magic-numbers
+
+/Users/sasi/operation/client/src/components/features/shared/FilterPanel.js
+   63:25  warning  Component definition is missing display name                     react/display-name
+   63:30  warning  Arrow function has too many lines (206). Maximum allowed is 100  max-lines-per-function
+   63:30  warning  Arrow function has a complexity of 32. Maximum allowed is 15     complexity
+  271:23  warning  Component definition is missing display name                     react/display-name
+  336:21  warning  Component definition is missing display name                     react/display-name
+  337:3   warning  Arrow function has too many lines (221). Maximum allowed is 100  max-lines-per-function
+  501:1   warning  File has too many lines (724). Maximum allowed is 500            max-lines
+
+/Users/sasi/operation/client/src/components/features/shared/MetricsGrid.js
+   53:18  warning  No magic number: 1000000                                         no-magic-numbers
+   53:46  warning  No magic number: 1000000                                         no-magic-numbers
+   54:18  warning  No magic number: 1000                                            no-magic-numbers
+   54:43  warning  No magic number: 1000                                            no-magic-numbers
+   59:40  warning  No magic number: 60                                              no-magic-numbers
+   60:28  warning  No magic number: 60                                              no-magic-numbers
+   66:20  warning  Component definition is missing display name                     react/display-name
+  101:24  warning  Component definition is missing display name                     react/display-name
+  106:50  warning  No magic number: 200                                             no-magic-numbers
+  106:56  warning  No magic number: 120                                             no-magic-numbers
+  114:21  warning  Component definition is missing display name                     react/display-name
+  115:3   warning  Arrow function has too many lines (108). Maximum allowed is 100  max-lines-per-function
+  123:24  warning  No magic number: 0.1                                             no-magic-numbers
+  127:21  warning  No magic number: 4                                               no-magic-numbers
+  158:36  warning  Do not use Array index in keys                                   react/no-array-index-key
+  226:33  warning  Component definition is missing display name                     react/display-name
+  237:35  warning  Component definition is missing display name                     react/display-name
+  248:31  warning  Component definition is missing display name                     react/display-name
+  259:33  warning  Component definition is missing display name                     react/display-name
+
+/Users/sasi/operation/client/src/components/features/shared/OptimizedDataTable.js
+   47:3   warning  Arrow function has too many lines (297). Maximum allowed is 100                               max-lines-per-function
+   47:3   warning  Arrow function has a complexity of 16. Maximum allowed is 15                                  complexity
+   57:31  warning  No magic number: 1000                                                                         no-magic-numbers
+   94:7   warning  'totalPages' is assigned a value but never used. Allowed unused vars must match /^_/u         no-unused-vars
+   99:7   warning  'selectedSet' is assigned a value but never used. Allowed unused vars must match /^_/u        no-unused-vars
+  103:7   warning  'collectionActions' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+  118:11  warning  Unexpected console statement                                                                  no-console
+  214:7   warning  Unexpected console statement                                                                  no-console
+  333:32  warning  No magic number: 5                                                                            no-magic-numbers
+  333:35  warning  No magic number: 10                                                                           no-magic-numbers
+  333:39  warning  No magic number: 25                                                                           no-magic-numbers
+  333:43  warning  No magic number: 50                                                                           no-magic-numbers
+  333:47  warning  No magic number: 100                                                                          no-magic-numbers
+  426:47  warning  No magic number: 5                                                                            no-magic-numbers
+  432:29  warning  Do not use Array index in keys                                                                react/no-array-index-key
+  440:26  warning  Do not use Array index in keys                                                                react/no-array-index-key
+  442:31  warning  Do not use Array index in keys                                                                react/no-array-index-key
+  501:1   warning  File has too many lines (609). Maximum allowed is 500                                         max-lines
+
+/Users/sasi/operation/client/src/components/features/shared/charts/DataTrend.js
+  21:19  warning  Arrow function has too many lines (107). Maximum allowed is 100  max-lines-per-function
+  78:17  warning  Do not nest ternary expressions                                  no-nested-ternary
+
+/Users/sasi/operation/client/src/components/features/shared/charts/DataTrend.test.js
+  15:17  warning  'children' is missing in props validation  react/prop-types
+  21:27  warning  'children' is missing in props validation  react/prop-types
+  25:22  warning  'children' is missing in props validation  react/prop-types
+
+/Users/sasi/operation/client/src/components/features/shared/charts/OptimizedCharts.js
+   49:3   warning  Arrow function has too many lines (109). Maximum allowed is 100                     max-lines-per-function
+   52:14  warning  No magic number: 300                                                                no-magic-numbers
+   99:23  warning  'syncId' is missing in props validation                                             react/prop-types
+  162:3   warning  Arrow function has too many lines (116). Maximum allowed is 100                     max-lines-per-function
+  165:14  warning  No magic number: 300                                                                no-magic-numbers
+  216:23  warning  'syncId' is missing in props validation                                             react/prop-types
+  285:14  warning  No magic number: 300                                                                no-magic-numbers
+  288:19  warning  No magic number: 80                                                                 no-magic-numbers
+  293:5   warning  'nameKey' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+  328:26  warning  Do not use Array index in keys                                                      react/no-array-index-key
+  382:18  warning  Do not use Array index in keys                                                      react/no-array-index-key
+  463:54  warning  No magic number: 10                                                                 no-magic-numbers
+  463:81  warning  No magic number: 10                                                                 no-magic-numbers
+  482:22  warning  No magic number: 100                                                                no-magic-numbers
+  482:34  warning  No magic number: 300                                                                no-magic-numbers
+  483:22  warning  No magic number: 50                                                                 no-magic-numbers
+  483:33  warning  No magic number: 500                                                                no-magic-numbers
+  501:1   warning  File has too many lines (674). Maximum allowed is 500                               max-lines
+  504:29  warning  No magic number: 20                                                                 no-magic-numbers
+  511:36  warning  No magic number: 50                                                                 no-magic-numbers
+  511:41  warning  No magic number: 20                                                                 no-magic-numbers
+  517:43  warning  No magic number: 10                                                                 no-magic-numbers
+  517:48  warning  No magic number: 300                                                                no-magic-numbers
+  517:54  warning  No magic number: 750                                                                no-magic-numbers
+
+/Users/sasi/operation/client/src/components/features/shared/debug/DebugPanel.jsx
+   56:21  warning  'children' is missing in props validation                        react/prop-types
+   56:31  warning  'value' is missing in props validation                           react/prop-types
+   56:38  warning  'index' is missing in props validation                           react/prop-types
+   71:7   warning  Arrow function has too many lines (415). Maximum allowed is 100  max-lines-per-function
+   88:53  warning  No magic number: 1000                                            no-magic-numbers
+  124:61  warning  No magic number: 4                                               no-magic-numbers
+  125:64  warning  No magic number: 3                                               no-magic-numbers
+  159:32  warning  Do not use Array index in keys                                   react/no-array-index-key
+  161:22  warning  Do not nest ternary expressions                                  no-nested-ternary
+  161:37  warning  No magic number: 4                                               no-magic-numbers
+  163:25  warning  Do not nest ternary expressions                                  no-nested-ternary
+  163:41  warning  No magic number: 3                                               no-magic-numbers
+  187:75  warning  No magic number: 200                                             no-magic-numbers
+  188:62  warning  No magic number: 200                                             no-magic-numbers
+  219:34  warning  Do not nest ternary expressions                                  no-nested-ternary
+  219:42  warning  No magic number: 10                                              no-magic-numbers
+  219:67  warning  No magic number: 5                                               no-magic-numbers
+  254:46  warning  No magic number: -20                                             no-magic-numbers
+  255:32  warning  Do not use Array index in keys                                   react/no-array-index-key
+  293:45  warning  No magic number: -20                                             no-magic-numbers
+  294:32  warning  Do not use Array index in keys                                   react/no-array-index-key
+  331:62  warning  No magic number: 1000                                            no-magic-numbers
+  344:65  warning  No magic number: 1024                                            no-magic-numbers
+  344:72  warning  No magic number: 1024                                            no-magic-numbers
+  345:60  warning  No magic number: 1024                                            no-magic-numbers
+  345:67  warning  No magic number: 1024                                            no-magic-numbers
+  346:60  warning  No magic number: 1024                                            no-magic-numbers
+  346:67  warning  No magic number: 1024                                            no-magic-numbers
+
+/Users/sasi/operation/client/src/components/features/shared/debug/DebugProvider.jsx
+  174:23  warning  Arrow function has too many lines (171). Maximum allowed is 100  max-lines-per-function
+
+/Users/sasi/operation/client/src/components/features/shared/error-handling/ApiErrorHandler.js
+  36:25  warning  Arrow function has too many lines (261). Maximum allowed is 100  max-lines-per-function
+
+/Users/sasi/operation/client/src/components/features/shared/error-handling/EnhancedErrorBoundary.jsx
+  261:3  warning  Method 'renderDebugDetails' has too many lines (112). Maximum allowed is 100  max-lines-per-function
+  501:1  warning  File has too many lines (504). Maximum allowed is 500                         max-lines
+
+/Users/sasi/operation/client/src/components/features/shared/error-handling/ErrorBoundary.tsx
+  16:14  warning  'error' is defined but never used. Allowed unused args must match /^_/u      no-unused-vars
+  16:28  warning  'errorInfo' is defined but never used. Allowed unused args must match /^_/u  no-unused-vars
+  16:50  warning  'errorId' is defined but never used. Allowed unused args must match /^_/u    no-unused-vars
+
+/Users/sasi/operation/client/src/components/features/shared/error-handling/ErrorDisplay.js
+  30:22  warning  Arrow function has too many lines (200). Maximum allowed is 100  max-lines-per-function
+
+/Users/sasi/operation/client/src/components/features/shared/error-handling/ErrorPage.js
+  27:19  warning  Arrow function has too many lines (292). Maximum allowed is 100  max-lines-per-function
+
+/Users/sasi/operation/client/src/components/features/shared/forms/CustomCalendar.js
+  17:24  warning  Arrow function has too many lines (153). Maximum allowed is 100  max-lines-per-function
+
+/Users/sasi/operation/client/src/components/features/shared/forms/ValidatedTextField.js
+  60:38  warning  'index' is defined but never used. Allowed unused args must match /^_/u  no-unused-vars
+
+/Users/sasi/operation/client/src/components/features/shared/index.js
+   7:33  warning  'createColumn' is defined but never used. Allowed unused vars must match /^_/u            no-unused-vars
+   7:47  warning  'createActionColumn' is defined but never used. Allowed unused vars must match /^_/u      no-unused-vars
+  10:3   warning  'MetricsBarChart' is defined but never used. Allowed unused vars must match /^_/u         no-unused-vars
+  11:3   warning  'TrendLineChart' is defined but never used. Allowed unused vars must match /^_/u          no-unused-vars
+  12:3   warning  'DistributionPieChart' is defined but never used. Allowed unused vars must match /^_/u    no-unused-vars
+  13:3   warning  'GrowthAreaChart' is defined but never used. Allowed unused vars must match /^_/u         no-unused-vars
+  17:3   warning  'createFilter' is defined but never used. Allowed unused vars must match /^_/u            no-unused-vars
+  18:3   warning  'createSelectFilter' is defined but never used. Allowed unused vars must match /^_/u      no-unused-vars
+  19:3   warning  'createDateRangeFilter' is defined but never used. Allowed unused vars must match /^_/u   no-unused-vars
+  20:3   warning  'createTextFilter' is defined but never used. Allowed unused vars must match /^_/u        no-unused-vars
+  21:3   warning  'createNumberFilter' is defined but never used. Allowed unused vars must match /^_/u      no-unused-vars
+  26:3   warning  'DashboardMetrics' is defined but never used. Allowed unused vars must match /^_/u        no-unused-vars
+  27:3   warning  'PerformanceMetrics' is defined but never used. Allowed unused vars must match /^_/u      no-unused-vars
+  28:3   warning  'CompactMetrics' is defined but never used. Allowed unused vars must match /^_/u          no-unused-vars
+  29:3   warning  'FinancialMetrics' is defined but never used. Allowed unused vars must match /^_/u        no-unused-vars
+  30:3   warning  'createMetric' is defined but never used. Allowed unused vars must match /^_/u            no-unused-vars
+  31:3   warning  'createFinancialMetric' is defined but never used. Allowed unused vars must match /^_/u   no-unused-vars
+  32:3   warning  'createPercentageMetric' is defined but never used. Allowed unused vars must match /^_/u  no-unused-vars
+  33:3   warning  'formatters' is defined but never used. Allowed unused vars must match /^_/u              no-unused-vars
+
+/Users/sasi/operation/client/src/components/features/shared/layout/LanguageSwitcher.js
+  2:8  warning  'PropTypes' is defined but never used. Allowed unused vars must match /^_/u  no-unused-vars
+
+/Users/sasi/operation/client/src/components/features/shared/layout/Layout.js
+    7:16  warning  'WaterIcon' is defined but never used. Allowed unused vars must match /^_/u    no-unused-vars
+   17:17  warning  'FeedIcon' is defined but never used. Allowed unused vars must match /^_/u     no-unused-vars
+   18:14  warning  'GrowthIcon' is defined but never used. Allowed unused vars must match /^_/u   no-unused-vars
+   51:29  warning  'useNavigate' is defined but never used. Allowed unused vars must match /^_/u  no-unused-vars
+   63:16  warning  Arrow function has too many lines (457). Maximum allowed is 100                max-lines-per-function
+   63:16  warning  Arrow function has a complexity of 21. Maximum allowed is 15                   complexity
+  108:5   warning  Unexpected console statement                                                   no-console
+  207:14  warning  Do not nest ternary expressions                                                no-nested-ternary
+  260:59  warning  No magic number: 40                                                            no-magic-numbers
+  332:73  warning  No magic number: 40                                                            no-magic-numbers
+  501:1   warning  File has too many lines (536). Maximum allowed is 500                          max-lines
+
+/Users/sasi/operation/client/src/components/features/shared/layout/Sidebar.js
+  17:3  warning  'Box' is defined but never used. Allowed unused vars must match /^_/u        no-unused-vars
+  20:8  warning  'PropTypes' is defined but never used. Allowed unused vars must match /^_/u  no-unused-vars
+
+/Users/sasi/operation/client/src/components/features/shared/loading/LoadingComponents.js
+   20:10  warning  No magic number: 40    no-magic-numbers
+   79:41  warning  No magic number: 200   no-magic-numbers
+   79:74  warning  No magic number: 3     no-magic-numbers
+  100:40  warning  No magic number: 5     no-magic-numbers
+  100:53  warning  No magic number: 4     no-magic-numbers
+  121:42  warning  No magic number: 300   no-magic-numbers
+  149:28  warning  No magic number: 1300  no-magic-numbers
+  166:12  warning  No magic number: 200   no-magic-numbers
+  224:30  warning  No magic number: 0.6   no-magic-numbers
+
+/Users/sasi/operation/client/src/components/features/shared/ui/RTLDemo.js
+   46:7   warning  'DEFAULT_MASONRY_COLUMNS' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+   48:17  warning  Arrow function has too many lines (284). Maximum allowed is 100                                     max-lines-per-function
+   48:17  warning  Arrow function has a complexity of 17. Maximum allowed is 15                                        complexity
+   49:11  warning  't' is assigned a value but never used. Allowed unused vars must match /^_/u                        no-unused-vars
+  170:36  warning  Do not use Array index in keys                                                                      react/no-array-index-key
+  234:28  warning  Do not use Array index in keys                                                                      react/no-array-index-key
+  242:36  warning  No magic number: 3                                                                                  no-magic-numbers
+  316:37  warning  Do not use Array index in keys                                                                      react/no-array-index-key
+  321:30  warning  No magic number: 3                                                                                  no-magic-numbers
+
+/Users/sasi/operation/client/src/components/features/shared/ui/StyledComponents.js
+  501:1  warning  File has too many lines (501). Maximum allowed is 500  max-lines
+
+/Users/sasi/operation/client/src/components/features/shared/ui/Widget.js
+  4:19  warning  'title' is missing in props validation     react/prop-types
+  4:26  warning  'children' is missing in props validation  react/prop-types
+
+/Users/sasi/operation/client/src/components/features/water-quality/HealthScore.js
+  10:38  warning  No magic number: 80  no-magic-numbers
+
+/Users/sasi/operation/client/src/components/features/water-quality/HealthScore.test.js
+  11:22  warning  'children' is missing in props validation  react/prop-types
+
+/Users/sasi/operation/client/src/components/features/water-quality/WaterQualityAlert.js
+   11:3   warning  'LinearProgress' is defined but never used. Allowed unused vars must match /^_/u  no-unused-vars
+   20:27  warning  Arrow function has too many lines (177). Maximum allowed is 100                   max-lines-per-function
+   20:27  warning  Arrow function has a complexity of 25. Maximum allowed is 15                      complexity
+  101:15  warning  Do not nest ternary expressions                                                   no-nested-ternary
+  110:16  warning  Do not nest ternary expressions                                                   no-nested-ternary
+
+/Users/sasi/operation/client/src/components/features/water-quality/WaterQualityLog.js
+  1:41  warning  'Button' is defined but never used. Allowed unused vars must match /^_/u  no-unused-vars
+
+/Users/sasi/operation/client/src/components/nursery/NurseryBatchForm.js
+  7:26  warning  Arrow function has too many lines (121). Maximum allowed is 100  max-lines-per-function
+
+/Users/sasi/operation/client/src/config/environment.js
+  304:42  warning  Arrow function has a complexity of 18. Maximum allowed is 15  complexity
+  501:1   warning  File has too many lines (593). Maximum allowed is 500         max-lines
+  504:5   warning  Unexpected console statement                                  no-console
+
+/Users/sasi/operation/client/src/context/OfflineSyncContext.js
+  10:36  warning  Arrow function has too many lines (118). Maximum allowed is 100                                                                                                                             max-lines-per-function
+  45:10  warning  No magic number: 2000                                                                                                                                                                       no-magic-numbers
+  49:39  warning  'processQueue' was used before it was defined                                                                                                                                               no-use-before-define
+  52:9   warning  The 'processQueue' function makes the dependencies of useEffect Hook (at line 49) change on every render. To fix this, wrap the definition of 'processQueue' in its own useCallback() Hook  react-hooks/exhaustive-deps
+
+/Users/sasi/operation/client/src/context/SeasonContext.js
+   5:9   warning  Replace `⏎··createAsyncReducer,⏎··createAsyncActions,⏎··createAsyncState⏎` with `·createAsyncReducer,·createAsyncActions,·createAsyncState·`  prettier/prettier
+  25:47  warning  'action' is defined but never used. Allowed unused args must match /^_/u                                                                      no-unused-vars
+
+/Users/sasi/operation/client/src/examples/CacheIntegrationExamples.js
+  501:1  warning  File has too many lines (504). Maximum allowed is 500  max-lines
+
+/Users/sasi/operation/client/src/hooks/useApi.js
+   54:90  warning  No magic number: 3     no-magic-numbers
+  101:14  warning  No magic number: 1000  no-magic-numbers
+  141:27  warning  No magic number: 3     no-magic-numbers
+  182:14  warning  No magic number: 1000  no-magic-numbers
+
+/Users/sasi/operation/client/src/hooks/useApi.ts
+   32:16  warning  'result' is defined but never used. Allowed unused args must match /^_/u  no-unused-vars
+   33:14  warning  'error' is defined but never used. Allowed unused args must match /^_/u   no-unused-vars
+   42:15  warning  'args' is defined but never used. Allowed unused args must match /^_/u    no-unused-vars
+   52:6   warning  'args' is defined but never used. Allowed unused args must match /^_/u    no-unused-vars
+  108:27  warning  Arrow function has too many lines (102). Maximum allowed is 100           max-lines-per-function
+  112:24  warning  No magic number: 3                                                        no-magic-numbers
+  167:14  warning  No magic number: 1000                                                     no-magic-numbers
+  216:27  warning  No magic number: 3                                                        no-magic-numbers
+  260:16  warning  No magic number: 1000                                                     no-magic-numbers
+  320:22  warning  No magic number: 10                                                       no-magic-numbers
+  371:1   warning  Assign object to a variable before exporting as module default            import/no-anonymous-default-export
+
+/Users/sasi/operation/client/src/hooks/useAsyncOperations.js
+   14:34  warning  Arrow function has too many lines (113). Maximum allowed is 100  max-lines-per-function
+   21:18  warning  No magic number: 1000                                            no-magic-numbers
+  229:31  warning  No magic number: 3                                               no-magic-numbers
+  229:54  warning  No magic number: 1000                                            no-magic-numbers
+  243:62  warning  No magic number: 50                                              no-magic-numbers
+  263:13  warning  Unexpected `await` inside a loop                                 no-await-in-loop
+  267:28  warning  Unexpected `await` inside a loop                                 no-await-in-loop
+  289:75  warning  No magic number: 60                                              no-magic-numbers
+  289:80  warning  No magic number: 60                                              no-magic-numbers
+  289:85  warning  No magic number: 1000                                            no-magic-numbers
+  303:41  warning  No magic number: 10                                              no-magic-numbers
+  371:30  warning  No magic number: 408                                             no-magic-numbers
+  371:35  warning  No magic number: 429                                             no-magic-numbers
+  371:40  warning  No magic number: 500                                             no-magic-numbers
+  371:45  warning  No magic number: 502                                             no-magic-numbers
+  371:50  warning  No magic number: 503                                             no-magic-numbers
+  371:55  warning  No magic number: 504                                             no-magic-numbers
+
+/Users/sasi/operation/client/src/hooks/useCaching.js
+   28:30  warning  Arrow function has too many lines (112). Maximum allowed is 100  max-lines-per-function
+   38:18  warning  No magic number: 3                                               no-magic-numbers
+   39:18  warning  No magic number: 1000                                            no-magic-numbers
+  151:11  warning  No magic number: 60                                              no-magic-numbers
+  151:16  warning  No magic number: 1000                                            no-magic-numbers
+  229:49  warning  No magic number: 5000                                            no-magic-numbers
+  296:24  warning  No magic number: 5000                                            no-magic-numbers
+  297:11  warning  No magic number: 24                                              no-magic-numbers
+  297:16  warning  No magic number: 60                                              no-magic-numbers
+  297:21  warning  No magic number: 60                                              no-magic-numbers
+  297:26  warning  No magic number: 1000                                            no-magic-numbers
+
+/Users/sasi/operation/client/src/hooks/useDataManagement.js
+   16:29  warning  Arrow function has too many lines (131). Maximum allowed is 100     max-lines-per-function
+   21:20  warning  No magic number: 10                                                 no-magic-numbers
+   22:24  warning  No magic number: 300                                                no-magic-numbers
+  154:34  warning  Arrow function has too many lines (138). Maximum allowed is 100     max-lines-per-function
+  169:5   warning  Async arrow function has a complexity of 18. Maximum allowed is 15  complexity
+  180:11  warning  Expected a default case                                             default-case
+  198:9   warning  Expected a default case                                             default-case
+  223:11  warning  Expected a default case                                             default-case
+
+/Users/sasi/operation/client/src/hooks/useDataValidation.js
+   22:34  warning  Arrow function has too many lines (255). Maximum allowed is 100  max-lines-per-function
+   28:18  warning  No magic number: 300                                             no-magic-numbers
+  308:36  warning  No magic number: 100                                             no-magic-numbers
+  342:67  warning  No magic number: 100                                             no-magic-numbers
+  363:48  warning  No magic number: 100                                             no-magic-numbers
+  366:9   warning  Unexpected `await` inside a loop                                 no-await-in-loop
+  381:19  warning  No magic number: 100                                             no-magic-numbers
+  410:24  warning  No magic number: 500                                             no-magic-numbers
+  501:1   warning  File has too many lines (551). Maximum allowed is 500            max-lines
+
+/Users/sasi/operation/client/src/hooks/useDebug.js
+  107:7   warning  Unexpected console statement                                                         no-console
+  125:21  warning  No magic number: 16                                                                  no-magic-numbers
+  200:26  warning  'metadata' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+  314:39  warning  No magic number: 10                                                                  no-magic-numbers
+  341:5   warning  Insert `··`                                                                          prettier/prettier
+  430:5   warning  Unexpected console statement                                                         no-console
+  445:9   warning  Unexpected console statement                                                         no-console
+  447:9   warning  Unexpected console statement                                                         no-console
+  450:7   warning  Unexpected console statement                                                         no-console
+  453:5   warning  Unexpected console statement                                                         no-console
+  501:1   warning  File has too many lines (533). Maximum allowed is 500                                max-lines
+
+/Users/sasi/operation/client/src/hooks/useNurseryManagement.js
+  13:37  warning  Arrow function has too many lines (126). Maximum allowed is 100  max-lines-per-function
+
+/Users/sasi/operation/client/src/hooks/useOptimizedData.js
+   28:36  warning  Arrow function has too many lines (109). Maximum allowed is 100                                                                                            max-lines-per-function
+   31:20  warning  No magic number: 5                                                                                                                                         no-magic-numbers
+   31:24  warning  No magic number: 60                                                                                                                                        no-magic-numbers
+   31:29  warning  No magic number: 1000                                                                                                                                      no-magic-numbers
+  112:6   warning  React Hook useCallback has a missing dependency: 'dependencies'. Either include it or remove the dependency array                                          react-hooks/exhaustive-deps
+  118:5   warning  React Hook useCallback has a spread element in its dependency array. This means we can't statically verify whether you've passed the correct dependencies  react-hooks/exhaustive-deps
+  142:33  warning  Arrow function has too many lines (201). Maximum allowed is 100                                                                                            max-lines-per-function
+  184:6   warning  React Hook useMemo has an unnecessary dependency: 'version'. Either exclude it or remove the dependency array                                              react-hooks/exhaustive-deps
+  188:5   warning  Arrow function has too many lines (128). Maximum allowed is 100                                                                                            max-lines-per-function
+  334:5   warning  React Hook useMemo has an unnecessary dependency: 'version'. Either exclude it or remove the dependency array                                              react-hooks/exhaustive-deps
+  348:62  warning  No magic number: 10                                                                                                                                        no-magic-numbers
+  435:36  warning  Arrow function has too many lines (125). Maximum allowed is 100                                                                                            max-lines-per-function
+  501:1   warning  File has too many lines (597). Maximum allowed is 500                                                                                                      max-lines
+  566:23  warning  Arrow function has a complexity of 17. Maximum allowed is 15                                                                                               complexity
+
+/Users/sasi/operation/client/src/hooks/useUIState.js
+  62:29  warning  Arrow function has too many lines (108). Maximum allowed is 100  max-lines-per-function
+
+/Users/sasi/operation/client/src/i18n/index.js
+  114:1   warning  Caution: `i18n` also has a named export `use`. Check if you meant to write `import {use} from 'i18next'` instead                        import/no-named-as-default-member
+  220:13  warning  Caution: `i18n` also has a named export `changeLanguage`. Check if you meant to write `import {changeLanguage} from 'i18next'` instead  import/no-named-as-default-member
+  283:39  warning  No magic number: 1000                                                                                                                   no-magic-numbers
+  284:42  warning  No magic number: 60                                                                                                                     no-magic-numbers
+  285:40  warning  No magic number: 60                                                                                                                     no-magic-numbers
+  286:37  warning  No magic number: 24                                                                                                                     no-magic-numbers
+  296:12  warning  Caution: `i18n` also has a named export `t`. Check if you meant to write `import {t} from 'i18next'` instead                            import/no-named-as-default-member
+  301:12  warning  Caution: `i18n` also has a named export `t`. Check if you meant to write `import {t} from 'i18next'` instead                            import/no-named-as-default-member
+  306:12  warning  Caution: `i18n` also has a named export `exists`. Check if you meant to write `import {exists} from 'i18next'` instead                  import/no-named-as-default-member
+  312:13  warning  Caution: `i18n` also has a named export `loadNamespaces`. Check if you meant to write `import {loadNamespaces} from 'i18next'` instead  import/no-named-as-default-member
+
+/Users/sasi/operation/client/src/pages/AdminPage.js
+    71:19  warning  Arrow function has too many lines (1018). Maximum allowed is 100                                                                                                                              max-lines-per-function
+    71:19  warning  Arrow function has a complexity of 28. Maximum allowed is 15                                                                                                                                  complexity
+   138:22  warning  No magic number: 3                                                                                                                                                                            no-magic-numbers
+   150:28  warning  Arrow function has a complexity of 18. Maximum allowed is 15                                                                                                                                  complexity
+   305:9   warning  Unexpected console statement                                                                                                                                                                  no-console
+   309:11  warning  Unexpected console statement                                                                                                                                                                  no-console
+   311:11  warning  Unexpected console statement                                                                                                                                                                  no-console
+   314:11  warning  Unexpected console statement                                                                                                                                                                  no-console
+   316:11  warning  Unexpected console statement                                                                                                                                                                  no-console
+   320:13  warning  Unexpected console statement                                                                                                                                                                  no-console
+   326:7   warning  Unexpected console statement                                                                                                                                                                  no-console
+   328:9   warning  Unexpected console statement                                                                                                                                                                  no-console
+   331:9   warning  Unexpected console statement                                                                                                                                                                  no-console
+   336:11  warning  Unexpected console statement                                                                                                                                                                  no-console
+   413:9   warning  The 'ponds' logical expression could make the dependencies of useEffect Hook (at line 424) change on every render. To fix this, wrap the initialization of 'ponds' in its own useMemo() Hook  react-hooks/exhaustive-deps
+   422:7   warning  Unexpected console statement                                                                                                                                                                  no-console
+   461:25  warning  Do not nest ternary expressions                                                                                                                                                               no-nested-ternary
+   501:1   warning  File has too many lines (1090). Maximum allowed is 500                                                                                                                                        max-lines
+   601:35  warning  Do not nest ternary expressions                                                                                                                                                               no-nested-ternary
+   702:35  warning  Unexpected console statement                                                                                                                                                                  no-console
+   760:35  warning  Do not nest ternary expressions                                                                                                                                                               no-nested-ternary
+   819:27  warning  Unexpected console statement                                                                                                                                                                  no-console
+  1039:26  warning  Do not nest ternary expressions                                                                                                                                                               no-nested-ternary
+  1078:14  warning  Do not nest ternary expressions                                                                                                                                                               no-nested-ternary
+
+/Users/sasi/operation/client/src/pages/FeedViewPage.js
+   38:9   warning  Replace `⏎··getFeedInputs,⏎··getPonds⏎` with `·getFeedInputs,·getPonds·`  prettier/prettier
+   43:22  warning  Arrow function has too many lines (256). Maximum allowed is 100           max-lines-per-function
+   45:68  warning  No magic number: 30                                                       no-magic-numbers
+   45:73  warning  No magic number: 24                                                       no-magic-numbers
+   45:78  warning  No magic number: 60                                                       no-magic-numbers
+   45:83  warning  No magic number: 60                                                       no-magic-numbers
+   45:88  warning  No magic number: 1000                                                     no-magic-numbers
+  155:5   warning  Do not nest ternary expressions                                           no-nested-ternary
+
+/Users/sasi/operation/client/src/pages/HistoricalInsightsPage.js
+   27:3   warning  'FormLabel' is defined but never used. Allowed unused vars must match /^_/u             no-unused-vars
+   36:3   warning  'BarChart' is defined but never used. Allowed unused vars must match /^_/u              no-unused-vars
+   37:3   warning  'Bar' is defined but never used. Allowed unused vars must match /^_/u                   no-unused-vars
+   44:3   warning  'LineChart' is defined but never used. Allowed unused vars must match /^_/u             no-unused-vars
+   59:32  warning  Arrow function has too many lines (768). Maximum allowed is 100                         max-lines-per-function
+   59:32  warning  Arrow function has a complexity of 39. Maximum allowed is 15                            complexity
+   66:68  warning  No magic number: 30                                                                     no-magic-numbers
+   66:73  warning  No magic number: 24                                                                     no-magic-numbers
+   66:78  warning  No magic number: 60                                                                     no-magic-numbers
+   66:83  warning  No magic number: 60                                                                     no-magic-numbers
+   66:88  warning  No magic number: 1000                                                                   no-magic-numbers
+  136:12  warning  'exportError' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+  248:16  warning  No magic number: 1000                                                                   no-magic-numbers
+  248:23  warning  No magic number: 60                                                                     no-magic-numbers
+  248:28  warning  No magic number: 60                                                                     no-magic-numbers
+  248:33  warning  No magic number: 24                                                                     no-magic-numbers
+  258:16  warning  No magic number: 1000                                                                   no-magic-numbers
+  258:23  warning  No magic number: 60                                                                     no-magic-numbers
+  258:28  warning  No magic number: 60                                                                     no-magic-numbers
+  258:33  warning  No magic number: 24                                                                     no-magic-numbers
+  501:1   warning  File has too many lines (828). Maximum allowed is 500                                   max-lines
+  672:38  warning  Arrow function has too many lines (137). Maximum allowed is 100                         max-lines-per-function
+
+/Users/sasi/operation/client/src/pages/InventoryManagementPage.js
+  35:33  warning  Arrow function has too many lines (285). Maximum allowed is 100  max-lines-per-function
+
+/Users/sasi/operation/client/src/pages/InventoryManagementPage.test.js
+  17:32  warning  'open' is missing in props validation           react/prop-types
+  17:38  warning  'item' is missing in props validation           react/prop-types
+  24:43  warning  'open' is missing in props validation           react/prop-types
+  24:49  warning  'item' is missing in props validation           react/prop-types
+  25:76  warning  'item.itemName' is missing in props validation  react/prop-types
+  31:41  warning  'open' is missing in props validation           react/prop-types
+  31:47  warning  'item' is missing in props validation           react/prop-types
+  32:70  warning  'item.itemName' is missing in props validation  react/prop-types
+  41:26  warning  'children' is missing in props validation       react/prop-types
+
+/Users/sasi/operation/client/src/pages/NurseryBatchDetailPage.js
+   66:18  warning  Arrow function has too many lines (191). Maximum allowed is 100  max-lines-per-function
+   66:32  warning  '_nurseryBatch' is missing in props validation                   react/prop-types
+  109:24  warning  Arrow function has too many lines (125). Maximum allowed is 100  max-lines-per-function
+  264:21  warning  Arrow function has too many lines (117). Maximum allowed is 100  max-lines-per-function
+  389:32  warning  Arrow function has too many lines (262). Maximum allowed is 100  max-lines-per-function
+  389:32  warning  Arrow function has a complexity of 18. Maximum allowed is 15     complexity
+  501:1   warning  File has too many lines (652). Maximum allowed is 500            max-lines
+
+/Users/sasi/operation/client/src/pages/NurseryBatchDetailPage.test.js
+  27:49  warning  Component definition is missing display name                                                                                              react/display-name
+  27:55  warning  Replace `<div·data-testid='custom-calendar'>Custom·Calendar</div>` with `(⏎··<div·data-testid='custom-calendar'>Custom·Calendar</div>⏎)`  prettier/prettier
+
+/Users/sasi/operation/client/src/pages/PondManagementPage.js
+  499:73  warning  No magic number: 1000                                   no-magic-numbers
+  501:1   warning  File has too many lines (1963). Maximum allowed is 500  max-lines
+  504:29  warning  No magic number: 1000                                   no-magic-numbers
+  698:19  warning  Do not nest ternary expressions                         no-nested-ternary
+
+/Users/sasi/operation/client/src/pages/WaterQualityViewPage.js
+   40:30  warning  Arrow function has too many lines (315). Maximum allowed is 100  max-lines-per-function
+   42:68  warning  No magic number: 30                                              no-magic-numbers
+   42:73  warning  No magic number: 24                                              no-magic-numbers
+   42:78  warning  No magic number: 60                                              no-magic-numbers
+   42:83  warning  No magic number: 60                                              no-magic-numbers
+   42:88  warning  No magic number: 1000                                            no-magic-numbers
+  166:5   warning  Do not nest ternary expressions                                  no-nested-ternary
+  249:38  warning  Do not use Array index in keys                                   react/no-array-index-key
+  330:76  warning  No magic number: 3                                               no-magic-numbers
+  333:76  warning  No magic number: 3                                               no-magic-numbers
+
+/Users/sasi/operation/client/src/scripts/analyzePropInterfaces.js
+  103:9   warning  Unexpected `await` inside a loop                                                                     no-await-in-loop
+  253:39  warning  Using propTypes from another component is not safe because they may be removed in production builds  react/forbid-foreign-prop-types
+  291:53  warning  Using propTypes from another component is not safe because they may be removed in production builds  react/forbid-foreign-prop-types
+  342:40  warning  No magic number: 5                                                                                   no-magic-numbers
+  351:44  warning  No magic number: 3                                                                                   no-magic-numbers
+  364:58  warning  No magic number: 0.3                                                                                 no-magic-numbers
+  390:68  warning  No magic number: 100                                                                                 no-magic-numbers
+  409:17  warning  No magic number: 5                                                                                   no-magic-numbers
+  416:44  warning  No magic number: 3                                                                                   no-magic-numbers
+
+/Users/sasi/operation/client/src/services/validatedApiService.js
+   39:3   warning  Async method 'request' has too many lines (117). Maximum allowed is 100  max-lines-per-function
+   39:16  warning  Async method 'request' has a complexity of 21. Maximum allowed is 15     complexity
+   86:26  warning  Unexpected `await` inside a loop                                         no-await-in-loop
+   99:28  warning  Unexpected `await` inside a loop                                         no-await-in-loop
+  112:13  warning  Blocks are nested too deeply (5). Maximum allowed is 4                   max-depth
+  121:13  warning  Blocks are nested too deeply (5). Maximum allowed is 4                   max-depth
+  146:11  warning  Unexpected `await` inside a loop                                         no-await-in-loop
+  484:23  warning  'children' is missing in props validation                                react/prop-types
+  501:1   warning  File has too many lines (522). Maximum allowed is 500                    max-lines
+
+/Users/sasi/operation/client/src/setupTests.js
+   9:17  warning  No magic number: 10000                                            no-magic-numbers
+  12:20  warning  Replace `·global.matchMedia·||` with `⏎··global.matchMedia·||⏎·`  prettier/prettier
+  12:42  warning  Prefer using arrow functions over plain functions                 prefer-arrow/prefer-arrow-functions
+  13:3   warning  Insert `··`                                                       prettier/prettier
+  14:1   warning  Replace `····` with `······`                                      prettier/prettier
+  15:1   warning  Insert `··`                                                       prettier/prettier
+  16:5   warning  Insert `··`                                                       prettier/prettier
+  17:1   warning  Replace `····` with `······`                                      prettier/prettier
+  18:1   warning  Insert `··`                                                       prettier/prettier
+  19:1   warning  Replace `····` with `······`                                      prettier/prettier
+  20:1   warning  Insert `··`                                                       prettier/prettier
+  21:5   warning  Insert `··`                                                       prettier/prettier
+  22:3   warning  Insert `··`                                                       prettier/prettier
+  23:1   warning  Insert `··`                                                       prettier/prettier
+  58:43  warning  No magic number: 256                                              no-magic-numbers
+  98:50  warning  No magic number: 4                                                no-magic-numbers
+
+/Users/sasi/operation/client/src/theme/designTokens.js
+  384:77  warning  No magic number: 0.05                                  no-magic-numbers
+  387:33  warning  No magic number: 0.05                                  no-magic-numbers
+  501:1   warning  File has too many lines (504). Maximum allowed is 500  max-lines
+
+/Users/sasi/operation/client/src/theme/theme.js
+  197:66  warning  No magic number: 16  no-magic-numbers
+
+/Users/sasi/operation/client/src/utils/__tests__/apiCache.test.js
+  501:1  warning  File has too many lines (516). Maximum allowed is 500  max-lines
+
+/Users/sasi/operation/client/src/utils/apiCache.js
+    9:21  warning  No magic number: 5                                                  no-magic-numbers
+    9:25  warning  No magic number: 60                                                 no-magic-numbers
+    9:30  warning  No magic number: 1000                                               no-magic-numbers
+   10:25  warning  No magic number: 30                                                 no-magic-numbers
+   10:30  warning  No magic number: 60                                                 no-magic-numbers
+   10:35  warning  No magic number: 1000                                               no-magic-numbers
+   11:30  warning  No magic number: 60                                                 no-magic-numbers
+   11:35  warning  No magic number: 1000                                               no-magic-numbers
+   12:27  warning  No magic number: 30                                                 no-magic-numbers
+   12:32  warning  No magic number: 1000                                               no-magic-numbers
+   33:8   warning  No magic number: 60                                                 no-magic-numbers
+   33:13  warning  No magic number: 1000                                               no-magic-numbers
+  114:14  warning  No magic number: 1000                                               no-magic-numbers
+  198:85  warning  No magic number: 100                                                no-magic-numbers
+  207:37  warning  No magic number: 100                                                no-magic-numbers
+  207:44  warning  No magic number: 100                                                no-magic-numbers
+  264:30  warning  Async arrow function has a complexity of 24. Maximum allowed is 15  complexity
+
+/Users/sasi/operation/client/src/utils/cacheManager.js
+   26:22  warning  No magic number: 60                                    no-magic-numbers
+  501:1   warning  File has too many lines (764). Maximum allowed is 500  max-lines
+
+/Users/sasi/operation/client/src/utils/corsPreflightHandler.js
+  215:31  warning  Async arrow function has a complexity of 17. Maximum allowed is 15  complexity
+  255:24  warning  Unexpected `await` inside a loop                                    no-await-in-loop
+  289:11  warning  Unexpected `await` inside a loop                                    no-await-in-loop
+  367:47  warning  No magic number: 1000                                               no-magic-numbers
+
+/Users/sasi/operation/client/src/utils/dataValidation.js
+  408:34  warning  Replace `(10·**·CURRENCY_DECIMAL_PLACES))·/·(10·**·CURRENCY_DECIMAL_PLACES)` with `10·**·CURRENCY_DECIMAL_PLACES)·/·10·**·CURRENCY_DECIMAL_PLACES`  prettier/prettier
+  408:35  warning  No magic number: 10                                                                                                                                 no-magic-numbers
+  408:70  warning  No magic number: 10                                                                                                                                 no-magic-numbers
+  501:1   warning  File has too many lines (714). Maximum allowed is 500                                                                                               max-lines
+
+/Users/sasi/operation/client/src/utils/debugUtils.js
+  501:1  warning  File has too many lines (577). Maximum allowed is 500  max-lines
+
+/Users/sasi/operation/client/src/utils/errorHandling.js
+  118:30  warning  Arrow function has a complexity of 22. Maximum allowed is 15     complexity
+  144:61  warning  Insert `⏎·······`                                                prettier/prettier
+  172:35  warning  Arrow function has too many lines (136). Maximum allowed is 100  max-lines-per-function
+
+/Users/sasi/operation/client/src/utils/formValidation.js
+   84:5   warning  Arrow function has a complexity of 16. Maximum allowed is 15                                                                                                                          complexity
+  317:35  warning  Replace `MAX_LENGTHS.POND_NAME,·'Pond·name·must·be·less·than·50·characters'` with `⏎··········MAX_LENGTHS.POND_NAME,⏎··········'Pond·name·must·be·less·than·50·characters'⏎········`  prettier/prettier
+  364:35  warning  Replace `MAX_LENGTHS.EMPLOYEE_NAME,·'Name·must·be·less·than·100·characters'` with `⏎··········MAX_LENGTHS.EMPLOYEE_NAME,⏎··········'Name·must·be·less·than·100·characters'⏎········`  prettier/prettier
+
+/Users/sasi/operation/client/src/utils/optimizedDataStructures.js
+  427:10  warning  'version' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+  479:10  warning  'version' is assigned a value but never used. Allowed unused vars must match /^_/u  no-unused-vars
+  501:1   warning  File has too many lines (744). Maximum allowed is 500                               max-lines
+  565:38  warning  Arrow function has too many lines (109). Maximum allowed is 100                     max-lines-per-function
+
+/Users/sasi/operation/client/src/utils/propTypes.js
+  501:1  warning  File has too many lines (558). Maximum allowed is 500  max-lines
+
+/Users/sasi/operation/client/src/utils/testUtils.js
+   31:24  warning  Unexpected `await` inside a loop  no-await-in-loop
+  301:9   warning  Unexpected `await` inside a loop  no-await-in-loop
+  319:9   warning  Unexpected `await` inside a loop  no-await-in-loop
+
+✖ 538 problems (0 errors, 538 warnings)
+  0 errors and 41 warnings potentially fixable with the `--fix` option.
+

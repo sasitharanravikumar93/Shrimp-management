@@ -1,1 +1,315 @@
-/**\n * Common database utilities for controllers\n * Provides reusable database operation patterns and eliminates code duplication\n */\n\nconst mongoose = require('mongoose'); \nconst { NotFoundError } = require('./errorHandler'); \nconst { validatePagination } = require('./validationUtils'); \n\n/**\n * Generic function to get entities with pagination and filtering\n * @param {Object} Model - Mongoose model\n * @param {Object} options - Query options\n * @param {Object} options.filter - Filter criteria\n * @param {number} options.page - Page number\n * @param {number} options.limit - Items per page\n * @param {Array<string>} options.populate - Fields to populate\n * @param {Object} options.sort - Sort criteria\n * @returns {Promise<Object>} Paginated results\n */\nconst getPaginatedResults = async (Model, options = {}) => { \n  const { \n    filter = {}, \n    page = 1, \n    limit = 25, \n    populate = [], \n    sort = { createdAt: -1 }\n } = options; \n  \n  const { page: pageNum, limit: limitNum, skip } = validatePagination(page, limit); \n  \n  // Build query\n  let query = Model.find(filter);\n  \n  // Add population\n  if (populate.length > 0) {\n    populate.forEach(field => {\n      if (typeof field === 'string') {\n        query = query.populate(field);\n      } else {\n        query = query.populate(field);\n      }\n    });\n  }\n  \n  // Execute query with pagination\n  const [data, total] = await Promise.all([\n    query.clone().sort(sort).skip(skip).limit(limitNum),\n    Model.countDocuments(filter)\n  ]);\n  \n  return {\n    data,\n    pagination: {\n      page: pageNum,\n      limit: limitNum,\n      total,\n      pages: Math.ceil(total / limitNum)\n    }\n  };\n};\n\n/**\n * Generic function to find entity by ID with population\n * @param {Object} Model - Mongoose model\n * @param {string} id - Entity ID\n * @param {Array<string>} populate - Fields to populate\n * @param {string} entityName - Entity name for error messages\n * @returns {Promise<Object>} Found entity\n * @throws {NotFoundError} If entity not found\n */\nconst findByIdWithPopulation = async (Model, id, populate = [], entityName = 'Entity') => {\n  let query = Model.findById(id);\n  \n  // Add population\n  populate.forEach(field => {\n    query = query.populate(field);\n  });\n  \n  const entity = await query;\n  \n  if (!entity) {\n    throw new NotFoundError(entityName);\n  }\n  \n  return entity;\n};\n\n/**\n * Generic function to update entity by ID\n * @param {Object} Model - Mongoose model\n * @param {string} id - Entity ID\n * @param {Object} updateData - Data to update\n * @param {Array<string>} populate - Fields to populate in response\n * @param {string} entityName - Entity name for error messages\n * @returns {Promise<Object>} Updated entity\n * @throws {NotFoundError} If entity not found\n */\nconst updateByIdWithPopulation = async (Model, id, updateData, populate = [], entityName = 'Entity') => {\n  let query = Model.findByIdAndUpdate(\n    id,\n    updateData,\n    { new: true, runValidators: true }\n  );\n  \n  // Add population\n  populate.forEach(field => {\n    query = query.populate(field);\n  });\n  \n  const entity = await query;\n  \n  if (!entity) {\n    throw new NotFoundError(entityName);\n  }\n  \n  return entity;\n};\n\n/**\n * Generic function to soft delete entity (mark as deleted instead of removing)\n * @param {Object} Model - Mongoose model\n * @param {string} id - Entity ID\n * @param {string} entityName - Entity name for error messages\n * @returns {Promise<Object>} Deleted entity\n * @throws {NotFoundError} If entity not found\n */\nconst softDeleteById = async (Model, id, entityName = 'Entity') => {\n  const entity = await Model.findByIdAndUpdate(\n    id,\n    { \n      deletedAt: new Date(),\n      isDeleted: true \n    },\n    { new: true }\n  );\n  \n  if (!entity) {\n    throw new NotFoundError(entityName);\n  }\n  \n  return entity;\n};\n\n/**\n * Generic function to permanently delete entity with dependency check\n * @param {Object} Model - Mongoose model\n * @param {string} id - Entity ID\n * @param {Array<Object>} dependencies - Array of {model, field} objects to check\n * @param {string} entityName - Entity name for error messages\n * @returns {Promise<Object>} Deleted entity\n * @throws {NotFoundError} If entity not found\n * @throws {ValidationError} If entity has dependencies\n */\nconst deleteWithDependencyCheck = async (Model, id, dependencies = [], entityName = 'Entity') => {\n  const { ValidationError } = require('./errorHandler');\n  \n  // Check dependencies\n  for (const dep of dependencies) {\n    const count = await dep.model.countDocuments({ [dep.field]: id });\n    if (count > 0) {\n      throw new ValidationError(\n        `Cannot delete ${entityName.toLowerCase()} because it has ${count} related ${dep.name || 'records'}`\n      );\n    }\n  }\n  \n  const entity = await Model.findByIdAndDelete(id);\n  \n  if (!entity) {\n    throw new NotFoundError(entityName);\n  }\n  \n  return entity;\n};\n\n/**\n * Build dynamic filter from query parameters\n * @param {Object} query - Query parameters\n * @param {Object} filterMap - Map of query param to database field\n * @returns {Object} Database filter object\n */\nconst buildDynamicFilter = (query, filterMap = {}) => {\n  const filter = {};\n  \n  Object.entries(query).forEach(([key, value]) => {\n    if (value === undefined || value === null || value === '') {\n      return;\n    }\n    \n    // Use mapped field name if available, otherwise use key as-is\n    const fieldName = filterMap[key] || key;\n    \n    // Handle different value types\n    if (key.endsWith('Id') && mongoose.Types.ObjectId.isValid(value)) {\n      filter[fieldName] = mongoose.Types.ObjectId(value);\n    } else if (key.includes('Date')) {\n      // Handle date ranges\n      if (key.startsWith('start')) {\n        const dateField = fieldName.replace('start', '').toLowerCase();\n        filter[dateField] = filter[dateField] || {};\n        filter[dateField].$gte = new Date(value);\n      } else if (key.startsWith('end')) {\n        const dateField = fieldName.replace('end', '').toLowerCase();\n        filter[dateField] = filter[dateField] || {};\n        filter[dateField].$lte = new Date(value);\n      } else {\n        filter[fieldName] = new Date(value);\n      }\n    } else if (key.includes('min') || key.includes('max')) {\n      // Handle numeric ranges\n      const baseField = fieldName.replace(/(min|max)/i, '');\n      filter[baseField] = filter[baseField] || {};\n      \n      if (key.includes('min')) {\n        filter[baseField].$gte = parseFloat(value);\n      } else {\n        filter[baseField].$lte = parseFloat(value);\n      }\n    } else {\n      filter[fieldName] = value;\n    }\n  });\n  \n  return filter;\n};\n\n/**\n * Create aggregation pipeline for statistics\n * @param {string} groupField - Field to group by\n * @param {Array<string>} sumFields - Fields to sum\n * @param {Array<string>} avgFields - Fields to average\n * @param {Object} matchFilter - Initial match filter\n * @returns {Array} Aggregation pipeline\n */\nconst createStatsPipeline = (groupField, sumFields = [], avgFields = [], matchFilter = {}) => {\n  const pipeline = [];\n  \n  // Add match stage if filter provided\n  if (Object.keys(matchFilter).length > 0) {\n    pipeline.push({ $match: matchFilter });\n  }\n  \n  // Group stage\n  const groupStage = {\n    $group: {\n      _id: groupField,\n      count: { $sum: 1 }\n    }\n  };\n  \n  // Add sum fields\n  sumFields.forEach(field => {\n    groupStage.$group[`total${field.charAt(0).toUpperCase() + field.slice(1)}`] = { $sum: `$${field}` };\n  });\n  \n  // Add average fields\n  avgFields.forEach(field => {\n    groupStage.$group[`avg${field.charAt(0).toUpperCase() + field.slice(1)}`] = { $avg: `$${field}` };\n  });\n  \n  pipeline.push(groupStage);\n  \n  // Sort by count descending\n  pipeline.push({ $sort: { count: -1 } });\n  \n  return pipeline;\n};\n\n/**\n * Execute transaction with retry logic\n * @param {Function} operation - Function to execute in transaction\n * @param {number} maxRetries - Maximum retry attempts\n * @returns {Promise<any>} Operation result\n */\nconst executeTransaction = async (operation, maxRetries = 3) => {\n  const session = await mongoose.startSession();\n  \n  let attempt = 0;\n  while (attempt < maxRetries) {\n    try {\n      session.startTransaction();\n      \n      const result = await operation(session);\n      \n      await session.commitTransaction();\n      return result;\n    } catch (error) {\n      await session.abortTransaction();\n      \n      attempt++;\n      if (attempt >= maxRetries) {\n        throw error;\n      }\n      \n      // Wait before retry (exponential backoff)\n      await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 100));\n    } finally {\n      if (attempt >= maxRetries || session.transaction.state === 'committed') {\n        await session.endSession();\n      }\n    }\n  }\n};\n\nmodule.exports = {\n  getPaginatedResults,\n  findByIdWithPopulation,\n  updateByIdWithPopulation,\n  softDeleteById,\n  deleteWithDependencyCheck,\n  buildDynamicFilter,\n  createStatsPipeline,\n  executeTransaction\n};\n"
+/**
+ * Common database utilities for controllers
+ * Provides reusable database operation patterns and eliminates code duplication
+ */
+
+const mongoose = require('mongoose');
+const { NotFoundError } = require('./errorHandler');
+const { validatePagination } = require('./validationUtils');
+
+/**
+ * Generic function to get entities with pagination and filtering
+ * @param {object} Model - Mongoose model
+ * @param {object} options - Query options
+ * @param {object} options.filter - Filter criteria
+ * @param {number} options.page - Page number
+ * @param {number} options.limit - Items per page
+ * @param {Array<string>} options.populate - Fields to populate
+ * @param {object} options.sort - Sort criteria
+ * @returns {Promise<object>} Paginated results
+ */
+const getPaginatedResults = async (Model, options = {}) => {
+  const {
+    filter = {},
+    page = 1,
+    limit = 25,
+    populate = [],
+    sort = { createdAt: -1 }
+  } = options;
+
+  const { page: pageNum, limit: limitNum, skip } = validatePagination(page, limit);
+
+  // Build query
+  let query = Model.find(filter);
+
+  // Add population
+  if (populate.length > 0) {
+    populate.forEach(field => {
+      if (typeof field === 'string') {
+        query = query.populate(field);
+      } else {
+        query = query.populate(field);
+      }
+    });
+  }
+
+  // Execute query with pagination
+  const [data, total] = await Promise.all([
+    query.clone().sort(sort).skip(skip).limit(limitNum),
+    Model.countDocuments(filter)
+  ]);
+
+  return {
+    data,
+    pagination: {
+      page: pageNum,
+      limit: limitNum,
+      total,
+      pages: Math.ceil(total / limitNum)
+    }
+  };
+};
+
+/**
+ * Generic function to find entity by ID with population
+ * @param {object} Model - Mongoose model
+ * @param {string} id - Entity ID
+ * @param {Array<string>} populate - Fields to populate
+ * @param {string} entityName - Entity name for error messages
+ * @returns {Promise<object>} Found entity
+ * @throws {NotFoundError} If entity not found
+ */
+const findByIdWithPopulation = async (Model, id, populate = [], entityName = 'Entity') => {
+  let query = Model.findById(id);
+
+  // Add population
+  populate.forEach(field => {
+    query = query.populate(field);
+  });
+
+  const entity = await query;
+
+  if (!entity) {
+    throw new NotFoundError(entityName);
+  }
+
+  return entity;
+};
+
+/**
+ * Generic function to update entity by ID
+ * @param {object} Model - Mongoose model
+ * @param {string} id - Entity ID
+ * @param {object} updateData - Data to update
+ * @param {Array<string>} populate - Fields to populate in response
+ * @param {string} entityName - Entity name for error messages
+ * @returns {Promise<object>} Updated entity
+ * @throws {NotFoundError} If entity not found
+ */
+const updateByIdWithPopulation = async (Model, id, updateData, populate = [], entityName = 'Entity') => {
+  let query = Model.findByIdAndUpdate(
+    id,
+    updateData,
+    { new: true, runValidators: true }
+  );
+
+  // Add population
+  populate.forEach(field => {
+    query = query.populate(field);
+  });
+
+  const entity = await query;
+
+  if (!entity) {
+    throw new NotFoundError(entityName);
+  }
+
+  return entity;
+};
+
+/**
+ * Generic function to soft delete entity (mark as deleted instead of removing)
+ * @param {object} Model - Mongoose model
+ * @param {string} id - Entity ID
+ * @param {string} entityName - Entity name for error messages
+ * @returns {Promise<object>} Deleted entity
+ * @throws {NotFoundError} If entity not found
+ */
+const softDeleteById = async (Model, id, entityName = 'Entity') => {
+  const entity = await Model.findByIdAndUpdate(
+    id,
+    {
+      deletedAt: new Date(),
+      isDeleted: true
+    },
+    { new: true }
+  );
+
+  if (!entity) {
+    throw new NotFoundError(entityName);
+  }
+
+  return entity;
+};
+
+/**
+ * Generic function to permanently delete entity with dependency check
+ * @param {object} Model - Mongoose model
+ * @param {string} id - Entity ID
+ * @param {Array<object>} dependencies - Array of {model, field} objects to check
+ * @param {string} entityName - Entity name for error messages
+ * @returns {Promise<object>} Deleted entity
+ * @throws {NotFoundError} If entity not found
+ * @throws {ValidationError} If entity has dependencies
+ */
+const deleteWithDependencyCheck = async (Model, id, dependencies = [], entityName = 'Entity') => {
+  const { ValidationError } = require('./errorHandler');
+
+  // Check dependencies
+  for (const dep of dependencies) {
+    const count = await dep.model.countDocuments({ [dep.field]: id });
+    if (count > 0) {
+      throw new ValidationError(
+        `Cannot delete ${entityName.toLowerCase()} because it has ${count} related ${dep.name || 'records'}`
+      );
+    }
+  }
+
+  const entity = await Model.findByIdAndDelete(id);
+
+  if (!entity) {
+    throw new NotFoundError(entityName);
+  }
+
+  return entity;
+};
+
+/**
+ * Build dynamic filter from query parameters
+ * @param {object} query - Query parameters
+ * @param {object} filterMap - Map of query param to database field
+ * @returns {object} Database filter object
+ */
+const buildDynamicFilter = (query, filterMap = {}) => {
+  const filter = {};
+
+  Object.entries(query).forEach(([key, value]) => {
+    if (value === undefined || value === null || value === '') {
+      return;
+    }
+
+    // Use mapped field name if available, otherwise use key as-is
+    const fieldName = filterMap[key] || key;
+
+    // Handle different value types
+    if (key.endsWith('Id') && mongoose.Types.ObjectId.isValid(value)) {
+      filter[fieldName] = mongoose.Types.ObjectId(value);
+    } else if (key.includes('Date')) {
+      // Handle date ranges
+      if (key.startsWith('start')) {
+        const dateField = fieldName.replace('start', '').toLowerCase();
+        filter[dateField] = filter[dateField] || {};
+        filter[dateField].$gte = new Date(value);
+      } else if (key.startsWith('end')) {
+        const dateField = fieldName.replace('end', '').toLowerCase();
+        filter[dateField] = filter[dateField] || {};
+        filter[dateField].$lte = new Date(value);
+      } else {
+        filter[fieldName] = new Date(value);
+      }
+    } else if (key.includes('min') || key.includes('max')) {
+      // Handle numeric ranges
+      const baseField = fieldName.replace(/(min|max)/i, '');
+      filter[baseField] = filter[baseField] || {};
+
+      if (key.includes('min')) {
+        filter[baseField].$gte = parseFloat(value);
+      } else {
+        filter[baseField].$lte = parseFloat(value);
+      }
+    } else {
+      filter[fieldName] = value;
+    }
+  });
+
+  return filter;
+};
+
+/**
+ * Create aggregation pipeline for statistics
+ * @param {string} groupField - Field to group by
+ * @param {Array<string>} sumFields - Fields to sum
+ * @param {Array<string>} avgFields - Fields to average
+ * @param {object} matchFilter - Initial match filter
+ * @returns {Array} Aggregation pipeline
+ */
+const createStatsPipeline = (groupField, sumFields = [], avgFields = [], matchFilter = {}) => {
+  const pipeline = [];
+
+  // Add match stage if filter provided
+  if (Object.keys(matchFilter).length > 0) {
+    pipeline.push({ $match: matchFilter });
+  }
+
+  // Group stage
+  const groupStage = {
+    $group: {
+      _id: groupField,
+      count: { $sum: 1 }
+    }
+  };
+
+  // Add sum fields
+  sumFields.forEach(field => {
+    groupStage.$group[`total${field.charAt(0).toUpperCase() + field.slice(1)}`] = { $sum: `$${field}` };
+  });
+
+  // Add average fields
+  avgFields.forEach(field => {
+    groupStage.$group[`avg${field.charAt(0).toUpperCase() + field.slice(1)}`] = { $avg: `$${field}` };
+  });
+
+  pipeline.push(groupStage);
+
+  // Sort by count descending
+  pipeline.push({ $sort: { count: -1 } });
+
+  return pipeline;
+};
+
+/**
+ * Execute transaction with retry logic
+ * @param {Function} operation - Function to execute in transaction
+ * @param {number} maxRetries - Maximum retry attempts
+ * @returns {Promise<any>} Operation result
+ */
+const executeTransaction = async (operation, maxRetries = 3) => {
+  const session = await mongoose.startSession();
+
+  let attempt = 0;
+  while (attempt < maxRetries) {
+    try {
+      session.startTransaction();
+
+      const result = await operation(session);
+
+      await session.commitTransaction();
+      return result;
+    } catch (error) {
+      await session.abortTransaction();
+
+      attempt++;
+      if (attempt >= maxRetries) {
+        throw error;
+      }
+
+      // Wait before retry (exponential backoff)
+      await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 100));
+    } finally {
+      if (attempt >= maxRetries || session.transaction.state === 'committed') {
+        await session.endSession();
+      }
+    }
+  }
+};
+
+module.exports = {
+  getPaginatedResults,
+  findByIdWithPopulation,
+  updateByIdWithPopulation,
+  softDeleteById,
+  deleteWithDependencyCheck,
+  buildDynamicFilter,
+  createStatsPipeline,
+  executeTransaction
+};

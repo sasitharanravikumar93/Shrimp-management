@@ -1,0 +1,8 @@
+
+> shrimp-farm-management-system@2.0.0 lint
+> cd client && npm run lint && cd ../server && npm run lint
+
+
+> client@0.1.0 lint
+> eslint src --ext .js,.jsx,.ts,.tsx --max-warnings 0
+
