@@ -77,7 +77,8 @@
         "active_ponds": "บ่อเลี้ยงที่ใช้งาน",
         "pond_location": "สถานที่",
         "stocking_density": "ความหนาแน่นในการเลี้ยง",
-        "health_score": "คะแนนสุขภาพ"
+        "health_score": "คะแนนสุขภาพ",
+        "avg_growth_rate": "อัตราการเจริญเติบโตเฉลี่ย"
     },
     "season": {
         "title": "การจัดการฤดูกาล",

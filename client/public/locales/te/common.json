@@ -77,7 +77,8 @@
         "active_ponds": "క్రియాశీల చెరువులు",
         "pond_location": "స్థానం",
         "stocking_density": "స్టాకింగ్ సాంద్రత",
-        "health_score": "ఆరోగ్య స్కోర్"
+        "health_score": "ఆరోగ్య స్కోర్",
+        "avg_growth_rate": "సగటు పెరుగుదల రేటు"
     },
     "season": {
         "title": "సీజన్ మేనేజ్మెంట్",

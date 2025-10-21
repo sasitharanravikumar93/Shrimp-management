@@ -77,7 +77,8 @@
         "active_ponds": "सक्रिय तालाब",
         "pond_location": "तालाब स्थान",
         "stocking_density": "स्टॉकिंग घनत्व",
-        "health_score": "स्वास्थ्य स्कोर"
+        "health_score": "स्वास्थ्य स्कोर",
+        "avg_growth_rate": "औसत वृद्धि दर"
     },
     "season": {
         "title": "मौसम प्रबंधन",

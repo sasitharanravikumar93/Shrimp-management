@@ -77,7 +77,8 @@
         "active_ponds": "Active Ponds",
         "pond_location": "Location",
         "stocking_density": "Stocking Density",
-        "health_score": "Health Score"
+        "health_score": "Health Score",
+        "avg_growth_rate": "Avg Growth Rate"
     },
     "season": {
         "title": "Season Management",

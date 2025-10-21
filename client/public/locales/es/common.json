@@ -77,7 +77,8 @@
         "active_ponds": "Estanques Activos",
         "pond_location": "Ubicación",
         "stocking_density": "Densidad de Población",
-        "health_score": "Puntuación de Salud"
+        "health_score": "Puntuación de Salud",
+        "avg_growth_rate": "Tasa Promedio de Crecimiento"
     },
     "season": {
         "title": "Gestión de Temporadas",

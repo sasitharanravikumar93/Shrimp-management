@@ -77,7 +77,8 @@
         "active_ponds": "البرك النشطة",
         "pond_location": "موقع البركة",
         "stocking_density": "كثافة التخزين",
-        "health_score": "نقاط الصحة"
+        "health_score": "نقاط الصحة",
+        "avg_growth_rate": "معدل النمو المتوسط"
     },
     "season": {
         "title": "إدارة المواسم",
@@ -108,7 +109,7 @@
         "sub_category": "الفئة الفرعية",
         "culture": "الزراعة",
         "farm": "المزرعة",
-        "operational": "تشغيلي",
+        "operational": "يادي",
         "feed": "العلف",
         "equipment": "المعدات",
         "maintenance": "الصيانة",

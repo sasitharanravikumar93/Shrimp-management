@@ -77,7 +77,8 @@
         "active_ponds": "Ao Nuôi Hoạt Động",
         "pond_location": "Vị Trí",
         "stocking_density": "Mật Độ Thả Nuôi",
-        "health_score": "Điểm Sức Khỏe"
+        "health_score": "Điểm Sức Khỏe",
+        "avg_growth_rate": "Tốc Độ Tăng Trưởng Trung Bình"
     },
     "season": {
         "title": "Quản Lý Mùa Vụ",
