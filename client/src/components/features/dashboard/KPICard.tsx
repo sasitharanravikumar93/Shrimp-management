@@ -63,11 +63,6 @@ const TrendDisplay: React.FC<TrendDisplayProps> = memo(({ change, changeText }) 
 
 TrendDisplay.displayName = 'TrendDisplay';
 
-TrendDisplay.propTypes = {
-  change: PropTypes.number.isRequired,
-  changeText: PropTypes.string
-};
-
 // Type definitions for KPICard props
 export interface KPICardProps {
   title: string;
@@ -110,11 +105,11 @@ const KPICard: React.FC<KPICardProps> = memo(
     icon,
     color = '#1976d2',
     change = 0,
-    changeText = '',
+    changeText,
     progressValue = null,
     progressColor = 'primary',
     isCurrency = false,
-    suffix = '',
+    suffix,
     delay = 0
   }) => {
     const { t } = useTranslation();
@@ -331,14 +326,6 @@ const CircularProgressWithAvatar: React.FC<CircularProgressWithAvatarProps> = me
 );
 
 CircularProgressWithAvatar.displayName = 'CircularProgressWithAvatar';
-
-CircularProgressWithAvatar.propTypes = {
-  size: PropTypes.number.isRequired,
-  value: PropTypes.number.isRequired,
-  color: PropTypes.string.isRequired,
-  icon: PropTypes.node,
-  avatarStyles: PropTypes.object.isRequired
-};
 
 // Set display names for better debugging
 KPICard.displayName = 'KPICard';

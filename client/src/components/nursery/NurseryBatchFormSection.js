@@ -65,13 +65,13 @@ const NurseryBatchFormSection = ({ formData, onInputChange, onDateChange, season
       case 'seasonSelect':
         return (
           <FormControl fullWidth variant='outlined' margin='dense' sx={{ mt: 2 }}>
-            <InputLabel id='season-select-label'>{t('season')}</InputLabel>
+            <InputLabel id='season-select-label'>{t('season.select_season')}</InputLabel>
             <Select
               labelId='season-select-label'
               name='seasonId'
               value={formData.seasonId}
               onChange={onInputChange}
-              label={t('season')}
+              label={t('season.select_season')}
               required
             >
               {seasons.map(season => (

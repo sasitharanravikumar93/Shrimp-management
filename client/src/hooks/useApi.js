@@ -50,12 +50,39 @@ const getInvalidationPatterns = (endpoint, method) => {
   return patterns;
 };
 
+// Utility function to check if error is retryable
+const isRetryableError = error => {
+  if (!error) return false;
+
+  const message = error.message?.toLowerCase() || '';
+  const status = error.status || 0;
+
+  // Don't retry client errors (400-499) as they're not recoverable
+  if (status >= 400 && status < 500) {
+    return false;
+  }
+
+  // Retry on server errors (500+), network issues, and timeouts
+  if (
+    status >= 500 ||
+    message.includes('fetch') ||
+    message.includes('network') ||
+    message.includes('timeout') ||
+    message.includes('offline')
+  ) {
+    return true;
+  }
+
+  return false;
+};
+
 // Custom hook for data fetching with loading and error states
 export const useApiData = (apiFunction, dependencies = [], cacheKey = null, retryCount = 3) => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const retryTimeoutRef = useRef(null);
+  const isMountedRef = useRef(true);
 
   const fetchData = useCallback(
     async (useCache = true, retries = retryCount) => {
@@ -93,18 +120,29 @@ export const useApiData = (apiFunction, dependencies = [], cacheKey = null, retr
 
         return result;
       } catch (err) {
-        // Retry logic
-        if (retries > 0) {
+        console.warn(`API call failed:`, err.message);
+
+        // Only retry if error is retryable and not unmounted
+        if (retries > 0 && isMountedRef.current && isRetryableError(err)) {
           console.warn(`API call failed, retrying... (${retryCount - retries + 1}/${retryCount})`);
+          const delay = Math.min(1000 * Math.pow(2, retryCount - retries), 10000); // Exponential backoff, max 10s
           retryTimeoutRef.current = setTimeout(() => {
-            fetchData(useCache, retries - 1);
-          }, 1000 * (retryCount - retries)); // Exponential backoff
+            if (isMountedRef.current) {
+              fetchData(useCache, retries - 1);
+            }
+          }, delay);
           return;
         }
 
-        setError({ message: err.message || 'An unknown error occurred' });
+        // Set error only if component is still mounted
+        if (isMountedRef.current) {
+          setError({ message: err.message || 'An unknown error occurred', status: err.status });
+        }
       } finally {
-        setLoading(false);
+        // Only set loading to false if component is still mounted
+        if (isMountedRef.current) {
+          setLoading(false);
+        }
       }
     },
     [apiFunction, retryCount]

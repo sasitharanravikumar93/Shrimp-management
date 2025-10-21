@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 
 import { useStableMemo, useStableCallback } from '../../../utils/performanceOptimization';
 
-const PondCard = memo(({ pond, onClick, selected }) => {
+const PondCard = memo(({ pond, onClick, selected = false }) => {
   const { t } = useTranslation();
 
   // Memoize card styles to prevent re-calculation
@@ -69,10 +69,6 @@ PondCard.propTypes = {
   selected: PropTypes.bool
 };
 
-// Default props
-PondCard.defaultProps = {
-  onClick: null,
-  selected: false
-};
+// Default props removed - using JavaScript default parameters instead
 
 export default PondCard;

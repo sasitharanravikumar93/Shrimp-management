@@ -26,11 +26,11 @@ const KPICard = memo(
     icon,
     color = '#1976d2',
     change = 0,
-    changeText = '',
+    changeText,
     progressValue = null,
     progressColor = 'primary',
     isCurrency = false,
-    suffix = '',
+    suffix,
     delay = 0
   }) => {
     const { t } = useTranslation();
@@ -140,7 +140,7 @@ const KPICard = memo(
 
 // Circular KPI Card variant with performance optimizations
 export const CircularKPICard = memo(
-  ({ title, value, icon, color = '#1976d2', change = 0, changeText = '', size, delay = 0 }) => {
+  ({ title, value, icon, color = '#1976d2', change = 0, changeText, size = 120, delay = 0 }) => {
     const { t } = useTranslation();
 
     const FULL_PROGRESS = 100;
@@ -280,17 +280,7 @@ KPICard.propTypes = {
   delay: PropTypes.number
 };
 
-// Add default props
-KPICard.defaultProps = {
-  color: '#1976d2',
-  change: 0,
-  changeText: '',
-  progressValue: null,
-  progressColor: 'primary',
-  isCurrency: false,
-  suffix: '',
-  delay: 0
-};
+// Default props removed - using JavaScript default parameters instead
 
 // Add PropTypes for CircularKPICard
 CircularKPICard.propTypes = {
@@ -304,11 +294,4 @@ CircularKPICard.propTypes = {
   delay: PropTypes.number
 };
 
-// Add default props for CircularKPICard
-CircularKPICard.defaultProps = {
-  color: '#1976d2',
-  change: 0,
-  changeText: '',
-  size: 120,
-  delay: 0
-};
+// Default props removed from CircularKPICard - using JavaScript default parameters instead

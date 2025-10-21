@@ -48,11 +48,9 @@ import { useTheme } from '@mui/material/styles';
 import PropTypes from 'prop-types';
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
 import { useSeason } from '../../../../context/SeasonContext';
-import { useApiData } from '../../../../hooks/useApi';
-import { getSeasons } from '../../../../services/api';
 
 import LanguageSwitcher from './LanguageSwitcher';
 
@@ -69,13 +67,14 @@ const Layout = ({ children, toggleDarkMode, darkMode }) => {
   const [reportAnchorEl, setReportAnchorEl] = useState(null);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [openPondMenu, setOpenPondMenu] = useState(false);
-  const { selectedSeason, setSelectedSeason } = useSeason();
-  const location = useLocation();
   const {
-    data: seasons = [],
+    selectedSeason,
+    setSelectedSeason,
+    seasons,
     loading: seasonsLoading,
     error: seasonsError
-  } = useApiData(getSeasons, [], 'seasons');
+  } = useSeason();
+  const location = useLocation();
 
   // Auto-collapse sidebar on mobile
   useEffect(() => {
@@ -127,7 +126,7 @@ const Layout = ({ children, toggleDarkMode, darkMode }) => {
 
   // Main navigation items
   const mainMenuItems = [
-    { text: t('dashboard'), icon: <DashboardIcon />, path: '/' },
+    { text: t('navigation.dashboard'), icon: <DashboardIcon />, path: '/' },
     {
       text: t('pond_management'),
       icon: <PondIcon />,
@@ -376,7 +375,7 @@ const Layout = ({ children, toggleDarkMode, darkMode }) => {
           </Typography>
 
           {/* Notifications */}
-          <Tooltip title={t('notifications')}>
+          <Tooltip title={t('dashboard.notifications')}>
             <IconButton color='inherit'>
               <Badge badgeContent={2} color='error'>
                 <NotificationsIcon />
@@ -465,7 +464,7 @@ const Layout = ({ children, toggleDarkMode, darkMode }) => {
           <ListItemIcon>
             <AccountIcon fontSize='small' />
           </ListItemIcon>
-          <ListItemText>{t('profile')}</ListItemText>
+          <ListItemText>{t('navigation.profile')}</ListItemText>
         </MenuItem>
         <MenuItem onClick={toggleDarkMode}>
           <ListItemIcon>
@@ -477,7 +476,7 @@ const Layout = ({ children, toggleDarkMode, darkMode }) => {
           <ListItemIcon>
             <SettingsIcon fontSize='small' />
           </ListItemIcon>
-          <ListItemText>{t('settings')}</ListItemText>
+          <ListItemText>{t('navigation.settings')}</ListItemText>
         </MenuItem>
         <Divider />
         <MenuItem>
@@ -493,7 +492,7 @@ const Layout = ({ children, toggleDarkMode, darkMode }) => {
           <ListItemIcon>
             <LogoutIcon fontSize='small' />
           </ListItemIcon>
-          <ListItemText>{t('logout')}</ListItemText>
+          <ListItemText>{t('navigation.logout')}</ListItemText>
         </MenuItem>
       </Menu>
 

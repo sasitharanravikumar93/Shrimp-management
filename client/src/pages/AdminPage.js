@@ -727,7 +727,7 @@ const AdminPage = () => {
                           },
                           {
                             id: 'seasonId',
-                            label: t('season'),
+                            label: t('season.season'),
                             render: value => {
                               if (!value) return 'N/A';
                               if (typeof value === 'object') {
@@ -912,7 +912,7 @@ const AdminPage = () => {
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth='sm' fullWidth>
         <DialogTitle>
           {editingItem ? t('edit') : t('add_new')}
-          {dialogType === 'season' ? t('season') : t('pond')}
+          {dialogType === 'season' ? t('season.season') : t('pond.pond')}
         </DialogTitle>
         <DialogContent>
           <form onSubmit={handleSubmit}>
@@ -1026,7 +1026,7 @@ const AdminPage = () => {
                     margin='dense'
                     name='seasonId'
                     select
-                    label={t('season')}
+                    label={t('season.select_season')}
                     fullWidth
                     variant='outlined'
                     sx={{ mt: 2 }}

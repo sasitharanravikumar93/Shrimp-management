@@ -55,9 +55,26 @@ export type MutationFunction<TArgs extends any[] = any[], TReturn = any> = (
 // Enhanced API call function with intelligent caching
 const apiCall = async <T = any>(
   endpoint: string,
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' = 'GET',
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH' | 'OPTIONS' = 'GET',
   data: any = null
 ): Promise<T> => {
+  // Don't retry OPTIONS preflight requests
+  if (method === 'OPTIONS') {
+    try {
+      return await deduplicatedApiCall(
+        endpoint,
+        { method, data },
+        {
+          useCache: false,
+          invalidatePatterns: []
+        }
+      );
+    } catch (error) {
+      console.error('OPTIONS preflight request failed:', error);
+      throw error;
+    }
+  }
+
   const options = { method, data };
   const cacheOptions = {
     useCache: method === 'GET',
@@ -104,17 +121,44 @@ const getInvalidationPatterns = (endpoint: string, method: string): string[] => 
   return patterns;
 };
 
+// Utility function to check if error is retryable
+const isRetryableError = (error: any): boolean => {
+  if (!error) return false;
+
+  const message = error.message?.toLowerCase() || '';
+  const status = error.status || 0;
+
+  // Don't retry client errors (400-499) as they're not recoverable
+  if (status >= 400 && status < 500) {
+    return false;
+  }
+
+  // Retry on server errors (500+), network issues, and timeouts
+  if (
+    status >= 500 ||
+    message.includes('fetch') ||
+    message.includes('network') ||
+    message.includes('timeout') ||
+    message.includes('offline')
+  ) {
+    return true;
+  }
+
+  return false;
+};
+
 // Custom hook for data fetching with loading and error states
 export const useApiData = <T = any>(
   apiFunction: ApiFunction<T> | null,
   dependencies: React.DependencyList = [],
   cacheKey: string | null = null,
-  retryCount: number = 3
+  retryCount: number = 3 // Default to 3 retries for robust error handling
 ): UseApiDataReturn<T> => {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<ApiError | null>(null);
   const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const isMountedRef = useRef<boolean>(true);
 
   const fetchData = useCallback(
     async (useCache: boolean = true, retries: number = retryCount): Promise<T | null> => {
@@ -159,13 +203,18 @@ export const useApiData = <T = any>(
         setData(processedData);
         return processedData;
       } catch (err) {
-        // Retry logic
-        if (retries > 0) {
+        console.warn(`API call failed:`, (err as Error).message);
+
+        // Only retry if error is retryable and not unmounted
+        if (retries > 0 && isMountedRef.current && isRetryableError(err)) {
           console.warn(`API call failed, retrying... (${retryCount - retries + 1}/${retryCount})`);
+          const delay = Math.min(1000 * Math.pow(2, retryCount - retries), 10000); // Exponential backoff, max 10s
           retryTimeoutRef.current = setTimeout(() => {
-            fetchData(useCache, retries - 1);
-          }, 1000 * (retryCount - retries)); // Exponential backoff
-          return null;
+            if (isMountedRef.current) {
+              fetchData(useCache, retries - 1);
+            }
+          }, delay);
+          return null; // Important: return null during retry to avoid calling finally block
         }
 
         const apiError: ApiError = {
@@ -173,10 +222,24 @@ export const useApiData = <T = any>(
           status: (err as any)?.status,
           code: (err as any)?.code
         };
-        setError(apiError);
+
+        // Set error only if component is still mounted
+        if (isMountedRef.current) {
+          setError(apiError);
+
+          // Also show error to user via global handler
+          if ((window as any).showGlobalError && process.env.NODE_ENV === 'production') {
+            const errorToShow = err instanceof Error ? err : new Error('An unknown error occurred');
+            (window as any).showGlobalError(errorToShow);
+          }
+        }
+
+        // Only set loading to false if component is still mounted
+        if (isMountedRef.current) {
+          setLoading(false); // Only set loading to false when no more retries
+        }
+
         return null;
-      } finally {
-        setLoading(false);
       }
     },
     [apiFunction, retryCount]
@@ -185,8 +248,9 @@ export const useApiData = <T = any>(
   useEffect(() => {
     fetchData();
 
-    // Cleanup function to clear any pending retries
+    // Cleanup function to clear any pending retries and mark as unmounted
     return () => {
+      isMountedRef.current = false;
       if (retryTimeoutRef.current) {
         clearTimeout(retryTimeoutRef.current);
         retryTimeoutRef.current = null;
@@ -258,7 +322,7 @@ export const useApiMutation = <TArgs extends any[] = any[], TReturn = any>(
             retryTimeoutRef.current = setTimeout(() => {
               attemptMutation(remainingRetries - 1);
             }, 1000 * (maxRetryCount - remainingRetries)); // Exponential backoff
-            return { data: null, error: null }; // Return early for retry
+            return { data: null, error: null }; // Return early for retry, don't go to finally block
           }
 
           const apiError: ApiError = {
@@ -275,6 +339,7 @@ export const useApiMutation = <TArgs extends any[] = any[], TReturn = any>(
 
           return { data: null, error: apiError.message };
         } finally {
+          // Only set loading to false when not retrying
           setLoading(false);
         }
       };

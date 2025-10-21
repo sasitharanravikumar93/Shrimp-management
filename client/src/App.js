@@ -5,7 +5,7 @@ import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { I18nextProvider } from 'react-i18next';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
-import ErrorBoundary from './components/features/shared/error-handling/ErrorBoundary';
+import { GlobalErrorBoundary } from './components/features/shared/error-handling/GlobalErrorBoundary';
 import Layout from './components/features/shared/layout/Layout';
 import { OfflineSyncProvider } from './context/OfflineSyncContext';
 import { SeasonProvider } from './context/SeasonContext';
@@ -66,7 +66,7 @@ const AppContent = () => {
     <LazyMotion features={domAnimation}>
       <ThemeProvider theme={currentTheme}>
         <CssBaseline />
-        <Router>
+        <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <SeasonProvider>
             <OfflineSyncProvider>
               <Layout toggleDarkMode={toggleDarkMode} darkMode={darkMode}>
@@ -101,13 +101,13 @@ const AppContent = () => {
 // Main App component with all providers
 const App = () => {
   return (
-    <ErrorBoundary>
+    <GlobalErrorBoundary>
       <I18nextProvider i18n={i18n}>
         <RTLProvider>
           <AppContent />
         </RTLProvider>
       </I18nextProvider>
-    </ErrorBoundary>
+    </GlobalErrorBoundary>
   );
 };
 

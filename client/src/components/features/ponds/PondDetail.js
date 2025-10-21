@@ -24,6 +24,7 @@ import {
   Chip
 } from '@mui/material';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import FeedLog from '../feeding/FeedLog';
 import GrowthSamplingLog from '../feeding/GrowthSamplingLog';
@@ -106,6 +107,7 @@ const finalReportKpis = [
 ];
 
 const PondDetail = () => {
+  const { t } = useTranslation();
   const [tabIndex, setTabIndex] = useState(0);
 
   // --- SIMULATE BACKEND DATA ---
@@ -193,9 +195,9 @@ const PondDetail = () => {
           {/* Pond Performance Logs */}
           <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
             <Tabs value={tabIndex} onChange={handleTabChange} aria-label='Pond Performance Logs'>
-              <Tab label='Feed' />
-              <Tab label='Water Quality' />
-              <Tab label='Growth Sampling' />
+              <Tab label={t('feed.feed')} />
+              <Tab label={t('water_quality')} />
+              <Tab label={t('growth.sampling')} />
             </Tabs>
           </Box>
 

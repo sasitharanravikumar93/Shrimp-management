@@ -143,9 +143,4 @@ FeedCalculator.propTypes = {
   feedingStrategy: PropTypes.oneOf(['standard', 'growth', 'maintenance', 'highDensity'])
 };
 
-// Add default props
-FeedCalculator.defaultProps = {
-  initialBiomass: 0,
-  initialShrimpCount: 0,
-  feedingStrategy: 'standard'
-};
+// Default props removed - using JavaScript default parameters instead

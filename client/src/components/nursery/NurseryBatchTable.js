@@ -45,7 +45,7 @@ const NurseryBatchTable = ({ batches, seasons, onEdit, onDelete, onView, deleteL
             <TableCell>{t('source')}</TableCell>
             <TableCell>{t('size')}</TableCell>
             <TableCell>{t('capacity')}</TableCell>
-            <TableCell>{t('season')}</TableCell>
+            <TableCell>{t('season.season')}</TableCell>
             <TableCell>{t('status')}</TableCell>
             <TableCell>{t('actions')}</TableCell>
           </TableRow>

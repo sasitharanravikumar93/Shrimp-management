@@ -151,6 +151,13 @@ class ValidatedApiService {
     }
 
     console.error(`❌ API Request failed after ${attempt} attempts: ${endpoint}`, lastError);
+
+    // Use global error handler to show user-friendly error instead of technical details
+    if (window.showGlobalError) {
+      window.showGlobalError(lastError);
+    }
+
+    // Re-throw the error with original details for proper error handling
     throw lastError;
   }
 

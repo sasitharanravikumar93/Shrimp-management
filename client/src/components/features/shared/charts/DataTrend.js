@@ -18,7 +18,7 @@ import {
   ResponsiveContainer
 } from 'recharts';
 
-const DataTrend = ({ title, data, dataKey, color = '#007BFF', unit = '', trend = 'neutral' }) => {
+const DataTrend = ({ title, data, dataKey, color = '#007BFF', unit, trend = 'neutral' }) => {
   const { t } = useTranslation();
 
   // Calculate trend based on first and last data points
@@ -138,9 +138,4 @@ DataTrend.propTypes = {
   trend: PropTypes.oneOf(['up', 'down', 'neutral', 'auto'])
 };
 
-// Add default props
-DataTrend.defaultProps = {
-  color: '#007BFF',
-  unit: '',
-  trend: 'neutral'
-};
+// Default props removed - using JavaScript default parameters instead

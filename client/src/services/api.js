@@ -6,6 +6,9 @@ if (!process.env.REACT_APP_API_BASE_URL) {
   console.warn('REACT_APP_API_BASE_URL environment variable not set, using default localhost');
 }
 
+// Check if we're in development mode
+const isDevelopment = process.env.NODE_ENV === 'development';
+
 // Helper function for API calls with better error handling
 const apiCall = async (endpoint, method = 'GET', data = null) => {
   const url = `${API_BASE_URL}${endpoint}`;
@@ -16,6 +19,8 @@ const apiCall = async (endpoint, method = 'GET', data = null) => {
     }
   };
 
+  // In development mode, we might not need authentication
+  // This will be handled by the server-side bypass
   if (data && (method === 'POST' || method === 'PUT')) {
     options.body = JSON.stringify(data);
   }

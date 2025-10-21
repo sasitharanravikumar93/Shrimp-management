@@ -14,18 +14,31 @@ import {
   ListItemText,
   Toolbar,
   Typography,
-  Box,
-  Divider
+  Divider,
+  MenuItem,
+  Select,
+  FormControl,
+  Box
 } from '@mui/material';
 import PropTypes from 'prop-types';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
+
+import { useSeason } from '../../../context/SeasonContext';
 
 const drawerWidth = 240;
 
 const Sidebar = () => {
   const { t } = useTranslation();
+  const { seasons, selectedSeason, selectSeason, loading } = useSeason();
+
+  console.log('Sidebar: Rendering with:', {
+    seasons: seasons?.length || 0,
+    selectedSeason: selectedSeason?._id || 'none',
+    loading,
+    seasonsData: seasons
+  });
 
   return (
     <Drawer
@@ -42,12 +55,34 @@ const Sidebar = () => {
         </Typography>
       </Toolbar>
       <Divider />
+      {/* Season Selector */}
+      <Box sx={{ p: 2 }}>
+        {!loading && seasons && seasons.length > 0 && (
+          <FormControl fullWidth size='small'>
+            <Select
+              displayEmpty
+              value={selectedSeason?._id || ''}
+              onChange={e => {
+                const selected = seasons.find(season => season._id === e.target.value);
+                selectSeason(selected);
+              }}
+            >
+              {seasons.map(season => (
+                <MenuItem key={season._id} value={season._id}>
+                  {typeof season.name === 'object' ? season.name.en : season.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        )}
+      </Box>
+      <Divider />
       <List>
         <ListItem button component={Link} to='/'>
           <ListItemIcon>
             <DashboardIcon />
           </ListItemIcon>
-          <ListItemText primary={t('dashboard')} />
+          <ListItemText primary={t('dashboard.title')} />
         </ListItem>
         <ListItem button component={Link} to='/feed-input'>
           <ListItemIcon>

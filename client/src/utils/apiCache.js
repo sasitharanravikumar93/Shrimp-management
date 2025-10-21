@@ -362,9 +362,17 @@ export const cachedApiCall = async (endpoint, options = {}, cacheOptions = {}) =
 
 // Request deduplication for identical simultaneous requests
 const pendingRequests = new Map();
+const failedRequestKeys = new Set();
 
 export const deduplicatedApiCall = async (endpoint, options = {}, cacheOptions = {}) => {
   const requestKey = JSON.stringify({ endpoint, options });
+
+  // Check if this request key has recently failed to avoid duplication loops
+  if (failedRequestKeys.has(requestKey)) {
+    const error = new Error('Request failed previously and is being deduplicated');
+    error.isDuplicateFailure = true;
+    throw error;
+  }
 
   // If same request is already in progress, wait for it
   if (pendingRequests.has(requestKey)) {
@@ -377,7 +385,19 @@ export const deduplicatedApiCall = async (endpoint, options = {}, cacheOptions =
 
   try {
     const result = await requestPromise;
+    // Clear from failed requests if successful
+    failedRequestKeys.delete(requestKey);
     return result;
+  } catch (error) {
+    // Mark this request key as failed to prevent duplicate failure loops
+    failedRequestKeys.add(requestKey);
+
+    // Clear failed status after a delay (to allow manual retries)
+    setTimeout(() => {
+      failedRequestKeys.delete(requestKey);
+    }, 5000); // 5 seconds
+
+    throw error;
   } finally {
     // Remove from pending requests when done
     pendingRequests.delete(requestKey);

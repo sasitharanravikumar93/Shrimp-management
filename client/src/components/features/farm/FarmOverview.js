@@ -37,7 +37,7 @@ import ErrorDisplay from '../shared/error-handling/ErrorDisplay';
 const FarmOverview = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [filter, setFilter] = useState('all');
+  const [filter, setFilter] = useState('active');
   const [_timeRange, setTimeRange] = useState('week');
   const [showAlert, setShowAlert] = useState(false);
   const { selectedSeason } = useSeason();
@@ -99,6 +99,41 @@ const FarmOverview = () => {
     refetch: refetchPonds
   } = useApiData(getPonds, [], 'ponds');
 
+  // Debug logging specifically for API response structure
+  useEffect(() => {
+    logger.debug('Raw ponds API response structure', {
+      allPondsData,
+      hasData: !!allPondsData,
+      dataType: typeof allPondsData,
+      dataLength: Array.isArray(allPondsData)
+        ? allPondsData.length
+        : allPondsData?.data?.length || 0,
+      isArray: Array.isArray(allPondsData),
+      component: 'FarmOverview'
+    });
+
+    if (allPondsData?.data) {
+      logger.debug('First 3 ponds data structure', {
+        ponds: allPondsData.data.slice(0, 3).map((pond, index) => ({
+          index,
+          id: pond._id,
+          name: pond.name,
+          status: pond.status,
+          seasonId: pond.seasonId?._id,
+          seasonName: pond.seasonId?.name
+        })),
+        component: 'FarmOverview'
+      });
+    } else {
+      logger.warn('No ponds data received from API', {
+        data: allPondsData,
+        error: allPondsError,
+        loading: allPondsLoading,
+        component: 'FarmOverview'
+      });
+    }
+  }, [allPondsData, allPondsError, allPondsLoading]);
+
   // Fetch water quality data for charts
   const { data: _waterQualityData, loading: _waterQualityLoading } = useApiData(
     () => {
@@ -128,15 +163,22 @@ const FarmOverview = () => {
 
   useEffect(() => {
     logger.debug('Ponds data updated', {
-      pondsCount: allPondsData?.data?.length || 0,
-      hasData: !!allPondsData?.data,
+      pondsCount: Array.isArray(allPondsData) ? allPondsData.length : 0,
+      hasData: !!allPondsData,
+      dataType: typeof allPondsData,
       component: 'FarmOverview'
     });
   }, [allPondsData]);
 
   // Filter ponds based on selection and season
   const filteredPonds = useMemo(() => {
-    const ponds = allPondsData?.data || [];
+    const ponds = Array.isArray(allPondsData) ? allPondsData : [];
+    logger.debug('Starting pond filtering', {
+      totalPonds: ponds.length,
+      selectedSeason: selectedSeason?.name,
+      currentFilter: filter,
+      component: 'FarmOverview'
+    });
 
     // First filter by season if a season is selected
     let seasonFilteredPonds = ponds;
@@ -146,25 +188,55 @@ const FarmOverview = () => {
           pondId: pond._id,
           pondSeasonId: pond.seasonId?._id,
           selectedSeasonId: selectedSeason?._id,
+          pondSeasonName: pond.seasonId?.name,
+          matches: pond.seasonId && pond.seasonId._id === selectedSeason._id,
           component: 'FarmOverview'
         });
         return pond.seasonId && pond.seasonId._id === selectedSeason._id;
       });
+      logger.debug('After season filtering', {
+        seasonFilteredCount: seasonFilteredPonds.length,
+        component: 'FarmOverview'
+      });
     }
 
     // Then filter by status
+    let statusFilteredPonds;
     if (filter === 'all') {
-      return seasonFilteredPonds;
+      statusFilteredPonds = seasonFilteredPonds;
+    } else {
+      statusFilteredPonds = seasonFilteredPonds.filter(pond => {
+        const statusMatch = pond.status?.toLowerCase() === filter;
+        logger.debug('Filtering pond by status', {
+          pondId: pond._id,
+          pondStatus: pond.status,
+          filter: filter,
+          matches: statusMatch,
+          component: 'FarmOverview'
+        });
+        return statusMatch;
+      });
     }
-    return seasonFilteredPonds.filter(pond => pond.status?.toLowerCase() === filter);
+
+    logger.debug('Final filtered ponds', {
+      totalPonds: ponds.length,
+      seasonFilteredCount: seasonFilteredPonds.length,
+      finalFilteredCount: statusFilteredPonds.length,
+      filter: filter,
+      component: 'FarmOverview'
+    });
+
+    return statusFilteredPonds;
   }, [allPondsData, filter, selectedSeason]);
 
   // Memoized summary data calculation to prevent unnecessary recalculations
   const summaryData = useStableMemo(() => {
-    if (!filteredPonds) return [];
+    const allPonds = Array.isArray(allPondsData) ? allPondsData : [];
+    if (!allPonds) return [];
 
-    const totalPonds = filteredPonds.length;
-    const activePonds = filteredPonds.filter(pond => pond.status === 'Active').length;
+    // Always count from all ponds for accurate totals, regardless of filter
+    const totalPonds = allPonds.length;
+    const activePonds = allPonds.filter(pond => pond.status === 'Active').length;
 
     // Calculate real metrics from pond data where available
     const avgGrowthRate =
@@ -201,69 +273,91 @@ const FarmOverview = () => {
 
     return [
       {
-        title: t('total_ponds'),
+        title: 'pond.total_ponds',
         value: totalPonds,
         change: 0,
         icon: <PondIcon />,
-        color: '#007BFF'
+        color: '#007BFF',
+        suffix: ''
       },
       {
-        title: t('active_ponds'),
+        title: 'pond.active_ponds',
         value: activePonds,
         change: 0,
         icon: <AgricultureIcon />,
-        color: '#28A745'
+        color: '#28A745',
+        suffix: ''
       },
       {
-        title: t('avg_growth_rate'),
+        title: 'pond.avg_growth_rate',
         value: Number(avgGrowthRate.toFixed(1)),
-        suffix: t('g_per_day'),
+        suffix: 'g_per_day',
         change: 0.1,
-        changeText: t('plus_point_one_from_last_week'),
+        changeText: 'plus_point_one_from_last_week',
         icon: <GrowthIcon />,
         color: '#FD7E14'
       },
       {
-        title: t('feed_efficiency'),
+        title: 'feed.feed_efficiency',
         value: Number(feedEfficiency.toFixed(1)),
-        suffix: t('colon_one'),
+        suffix: 'colon_one',
         change: -0.1,
-        changeText: t('minus_point_one_from_last_week'),
+        changeText: 'minus_point_one_from_last_week',
         icon: <RestaurantIcon />,
         color: '#007BFF'
       },
       {
-        title: t('water_quality'),
+        title: 'pond.water_quality',
         value: Math.round(waterQuality),
-        suffix: t('percentage'),
+        suffix: 'percentage',
         change: 5,
-        changeText: t('plus_five_percent_from_last_week'),
+        changeText: 'plus_five_percent_from_last_week',
         icon: <WaterIcon />,
         color: '#28A745'
       },
       {
-        title: t('feed_consumption'),
+        title: 'feed.feed_consumption',
         value: Math.round(feedConsumption),
-        suffix: t('kg'),
+        suffix: 'kg',
         change: 12,
-        changeText: t('plus_twelve_percent_from_last_week'),
+        changeText: 'plus_twelve_percent_from_last_week',
         icon: <RestaurantIcon />,
         color: '#FD7E14'
       }
     ];
-  }, [filteredPonds, t]);
+  }, [filteredPonds]);
 
   // Transform pond data for PondCard component
   const transformedPondData = useMemo(() => {
-    return filteredPonds.map(pond => ({
-      id: pond._id || pond.id,
-      name: pond.name,
-      status: pond.status || 'Active', // Default to Active if not set
-      health: pond.health || 'Good', // Default to Good if not set
-      progress: pond.progress || pond.stockingDensity || DEFAULT_POND_PROGRESS, // Use stocking density or default
-      healthScore: pond.healthScore || pond.waterQualityScore || DEFAULT_POND_HEALTH_SCORE // Use water quality score or default
-    }));
-  }, [filteredPonds]);
+    logger.debug('Transforming pond data for cards', {
+      filteredPondsCount: filteredPonds.length,
+      filter: filter,
+      selectedSeason: selectedSeason?.name,
+      component: 'FarmOverview'
+    });
+
+    return filteredPonds.map(pond => {
+      const transformed = {
+        id: pond._id || pond.id,
+        name: pond.name,
+        status: pond.status || 'Active', // Default to Active if not set
+        health: pond.health || 'Good', // Default to Good if not set
+        progress: pond.progress || pond.stockingDensity || DEFAULT_POND_PROGRESS, // Use stocking density or default
+        healthScore: pond.healthScore || pond.waterQualityScore || DEFAULT_POND_HEALTH_SCORE // Use water quality score or default
+      };
+
+      logger.debug('Transformed pond data', {
+        originalId: pond._id,
+        originalName: pond.name,
+        originalStatus: pond.status,
+        originalSeason: pond.seasonId?.name,
+        transformed: transformed,
+        component: 'FarmOverview'
+      });
+
+      return transformed;
+    });
+  }, [filteredPonds, filter, selectedSeason]);
 
   // Transform water quality data for charts
   const transformedWaterQualityData = useMemo(() => {
@@ -391,7 +485,7 @@ const FarmOverview = () => {
         {summaryData.map((item, _index) => (
           <Grid item xs={12} sm={6} md={4} lg={2} key={item.title}>
             <KPICard
-              title={t(item.title)}
+              title={item.title}
               value={item.value}
               icon={item.icon}
               color={item.color}
@@ -457,12 +551,7 @@ const FarmOverview = () => {
         <Grid container spacing={3}>
           {transformedPondData.map(pond => (
             <Grid item xs={12} sm={6} lg={4} key={pond.id}>
-              <PondCard
-                pond={pond}
-                onClick={() => navigate(`/dashboard/${pond.id}`)}
-                onManageClick={() => navigate(`/dashboard/${pond.id}`)}
-                onTimelineClick={() => navigate(`/pond/${pond.id}`)}
-              />
+              <PondCard pond={pond} onClick={() => navigate(`/dashboard/${pond.id}`)} />
             </Grid>
           ))}
         </Grid>

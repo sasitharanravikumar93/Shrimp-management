@@ -38,7 +38,10 @@ import {
   ToggleButtonGroup,
   InputAdornment,
   CircularProgress,
-  Alert
+  Alert,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails
 } from '@mui/material';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -67,8 +70,10 @@ import {
 import AquacultureTooltip from '../components/features/farm/AquacultureTooltip';
 import EventSuggestions from '../components/features/farm/EventSuggestions';
 import FeedCalculator from '../components/features/feeding/FeedCalculator';
+import FeedLog from '../components/features/feeding/FeedLog';
 import HarvestProjection from '../components/features/feeding/HarvestProjection';
 import PondCard from '../components/features/ponds/PondCard';
+import { useGlobalError } from '../components/features/shared/error-handling/GlobalErrorProvider';
 import CustomCalendar from '../components/features/shared/forms/CustomCalendar';
 import WaterQualityAlert from '../components/features/water-quality/WaterQualityAlert';
 import { useSeason } from '../context/SeasonContext';
@@ -96,6 +101,7 @@ const PondManagementPage = () => {
   const navigate = useNavigate();
   const { selectedSeason } = useSeason();
   const { pondId } = useParams();
+  const { showError } = useGlobalError();
 
   const API_DATA_CACHE_DURATION = 3;
   const POND_DISPLAY_LIMIT = 3;
@@ -129,6 +135,8 @@ const PondManagementPage = () => {
         setNurseryBatches(response || []);
       } catch (err) {
         logger.error('Error fetching nursery batches:', err);
+        // Show sanitised error modal for API errors
+        showError(err);
       }
     };
     fetchNurseryBatches();
@@ -413,13 +421,55 @@ const PondManagementPage = () => {
     setOpenAddModal(true);
   };
 
+  const handleDeleteFeedEntry = async feedEntryId => {
+    if (!feedEntryId) {
+      logger.error('No feed entry ID provided for deletion');
+      return;
+    }
+
+    try {
+      // Show confirmation dialog if needed
+      const confirmed = window.confirm('Are you sure you want to delete this feed entry?');
+      if (!confirmed) return;
+
+      await api.delete(`/feed-inputs/${feedEntryId}`);
+
+      // Refresh the feed entries data
+      refetchFeedEntries();
+      logger.info('Feed entry deleted successfully:', feedEntryId);
+    } catch (error) {
+      logger.error('Error deleting feed entry:', error);
+      showError(error); // Show error using global error handler
+    }
+  };
+
+  // Direct feed input handler
+  const handleFeedInputSubmit = async data => {
+    try {
+      await createFeedInput({
+        date: data.date.toISOString().split('T')[0],
+        time: data.time.toLocaleTimeString('en-US', {
+          hour12: false,
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
+        pondId: pondId,
+        inventoryItemId: feedType,
+        quantity: parseFloat(data.quantity),
+        seasonId: selectedSeason._id
+      });
+      refetchFeedEntries();
+      logger.info('Feed input created successfully');
+    } catch (error) {
+      logger.error('Error creating feed input:', error);
+      showError(error);
+    }
+  };
+
   const handleEventSubmit = async data => {
     try {
       const details = {};
-      if (data.eventType === 'Feeding') {
-        details.inventoryItemId = feedType;
-        details.quantity = parseFloat(data.quantity);
-      } else if (data.eventType === 'Water Quality') {
+      if (data.eventType === 'Water Quality') {
         details.pH = parseFloat(data.pH);
         details.dissolvedOxygen = parseFloat(data.dissolvedOxygen);
         details.temperature = parseFloat(data.temperature);
@@ -450,6 +500,8 @@ const PondManagementPage = () => {
       setOpenAddModal(false);
     } catch (error) {
       logger.error('Error submitting event:', error);
+      // Show sanitised error modal for API errors
+      showError(error);
     }
   };
 
@@ -574,6 +626,9 @@ const PondManagementPage = () => {
       .map(getErrorMessage)
       .filter(Boolean)
       .join(', ');
+
+    // Show global error modal for critical errors
+    showError(new Error(`Error loading pond data: ${errorMessages}`));
 
     return (
       <Container maxWidth='lg' sx={{ mt: 2, mb: 4 }}>
@@ -767,9 +822,9 @@ const PondManagementPage = () => {
                 scrollButtons='auto'
                 sx={{ mb: 3 }}
               >
-                <Tab icon={<FeedIcon />} label='Feed' />
-                <Tab icon={<WaterIcon />} label='Water Quality' />
-                <Tab icon={<GrowthIcon />} label='Growth Sampling' />
+                <Tab icon={<FeedIcon />} label={t('feed.feed')} />
+                <Tab icon={<WaterIcon />} label={t('water_quality')} />
+                <Tab icon={<GrowthIcon />} label={t('growth.sampling')} />
               </Tabs>
 
               <Divider sx={{ mb: 3 }} />
@@ -792,7 +847,7 @@ const PondManagementPage = () => {
                             setValue('quantity', feedQty.toFixed(2));
                           }}
                         />
-                        <form onSubmit={handleSubmit(handleEventSubmit)}>
+                        <form onSubmit={handleSubmit(handleFeedInputSubmit)}>
                           <Grid container spacing={2}>
                             <Grid item xs={12} md={6}>
                               <Controller
@@ -830,15 +885,27 @@ const PondManagementPage = () => {
                                 fullWidth
                                 select
                                 disabled={feedInventoryLoading}
-                                error={!!feedInventoryError}
+                                error={
+                                  !!feedInventoryError ||
+                                  (Array.isArray(feedInventoryItems) &&
+                                    feedInventoryItems.length === 0)
+                                }
+                                required
                                 helperText={
-                                  feedInventoryError ||
-                                  (feedInventoryLoading ? 'Loading feed types...' : '')
+                                  feedInventoryError
+                                    ? `Error: ${feedInventoryError}`
+                                    : feedInventoryLoading
+                                    ? 'Loading feed types...'
+                                    : Array.isArray(feedInventoryItems) &&
+                                      feedInventoryItems.length === 0
+                                    ? 'No feed inventory available for this season. Please add feed inventory first.'
+                                    : ''
                                 }
                                 value={feedType}
                                 onChange={e => setFeedType(e.target.value)}
                               >
                                 {Array.isArray(feedInventoryItems) &&
+                                feedInventoryItems.length > 0 ? (
                                   feedInventoryItems.map(item => {
                                     const itemName =
                                       typeof item.itemName === 'object'
@@ -849,7 +916,12 @@ const PondManagementPage = () => {
                                         {itemName}
                                       </MenuItem>
                                     );
-                                  })}
+                                  })
+                                ) : (
+                                  <MenuItem disabled value=''>
+                                    No feed inventory available
+                                  </MenuItem>
+                                )}
                               </TextField>
                             </Grid>
 
@@ -857,12 +929,22 @@ const PondManagementPage = () => {
                               <Controller
                                 name='quantity'
                                 control={control}
-                                render={({ field }) => (
+                                rules={{
+                                  required: 'Quantity is required',
+                                  min: { value: 0.1, message: 'Quantity must be greater than 0' }
+                                }}
+                                render={({ field, fieldState }) => (
                                   <TextField
                                     {...field}
                                     label='Quantity (kg)'
                                     type='number'
                                     fullWidth
+                                    required
+                                    error={!!fieldState.error}
+                                    helperText={
+                                      fieldState.error?.message ||
+                                      'Enter the amount of feed to be used'
+                                    }
                                   />
                                 )}
                               />
@@ -873,9 +955,18 @@ const PondManagementPage = () => {
                                 type='submit'
                                 variant='contained'
                                 startIcon={<AddIcon />}
-                                disabled={createFeedInputLoading}
+                                disabled={
+                                  createFeedInputLoading ||
+                                  (Array.isArray(feedInventoryItems) &&
+                                    feedInventoryItems.length === 0)
+                                }
                               >
-                                {createFeedInputLoading ? 'Adding...' : 'Add Feed Entry'}
+                                {createFeedInputLoading
+                                  ? 'Adding...'
+                                  : Array.isArray(feedInventoryItems) &&
+                                    feedInventoryItems.length === 0
+                                  ? 'No Feed Inventory Available'
+                                  : 'Add Feed Entry'}
                               </Button>
                             </Grid>
                           </Grid>
@@ -908,68 +999,151 @@ const PondManagementPage = () => {
                         }
                       />
                       <CardContent>
-                        <Box sx={{ height: 300, mb: 2 }}>
-                          <ResponsiveContainer width='100%' height='100%'>
-                            <BarChart
-                              data={feedChartData}
-                              margin={{ top: 5, right: 30, left: 20, bottom: 50 }}
-                            >
-                              <CartesianGrid strokeDasharray='3 3' />
-                              <XAxis dataKey='date' />
-                              <YAxis />
-                              <RechartsTooltip />
-                              <Legend />
-                              <Bar dataKey='quantity' name='Feed Quantity (kg)' fill='#007BFF' />
-                            </BarChart>
-                          </ResponsiveContainer>
-                        </Box>
+                        <FeedLog pondId={pondId} seasonId={selectedSeason?._id} />
 
                         <Divider sx={{ my: 2 }} />
 
-                        <Box sx={{ maxHeight: 300, overflow: 'auto' }}>
-                          <Grid container spacing={1}>
-                            {feedEntries.map(entry => (
-                              <Grid item xs={12} key={entry._id || entry.id}>
-                                <Card variant='outlined' sx={{ p: 1 }}>
-                                  <Box
-                                    sx={{
-                                      display: 'flex',
-                                      justifyContent: 'space-between',
-                                      alignItems: 'center'
-                                    }}
-                                  >
-                                    <Box>
-                                      <Typography variant='body2' fontWeight='bold'>
-                                        {entry.feedType}
-                                      </Typography>
-                                      <Typography variant='body2' color='text.secondary'>
-                                        {formatDate(entry.date)} at {formatTime(entry.time)}
-                                      </Typography>
-                                    </Box>
-                                    <Box sx={{ textAlign: 'right' }}>
-                                      <Typography variant='body2' fontWeight='bold'>
-                                        {entry.quantity} kg
-                                      </Typography>
+                        <Box sx={{ maxHeight: 400, overflow: 'auto' }}>
+                          {Array.isArray(feedEntries) && feedEntries.length > 0 ? (
+                            Object.entries(
+                              feedEntries.reduce((groups, entry) => {
+                                const dateKey = formatDate(entry.date);
+                                if (!groups[dateKey]) {
+                                  groups[dateKey] = [entry];
+                                } else {
+                                  groups[dateKey].push(entry);
+                                }
+                                return groups;
+                              }, {})
+                            )
+                              .sort(([a], [b]) => new Date(a) - new Date(b))
+                              .reverse() // Show most recent dates first
+                              .map(([date, entries]) => {
+                                const totalsByFeedType = entries.reduce((totals, entry) => {
+                                  const feedTypeName = entry.feedType || 'Unknown';
+                                  if (!totals[feedTypeName]) {
+                                    totals[feedTypeName] = 0;
+                                  }
+                                  totals[feedTypeName] += parseFloat(entry.quantity) || 0;
+                                  return totals;
+                                }, {});
+
+                                const totalQuantity = Object.values(totalsByFeedType).reduce(
+                                  (sum, qty) => sum + qty,
+                                  0
+                                );
+
+                                return (
+                                  <Accordion key={date} sx={{ mb: 1 }}>
+                                    <AccordionSummary expandIcon={<FeedIcon />}>
                                       <Box
                                         sx={{
                                           display: 'flex',
-                                          justifyContent: 'flex-end',
-                                          gap: 0.5
+                                          justifyContent: 'space-between',
+                                          width: '100%',
+                                          alignItems: 'center'
                                         }}
                                       >
-                                        <IconButton size='small'>
-                                          <EditIcon sx={{ fontSize: 16 }} />
-                                        </IconButton>
-                                        <IconButton size='small'>
-                                          <DeleteIcon sx={{ fontSize: 16 }} />
-                                        </IconButton>
+                                        <Box>
+                                          <Typography variant='subtitle1' fontWeight='bold'>
+                                            {date}
+                                          </Typography>
+                                          <Typography variant='body2' color='text.secondary'>
+                                            {entries.length} feedings
+                                          </Typography>
+                                        </Box>
+                                        <Box sx={{ textAlign: 'right' }}>
+                                          <Typography
+                                            variant='body2'
+                                            color='primary'
+                                            fontWeight='bold'
+                                          >
+                                            Total: {totalQuantity.toFixed(1)} kg
+                                          </Typography>
+                                          {Object.entries(totalsByFeedType).length > 1 && (
+                                            <Typography
+                                              variant='caption'
+                                              color='text.secondary'
+                                              sx={{ display: 'block' }}
+                                            >
+                                              {Object.entries(totalsByFeedType)
+                                                .map(
+                                                  ([type, qty]) => `${type}: ${qty.toFixed(1)}kg`
+                                                )
+                                                .join(' | ')}
+                                            </Typography>
+                                          )}
+                                        </Box>
                                       </Box>
-                                    </Box>
-                                  </Box>
-                                </Card>
-                              </Grid>
-                            ))}
-                          </Grid>
+                                    </AccordionSummary>
+                                    <AccordionDetails
+                                      sx={{ bgcolor: 'rgba(0, 123, 255, 0.04)', p: 1 }}
+                                    >
+                                      {entries
+                                        .sort(
+                                          (a, b) =>
+                                            new Date(a.time || a.date) - new Date(b.time || b.date)
+                                        )
+                                        .map(entry => (
+                                          <Card
+                                            key={entry._id || entry.id}
+                                            variant='outlined'
+                                            sx={{ mb: 1, p: 1 }}
+                                          >
+                                            <Box
+                                              sx={{
+                                                display: 'flex',
+                                                justifyContent: 'space-between',
+                                                alignItems: 'center'
+                                              }}
+                                            >
+                                              <Box>
+                                                <Typography variant='body2' fontWeight='bold'>
+                                                  {entry.feedType || 'Unknown Feed Type'}
+                                                </Typography>
+                                                <Typography
+                                                  variant='caption'
+                                                  color='text.secondary'
+                                                >
+                                                  {formatTime(entry.time || entry.date)}
+                                                </Typography>
+                                              </Box>
+                                              <Box
+                                                sx={{
+                                                  display: 'flex',
+                                                  alignItems: 'center',
+                                                  gap: 1
+                                                }}
+                                              >
+                                                <Typography variant='body2' fontWeight='bold'>
+                                                  {(parseFloat(entry.quantity) || 0).toFixed(1)} kg
+                                                </Typography>
+                                                <IconButton size='small' title='Edit'>
+                                                  <EditIcon sx={{ fontSize: 16 }} />
+                                                </IconButton>
+                                                <IconButton
+                                                  size='small'
+                                                  title='Delete'
+                                                  onClick={() => handleDeleteFeedEntry(entry._id)}
+                                                >
+                                                  <DeleteIcon sx={{ fontSize: 16 }} />
+                                                </IconButton>
+                                              </Box>
+                                            </Box>
+                                          </Card>
+                                        ))}
+                                    </AccordionDetails>
+                                  </Accordion>
+                                );
+                              })
+                          ) : (
+                            <Box sx={{ textAlign: 'center', py: 4 }}>
+                              <FeedIcon sx={{ fontSize: 48, color: 'text.secondary', mb: 2 }} />
+                              <Typography variant='body2' color='text.secondary'>
+                                No feed history available
+                              </Typography>
+                            </Box>
+                          )}
                         </Box>
                       </CardContent>
                     </Card>
@@ -1700,7 +1874,6 @@ const PondManagementPage = () => {
                       <MenuItem value='Routine'>Routine</MenuItem>
                       <MenuItem value='Monitoring'>Monitoring</MenuItem>
                       <MenuItem value='Maintenance'>Maintenance</MenuItem>
-                      <MenuItem value='Feeding'>Feeding</MenuItem>
                       <MenuItem value='Water Quality'>Water Quality</MenuItem>
                       <MenuItem value='Growth Sampling'>Growth Sampling</MenuItem>
                       <MenuItem value='Stocking'>Stocking</MenuItem>
@@ -1755,14 +1928,24 @@ const PondManagementPage = () => {
                       fullWidth
                       select
                       disabled={feedInventoryLoading}
-                      error={!!feedInventoryError}
+                      error={
+                        !!feedInventoryError ||
+                        (Array.isArray(feedInventoryItems) && feedInventoryItems.length === 0)
+                      }
+                      required
                       helperText={
-                        feedInventoryError || (feedInventoryLoading ? 'Loading feed types...' : '')
+                        feedInventoryError
+                          ? `Error: ${feedInventoryError}`
+                          : feedInventoryLoading
+                          ? 'Loading feed types...'
+                          : Array.isArray(feedInventoryItems) && feedInventoryItems.length === 0
+                          ? 'No feed inventory available for this season. Please add feed inventory first.'
+                          : ''
                       }
                       value={feedType}
                       onChange={e => setFeedType(e.target.value)}
                     >
-                      {Array.isArray(feedInventoryItems) &&
+                      {Array.isArray(feedInventoryItems) && feedInventoryItems.length > 0 ? (
                         feedInventoryItems.map(item => {
                           const itemName =
                             typeof item.itemName === 'object'
@@ -1773,15 +1956,34 @@ const PondManagementPage = () => {
                               {itemName}
                             </MenuItem>
                           );
-                        })}
+                        })
+                      ) : (
+                        <MenuItem disabled value=''>
+                          No feed inventory available
+                        </MenuItem>
+                      )}
                     </TextField>
                   </Grid>
                   <Grid item xs={12}>
                     <Controller
                       name='quantity'
                       control={control}
-                      render={({ field }) => (
-                        <TextField {...field} label='Quantity (kg)' type='number' fullWidth />
+                      rules={{
+                        required: 'Quantity is required',
+                        min: { value: 0.1, message: 'Quantity must be greater than 0' }
+                      }}
+                      render={({ field, fieldState }) => (
+                        <TextField
+                          {...field}
+                          label='Quantity (kg)'
+                          type='number'
+                          fullWidth
+                          required
+                          error={!!fieldState.error}
+                          helperText={
+                            fieldState.error?.message || 'Enter the amount of feed to be used'
+                          }
+                        />
                       )}
                     />
                   </Grid>
