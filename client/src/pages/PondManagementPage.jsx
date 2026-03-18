@@ -24,7 +24,8 @@ import {
   ToggleButtonGroup,
   InputAdornment,
   CircularProgress,
-  Alert
+  Alert,
+  Skeleton
 } from '@mui/material';
 import { 
   Add as AddIcon, 
@@ -82,6 +83,7 @@ import HarvestProjection from '../components/HarvestProjection';
 import FeedCalculator from '../components/FeedCalculator';
 import WaterQualityAlert from '../components/WaterQualityAlert';
 import EventSuggestions from '../components/EventSuggestions';
+import FinancialOverviewWidget from '../components/FinancialOverviewWidget';
 
 const PondManagementPage = () => {
   const api = useApi(); // Initialize useApi
@@ -97,8 +99,8 @@ const PondManagementPage = () => {
   useEffect(() => {
     const fetchFeedInventory = async () => {
       try {
-        const response = await api.get('/inventory?itemType=Feed');
-        setFeedInventoryItems(response.data);
+        const response = await api.get('/inventory-items?itemType=Feed');
+        setFeedInventoryItems(response || []);
       } catch (err) {
         console.error('Error fetching feed inventory:', err);
         setFeedInventoryError('Failed to load feed types.');
@@ -110,9 +112,9 @@ const PondManagementPage = () => {
     const fetchChemicalProbioticInventory = async () => {
       try {
         // Assuming the API can filter by multiple itemTypes or we make two calls
-        const chemicalResponse = await api.get('/inventory?itemType=Chemical');
-        const probioticResponse = await api.get('/inventory?itemType=Probiotic');
-        setChemicalProbioticInventoryItems([...chemicalResponse.data, ...probioticResponse.data]);
+        const chemicalResponse = await api.get('/inventory-items?itemType=Chemical');
+        const probioticResponse = await api.get('/inventory-items?itemType=Probiotic');
+        setChemicalProbioticInventoryItems([...(chemicalResponse || []), ...(probioticResponse || [])]);
       } catch (err) {
         console.error('Error fetching chemical/probiotic inventory:', err);
         setChemicalProbioticInventoryError('Failed to load chemical/probiotic types.');
@@ -262,8 +264,9 @@ const PondManagementPage = () => {
           pondId,
           date: data.date,
           time: data.time,
-          feedType: data.feedType,
-          quantity: parseFloat(data.quantity)
+          inventoryItemId: data.feedType,
+          quantity: parseFloat(data.quantity),
+          seasonId: selectedSeason?._id || pond.seasonId?._id
         });
         refetchFeedEntries();
       } else if (activeTab === 1 || data.eventType === 'Water Quality') {
@@ -277,7 +280,8 @@ const PondManagementPage = () => {
           temperature: parseFloat(data.temperature),
           salinity: parseFloat(data.salinity),
           chemicalUsed: data.chemicalUsed,
-          chemicalQuantityUsed: parseFloat(data.chemicalQuantityUsed)
+          chemicalQuantityUsed: parseFloat(data.chemicalQuantityUsed),
+          seasonId: selectedSeason?._id || pond.seasonId?._id
         });
         refetchWaterQualityEntries();
       } else if (activeTab === 2 || data.eventType === 'Growth Sampling') {
@@ -287,7 +291,8 @@ const PondManagementPage = () => {
           date: data.date,
           time: data.time,
           totalWeight: parseFloat(data.totalWeight),
-          totalCount: parseInt(data.totalCount)
+          totalCount: parseInt(data.totalCount),
+          seasonId: selectedSeason?._id || pond.seasonId?._id
         });
         refetchGrowthSamplingEntries();
       } else {
@@ -298,7 +303,8 @@ const PondManagementPage = () => {
           date: data.date,
           time: data.time,
           type: data.eventType,
-          description: data.description
+          description: data.description,
+          seasonId: selectedSeason?._id || pond.seasonId?._id
         });
         refetchEvents();
       }
@@ -395,8 +401,19 @@ const PondManagementPage = () => {
 
   if (isLoading) {
     return (
-      <Container maxWidth="lg" sx={{ mt: 2, mb: 4, display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <CircularProgress />
+      <Container maxWidth="lg" sx={{ mt: 2, mb: 4 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+          <Box>
+            <Skeleton variant="text" width={200} height={36} />
+            <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+              <Skeleton variant="rounded" width={80} height={24} sx={{ borderRadius: 2 }} />
+              <Skeleton variant="rounded" width={60} height={24} sx={{ borderRadius: 2 }} />
+              <Skeleton variant="rounded" width={60} height={24} sx={{ borderRadius: 2 }} />
+            </Box>
+          </Box>
+          <Skeleton variant="rounded" width={140} height={40} sx={{ borderRadius: 2 }} />
+        </Box>
+        <Skeleton variant="rounded" width="100%" height={400} sx={{ borderRadius: 3 }} />
       </Container>
     );
   }
@@ -494,6 +511,9 @@ const PondManagementPage = () => {
               startDate="2023-06-01"
               pondName={pond.name}
             />
+          </Grid>
+          <Grid item xs={12} md={6} lg={8}>
+            <FinancialOverviewWidget pondId={pondId} seasonId={selectedSeason?.id || pond?.seasonId} />
           </Grid>
         </Grid>
         
@@ -662,7 +682,7 @@ const PondManagementPage = () => {
                               <YAxis />
                               <RechartsTooltip />
                               <Legend />
-                              <Bar dataKey="quantity" name="Feed Quantity (kg)" fill="#007BFF" />
+                              <Bar dataKey="quantity" name="Feed Quantity (kg)" fill="#2563EB" />
                             </BarChart>
                           </ResponsiveContainer>
                         </Box>
@@ -903,7 +923,7 @@ const PondManagementPage = () => {
                               <YAxis />
                               <RechartsTooltip />
                               <Legend />
-                              <Line type="monotone" dataKey="pH" name="pH Level" stroke="#007BFF" activeDot={{ r: 8 }} />
+                              <Line type="monotone" dataKey="pH" name="pH Level" stroke="#2563EB" activeDot={{ r: 8 }} />
                               <Line type="monotone" dataKey="do" name="Dissolved Oxygen (mg/L)" stroke="#28A745" />
                               <Line type="monotone" dataKey="temp" name="Temperature (°C)" stroke="#FD7E14" />
                             </LineChart>
@@ -1078,7 +1098,7 @@ const PondManagementPage = () => {
                               <ZAxis range={[100]} />
                               <RechartsTooltip cursor={{ strokeDasharray: '3 3' }} />
                               <Legend />
-                              <Scatter name="Growth Samples" data={growthScatterData} fill="#007BFF" />
+                              <Scatter name="Growth Samples" data={growthScatterData} fill="#2563EB" />
                             </ScatterChart>
                           </ResponsiveContainer>
                         </Box>
@@ -1205,10 +1225,10 @@ const PondManagementPage = () => {
                               sx={{ 
                                 height: '100%',
                                 borderLeft: `4px solid ${
-                                  event.type === 'Routine' ? '#007BFF' : 
+                                  event.type === 'Routine' ? '#2563EB' : 
                                   event.type === 'Monitoring' ? '#28A745' : 
                                   event.type === 'Maintenance' ? '#FD7E14' :
-                                  event.type === 'Feeding' ? '#007BFF' :
+                                  event.type === 'Feeding' ? '#2563EB' :
                                   event.type === 'Water Quality' ? '#28A745' :
                                   event.type === 'Growth Sampling' ? '#6f42c1' :
                                   '#9e9e9e'

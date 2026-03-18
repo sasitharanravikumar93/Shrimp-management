@@ -25,11 +25,11 @@ const CustomCalendar = ({
 }) => {
   // Event styles for calendar
   const eventStyleGetter = (event) => {
-    let backgroundColor = '#007BFF';
+    let backgroundColor = '#2563EB';
     let className = 'rbc-event-routine';
     
     if (event.type === 'Routine') {
-      backgroundColor = '#007BFF';
+      backgroundColor = '#2563EB';
       className = 'rbc-event-routine';
     }
     if (event.type === 'Monitoring') {
@@ -41,7 +41,7 @@ const CustomCalendar = ({
       className = 'rbc-event-maintenance';
     }
     if (event.type === 'Feeding') {
-      backgroundColor = '#007BFF';
+      backgroundColor = '#2563EB';
       className = 'rbc-event-feeding';
     }
     if (event.type === 'Water Quality') {

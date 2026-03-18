@@ -32,6 +32,7 @@ import {
   ToggleButtonGroup,
   CircularProgress,
   Alert,
+  Skeleton,
   FormControl,
   InputLabel,
   Select
@@ -64,8 +65,10 @@ import {
   copyPondDetails
 } from '../services/api';
 import { format } from 'date-fns';
+import { useSeason } from '../context/SeasonContext';
 
 const AdminPage = () => {
+  const { refreshSeasons: refreshGlobalSeasons } = useSeason();
   const [activeTab, setActiveTab] = useState(0);
   const [openDialog, setOpenDialog] = useState(false);
   const [dialogType, setDialogType] = useState(''); // 'season', 'pond'
@@ -286,6 +289,7 @@ const AdminPage = () => {
       // Refresh data
       if (dialogType === 'season') {
         refetchSeasons();
+        refreshGlobalSeasons();
       } else if (dialogType === 'pond') {
         refetchPonds();
       }
@@ -357,8 +361,13 @@ const AdminPage = () => {
 
   if (isLoading) {
     return (
-      <Container maxWidth="lg" sx={{ mt: 2, mb: 4, display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <CircularProgress />
+      <Container maxWidth="lg" sx={{ mt: 2, mb: 4 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
+          <Skeleton variant="text" width={180} height={36} />
+          <Skeleton variant="rounded" width={120} height={40} sx={{ borderRadius: 2 }} />
+        </Box>
+        <Skeleton variant="rounded" width="100%" height={60} sx={{ borderRadius: 2, mb: 2 }} />
+        <Skeleton variant="rounded" width="100%" height={300} sx={{ borderRadius: 3 }} />
       </Container>
     );
   }
@@ -491,7 +500,7 @@ const AdminPage = () => {
                             <YAxis label={{ value: 'Yield (tons)', angle: -90, position: 'insideLeft' }} />
                             <RechartsTooltip />
                             <Legend />
-                            <Bar dataKey="yield" name="Season Yield" fill="#007BFF" />
+                            <Bar dataKey="yield" name="Season Yield" fill="#2563EB" radius={[4, 4, 0, 0]} />
                           </BarChart>
                         </ResponsiveContainer>
                       </Box>

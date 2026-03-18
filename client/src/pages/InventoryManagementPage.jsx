@@ -41,8 +41,8 @@ const InventoryManagementPage = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await api.get('/inventory');
-      setInventoryItems(response.data);
+      const response = await api.get('/inventory-items');
+      setInventoryItems(response || []);
     } catch (err) {
       console.error('Error fetching inventory items:', err);
       setError('Failed to fetch inventory items. Please try again.');
@@ -59,10 +59,10 @@ const InventoryManagementPage = () => {
     setSearchTerm(event.target.value);
   };
 
-  const filteredItems = inventoryItems.filter(item =>
-    item.itemName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.itemType.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.supplier.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredItems = (inventoryItems || []).filter(item =>
+    (item.itemName || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (item.itemType || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (item.supplier || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleOpenForm = (item = null) => {
@@ -90,7 +90,7 @@ const InventoryManagementPage = () => {
   const handleDeleteItem = async (id) => {
     if (window.confirm('Are you sure you want to delete this inventory item?')) {
       try {
-        await api.delete(`/inventory/${id}`);
+        await api.delete(`/inventory-items/${id}`);
         fetchInventoryItems(); // Refresh list
       } catch (err) {
         console.error('Error deleting inventory item:', err);
@@ -101,9 +101,7 @@ const InventoryManagementPage = () => {
 
   // Helper to calculate current quantity (initial - adjustments)
   const calculateCurrentQuantity = (item) => {
-    // This will need to be properly implemented with backend logic
-    // For now, we'll use initialQuantity as a placeholder
-    return item.initialQuantity;
+    return item.currentQuantity !== undefined ? item.currentQuantity : item.initialQuantity;
   };
 
   // Helper to determine status

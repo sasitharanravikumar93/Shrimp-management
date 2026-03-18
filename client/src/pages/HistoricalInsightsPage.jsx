@@ -552,7 +552,7 @@ const HistoricalInsightsPage = () => {
                       <YAxis />
                       <Tooltip />
                       <Legend />
-                      <Bar dataKey="quantity" name="Feed Consumption (kg)" fill="#007BFF" />
+                      <Bar dataKey="quantity" name="Feed Consumption (kg)" fill="#2563EB" />
                     </BarChart>
                   </ResponsiveContainer>
                 </Box>
@@ -590,7 +590,7 @@ const HistoricalInsightsPage = () => {
                       <Legend />
                       <Line type="monotone" dataKey="avgTemp" name="Avg Temperature (°C)" stroke="#FD7E14" activeDot={{ r: 8 }} />
                       {selectedMetrics.includes('Average Dissolved Oxygen') && (
-                        <Line type="monotone" dataKey="avgDO" name="Avg Dissolved Oxygen (mg/L)" stroke="#007BFF" />
+                        <Line type="monotone" dataKey="avgDO" name="Avg Dissolved Oxygen (mg/L)" stroke="#2563EB" />
                       )}
                     </LineChart>
                   </ResponsiveContainer>

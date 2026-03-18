@@ -52,10 +52,11 @@ const InventoryAdjustmentModal = ({ open, onClose, item }) => {
       // In a real scenario, you'd likely have a dedicated adjustment endpoint
       // that logs the adjustment and updates the current quantity.
 
-      // Example: If the backend has an endpoint like POST /api/inventory/adjustments
-      await api.post('/inventory/adjustments', {
+      // Example: If the backend has an endpoint like POST /api/inventory-items/adjustments
+      await api.post('/inventory-items/adjustments', {
         inventoryItemId: item._id,
-        quantity: parseFloat(adjustmentQuantity),
+        adjustmentType: parseFloat(adjustmentQuantity) > 0 ? 'Addition' : 'Subtraction',
+        quantityChange: Math.abs(parseFloat(adjustmentQuantity)),
         reason: reason,
       });
 

@@ -17,28 +17,26 @@ export const SeasonProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchSeasons = async () => {
-      try {
-        setLoading(true);
-        const data = await getSeasons();
-        setSeasons(data);
-        
-        // Set the first season as selected by default if none is selected
-        if (!selectedSeason && data.length > 0) {
-          // Find the active season or use the first one
-          const activeSeason = data.find(season => season.status === 'Active') || data[0];
-          setSelectedSeason(activeSeason);
-        }
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
+  const fetchSeasons = async () => {
+    try {
+      setLoading(true);
+      const data = await getSeasons();
+      setSeasons(data);
+      
+      if (!selectedSeason && data.length > 0) {
+        const activeSeason = data.find(season => season.status === 'Active') || data[0];
+        setSelectedSeason(activeSeason);
       }
-    };
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchSeasons();
-  }, []); // Removed selectedSeason from dependencies to prevent infinite loop
+  }, []);
 
   const selectSeason = (season) => {
     setSelectedSeason(season);
@@ -50,6 +48,7 @@ export const SeasonProvider = ({ children }) => {
       selectedSeason, 
       selectSeason, 
       setSelectedSeason,
+      refreshSeasons: fetchSeasons,
       loading, 
       error 
     }}>

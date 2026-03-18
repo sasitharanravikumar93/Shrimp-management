@@ -3,7 +3,8 @@ import {
   Box, 
   Typography, 
   IconButton,
-  Paper
+  Paper,
+  useTheme
 } from '@mui/material';
 import { 
   Warning as WarningIcon,
@@ -21,37 +22,39 @@ const AlertBanner = ({
   dismissible = false,
   sx = {}
 }) => {
-  // Define colors and icons based on severity
+  const theme = useTheme();
+
   const getAlertStyles = () => {
+    const isDark = theme.palette.mode === 'dark';
     switch (severity) {
       case 'error':
         return {
-          backgroundColor: '#ffebee',
-          borderColor: '#f44336',
-          color: '#c62828',
-          icon: <ErrorIcon sx={{ color: '#f44336' }} />
+          backgroundColor: isDark ? 'rgba(239, 68, 68, 0.12)' : 'rgba(239, 68, 68, 0.08)',
+          borderColor: theme.palette.error.main,
+          color: isDark ? theme.palette.error.light : theme.palette.error.dark,
+          icon: <ErrorIcon sx={{ color: theme.palette.error.main }} />
         };
       case 'warning':
         return {
-          backgroundColor: '#fff3e0',
-          borderColor: '#ff9800',
-          color: '#ef6c00',
-          icon: <WarningIcon sx={{ color: '#ff9800' }} />
+          backgroundColor: isDark ? 'rgba(245, 158, 11, 0.12)' : 'rgba(245, 158, 11, 0.08)',
+          borderColor: theme.palette.warning.main,
+          color: isDark ? theme.palette.warning.light : theme.palette.warning.dark,
+          icon: <WarningIcon sx={{ color: theme.palette.warning.main }} />
         };
       case 'success':
         return {
-          backgroundColor: '#e8f5e9',
-          borderColor: '#4caf50',
-          color: '#2e7d32',
-          icon: <CheckCircleIcon sx={{ color: '#4caf50' }} />
+          backgroundColor: isDark ? 'rgba(16, 185, 129, 0.12)' : 'rgba(16, 185, 129, 0.08)',
+          borderColor: theme.palette.success.main,
+          color: isDark ? theme.palette.success.light : theme.palette.success.dark,
+          icon: <CheckCircleIcon sx={{ color: theme.palette.success.main }} />
         };
       case 'info':
       default:
         return {
-          backgroundColor: '#e3f2fd',
-          borderColor: '#2196f3',
-          color: '#1565c0',
-          icon: <InfoIcon sx={{ color: '#2196f3' }} />
+          backgroundColor: isDark ? 'rgba(124, 58, 237, 0.12)' : 'rgba(37, 99, 235, 0.08)',
+          borderColor: theme.palette.primary.main,
+          color: isDark ? theme.palette.primary.light : theme.palette.primary.dark,
+          icon: <InfoIcon sx={{ color: theme.palette.primary.main }} />
         };
     }
   };
@@ -62,6 +65,7 @@ const AlertBanner = ({
     <motion.div
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.3 }}
     >
       <Paper
@@ -69,7 +73,7 @@ const AlertBanner = ({
         sx={{
           backgroundColor,
           border: `1px solid ${borderColor}`,
-          borderRadius: 1,
+          borderRadius: 2,
           p: 2,
           mb: 2,
           display: 'flex',
@@ -85,7 +89,8 @@ const AlertBanner = ({
           sx={{ 
             color, 
             flexGrow: 1,
-            pt: 0.25
+            pt: 0.25,
+            fontWeight: 500
           }}
         >
           {message}

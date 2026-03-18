@@ -109,9 +109,9 @@ const InventoryForm = ({ open, onClose, item }) => {
         };
 
         if (item) {
-          await api.put(`/inventory/${item._id}`, dataToSend);
+          await api.put(`/inventory-items/${item._id}`, dataToSend);
         } else {
-          await api.post('/inventory', dataToSend);
+          await api.post('/inventory-items', dataToSend);
         }
         onClose();
       } catch (err) {

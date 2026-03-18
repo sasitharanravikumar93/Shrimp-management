@@ -41,8 +41,15 @@ const apiCall = async (endpoint, method = 'GET', data = null) => {
     } else {
       return await response.text();
     }
-  } catch (error) {
-    console.error('API call failed:', error);
+  } catch (error: any) {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(
+        new CustomEvent('api-error', { 
+          detail: error.message || 'We could not complete your request due to a server error.' 
+        })
+      );
+    }
+    console.error('API call failed centrally:', error);
     throw error;
   }
 };
@@ -111,6 +118,85 @@ export const getEventsByPondId = (pondId) => apiCall(`/events/pond/${pondId}`);
 export const getEventsBySeasonId = (seasonId) => apiCall(`/events/season/${seasonId}`);
 export const getEventsByDateRange = (startDate, endDate) => 
   apiCall(`/events/date-range?startDate=${startDate}&endDate=${endDate}`);
-export const createEvent = (eventData) => apiCall('/events', 'POST', eventData);
-export const updateEvent = (id, eventData) => apiCall(`/events/${id}`, 'PUT', eventData);
-export const deleteEvent = (id) => apiCall(`/events/${id}`, 'DELETE');
+export const createEvent = (eventData: any) => apiCall<any>('/events', 'POST', eventData);
+export const updateEvent = (id: string, eventData: any) => apiCall<any>(`/events/${id}`, 'PUT', eventData);
+export const deleteEvent = (id: string) => apiCall<{message: string}>(`/events/${id}`, 'DELETE');
+
+// Expense API calls
+export const getExpenses = (seasonId?: string, pondId?: string) => {
+  let url = '/expenses?';
+  if (seasonId) url += `seasonId=${seasonId}&`;
+  if (pondId) url += `pondId=${pondId}`;
+  return apiCall<any[]>(url);
+};
+export const getExpenseById = (id: string) => apiCall<any>(`/expenses/${id}`);
+export const createExpense = (expenseData: any) => apiCall<any>('/expenses', 'POST', expenseData);
+export const updateExpense = (id: string, expenseData: any) => apiCall<any>(`/expenses/${id}`, 'PUT', expenseData);
+export const deleteExpense = (id: string) => apiCall<{message: string}>(`/expenses/${id}`, 'DELETE');
+
+// Finance API calls
+export const getFinancialSummary = (seasonId?: string, pondId?: string) => {
+  let url = '/finance/summary?';
+  if (seasonId) url += `seasonId=${seasonId}&`;
+  if (pondId) url += `pondId=${pondId}`;
+  return apiCall<any>(url);
+};
+
+export const getProfitAndLoss = (seasonId: string) => {
+  return apiCall<any>(`/finance/pnl?seasonId=${seasonId}`);
+};
+
+// Harvest API calls
+export const getHarvests = (seasonId?: string, pondId?: string) => {
+  let url = '/harvests?';
+  if (seasonId) url += `seasonId=${seasonId}&`;
+  if (pondId) url += `pondId=${pondId}`;
+  return apiCall<any[]>(url);
+};
+export const getHarvestById = (id: string) => apiCall<any>(`/harvests/${id}`);
+export const createHarvest = (harvestData: any) => apiCall<any>('/harvests', 'POST', harvestData);
+export const deleteHarvest = (id: string) => apiCall<{message: string}>(`/harvests/${id}`, 'DELETE');
+
+// Sale API calls
+export const getSales = () => apiCall<any[]>('/sales');
+export const getSaleById = (id: string) => apiCall<any>(`/sales/${id}`);
+export const createSale = (saleData: any) => apiCall<any>('/sales', 'POST', saleData);
+export const deleteSale = (id: string) => apiCall<{message: string}>(`/sales/${id}`, 'DELETE');
+
+// Health Logs API calls
+export const getHealthLogs = (seasonId?: string, pondId?: string) => {
+  let url = '/health-logs?';
+  if (seasonId) url += `seasonId=${seasonId}&`;
+  if (pondId) url += `pondId=${pondId}`;
+  return apiCall<any[]>(url);
+};
+export const createHealthLog = (data: any) => apiCall<any>('/health-logs', 'POST', data);
+export const updateHealthLog = (id: string, data: any) => apiCall<any>(`/health-logs/${id}`, 'PUT', data);
+export const deleteHealthLog = (id: string) => apiCall<any>(`/health-logs/${id}`, 'DELETE');
+
+// Tasks API calls
+export const getTasks = (seasonId?: string, pondId?: string, completed?: boolean) => {
+  let url = '/tasks?';
+  if (seasonId) url += `seasonId=${seasonId}&`;
+  if (pondId) url += `pondId=${pondId}&`;
+  if (completed !== undefined) url += `completed=${completed}`;
+  return apiCall<any[]>(url);
+};
+export const createTask = (data: any) => apiCall<any>('/tasks', 'POST', data);
+export const updateTask = (id: string, data: any) => apiCall<any>(`/tasks/${id}`, 'PUT', data);
+export const deleteTask = (id: string) => apiCall<any>(`/tasks/${id}`, 'DELETE');
+
+// Notifications API calls
+export const getNotifications = (unreadOnly = false, pondId?: string) => {
+  let url = `/notifications?unread=${unreadOnly}`;
+  if (pondId) url += `&pondId=${pondId}`;
+  return apiCall<any[]>(url);
+};
+export const markNotificationAsRead = (id: string) => apiCall<any>(`/notifications/${id}/read`, 'PUT');
+export const markAllNotificationsAsRead = () => apiCall<any>('/notifications/read-all', 'PUT');
+
+// Alert Rules API calls
+export const getAlertRules = () => apiCall<any[]>('/alert-rules');
+export const createAlertRule = (data: any) => apiCall<any>('/alert-rules', 'POST', data);
+export const updateAlertRule = (id: string, data: any) => apiCall<any>(`/alert-rules/${id}`, 'PUT', data);
+export const deleteAlertRule = (id: string) => apiCall<any>(`/alert-rules/${id}`, 'DELETE');
