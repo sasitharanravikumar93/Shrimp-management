@@ -4,7 +4,7 @@ const Season = require('../models/Season');
 // Create a new nursery batch
 exports.createNurseryBatch = async (req, res) => {
   try {
-    const { batchName, startDate, initialCount, species, source, seasonId } = req.body;
+    const { batchName, startDate, initialCount, species, source, seasonId, unitCost } = req.body;
     
     // Basic validation
     if (!batchName || !startDate || !initialCount || !species || !source || !seasonId) {
@@ -25,7 +25,9 @@ exports.createNurseryBatch = async (req, res) => {
       initialCount, 
       species, 
       source, 
-      seasonId 
+      seasonId,
+      unitCost: unitCost || 0,
+      totalCost: (initialCount || 0) * (unitCost || 0) 
     });
     
     await nurseryBatch.save();
@@ -71,7 +73,7 @@ exports.getNurseryBatchById = async (req, res) => {
 // Update a nursery batch by ID
 exports.updateNurseryBatch = async (req, res) => {
   try {
-    const { batchName, startDate, initialCount, species, source, seasonId } = req.body;
+    const { batchName, startDate, initialCount, species, source, seasonId, unitCost } = req.body;
     
     // Basic validation
     if (!batchName || !startDate || !initialCount || !species || !source || !seasonId) {
@@ -94,7 +96,9 @@ exports.updateNurseryBatch = async (req, res) => {
         initialCount, 
         species, 
         source, 
-        seasonId 
+        seasonId,
+        unitCost: unitCost || 0,
+        totalCost: (initialCount || 0) * (unitCost || 0) 
       },
       { new: true, runValidators: true }
     ).populate('seasonId', 'name');

@@ -8,6 +8,16 @@ router.post('/', feedInputController.createFeedInput);
 // GET /api/feed-inputs - Get all feed inputs
 router.get('/', feedInputController.getAllFeedInputs);
 
+// Specific routes MUST come before /:id wildcard
+// GET /api/feed-inputs/pond/:pondId - Get feed inputs by pond ID
+router.get('/pond/:pondId', feedInputController.getFeedInputsByPondId);
+
+// GET /api/feed-inputs/date-range?startDate=...&endDate=...
+router.get('/date-range', feedInputController.getFeedInputsByDateRange);
+
+// GET /api/feed-inputs/season/:seasonId - Get feed inputs by season ID
+router.get('/season/:seasonId', feedInputController.getFeedInputsBySeasonId);
+
 // GET /api/feed-inputs/:id - Get a feed input by ID
 router.get('/:id', feedInputController.getFeedInputById);
 
@@ -16,14 +26,5 @@ router.put('/:id', feedInputController.updateFeedInput);
 
 // DELETE /api/feed-inputs/:id - Delete a feed input by ID
 router.delete('/:id', feedInputController.deleteFeedInput);
-
-// GET /api/feed-inputs/pond/:pondId - Get feed inputs by pond ID
-router.get('/pond/:pondId', feedInputController.getFeedInputsByPondId);
-
-// GET /api/feed-inputs/date-range?startDate=...&endDate=... - Get feed inputs by date range
-router.get('/date-range', feedInputController.getFeedInputsByDateRange);
-
-// GET /api/feed-inputs/season/:seasonId - Get feed inputs by season ID
-router.get('/season/:seasonId', feedInputController.getFeedInputsBySeasonId);
 
 module.exports = router;

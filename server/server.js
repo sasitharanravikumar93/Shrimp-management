@@ -13,19 +13,18 @@ const PORT = process.env.PORT || 5001; // Default port if not specified in .env
 app.use(cors());
 app.use(express.json()); // For parsing application/json
 
-// MongoDB connection
+// MongoDB connection — skip in test environment
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/shrimp_farm_db';
-mongoose.connect(MONGO_URI, {
-  // useNewUrlParser: true, // These options are no longer needed with Mongoose 6+
-  // useUnifiedTopology: true,
-})
-.then(() => {
-  console.log('Connected to MongoDB');
-})
-.catch((err) => {
-  console.error('Error connecting to MongoDB:', err.message);
-  process.exit(1); // Exit if DB connection fails
-});
+if (process.env.NODE_ENV !== 'test') {
+  mongoose.connect(MONGO_URI)
+    .then(() => {
+      console.log('Connected to MongoDB');
+    })
+    .catch((err) => {
+      console.error('Error connecting to MongoDB:', err.message);
+      process.exit(1);
+    });
+}
 
 // Routes
 app.use('/api/seasons', require('./routes/seasons'));
@@ -36,6 +35,14 @@ app.use('/api/water-quality-inputs', require('./routes/waterQualityInputs'));
 app.use('/api/nursery-batches', require('./routes/nurseryBatches'));
 app.use('/api/events', require('./routes/events'));
 app.use('/api/inventory-items', require('./routes/inventoryRoutes')); // New inventory routes
+app.use('/api/expenses', require('./routes/expensesRoutes'));
+app.use('/api/finance', require('./routes/financeRoutes'));
+app.use('/api/harvests', require('./routes/harvestRoutes'));
+app.use('/api/sales', require('./routes/saleRoutes'));
+app.use('/api/health-logs', require('./routes/healthLogs'));
+app.use('/api/tasks', require('./routes/tasks'));
+app.use('/api/alert-rules', require('./routes/alertRules'));
+app.use('/api/notifications', require('./routes/notifications'));
 // Add more route imports here
 
 // Basic route for testing
@@ -49,8 +56,10 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: 'Something went wrong!' });
 });
 
-const server = app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+}
 
 module.exports = app; // Export the app for testing

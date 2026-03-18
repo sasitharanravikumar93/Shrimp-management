@@ -8,6 +8,10 @@ router.post('/', nurseryBatchController.createNurseryBatch);
 // GET /api/nursery-batches - Get all nursery batches
 router.get('/', nurseryBatchController.getAllNurseryBatches);
 
+// Specific routes MUST come before /:id wildcard
+// GET /api/nursery-batches/season/:seasonId - Get nursery batches by season ID
+router.get('/season/:seasonId', nurseryBatchController.getNurseryBatchesBySeasonId);
+
 // GET /api/nursery-batches/:id - Get a nursery batch by ID
 router.get('/:id', nurseryBatchController.getNurseryBatchById);
 
@@ -16,8 +20,5 @@ router.put('/:id', nurseryBatchController.updateNurseryBatch);
 
 // DELETE /api/nursery-batches/:id - Delete a nursery batch by ID
 router.delete('/:id', nurseryBatchController.deleteNurseryBatch);
-
-// GET /api/nursery-batches/season/:seasonId - Get nursery batches by season ID
-router.get('/season/:seasonId', nurseryBatchController.getNurseryBatchesBySeasonId);
 
 module.exports = router;

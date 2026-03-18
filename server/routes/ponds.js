@@ -8,6 +8,10 @@ router.post('/', pondController.createPond);
 // GET /api/ponds - Get all ponds
 router.get('/', pondController.getAllPonds);
 
+// Specific routes MUST come before /:id wildcard
+// GET /api/ponds/season/:seasonId - Get ponds by season ID
+router.get('/season/:seasonId', pondController.getPondsBySeasonId);
+
 // GET /api/ponds/:id - Get a pond by ID
 router.get('/:id', pondController.getPondById);
 
@@ -16,8 +20,5 @@ router.put('/:id', pondController.updatePond);
 
 // DELETE /api/ponds/:id - Delete a pond by ID
 router.delete('/:id', pondController.deletePond);
-
-// GET /api/ponds/season/:seasonId - Get ponds by season ID
-router.get('/season/:seasonId', pondController.getPondsBySeasonId);
 
 module.exports = router;

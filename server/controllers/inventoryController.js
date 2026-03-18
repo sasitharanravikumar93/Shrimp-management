@@ -300,7 +300,7 @@ exports.getAggregatedInventoryData = async (req, res) => {
       { 
         $lookup: {
           from: 'inventoryitems',
-          localField: 'chemicalInventoryItemId', // Assuming chemical usage
+          localField: 'chemicalUsed', 
           foreignField: '_id',
           as: 'chemicalItemDetails'
         }
