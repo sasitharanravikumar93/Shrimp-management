@@ -1,4 +1,3 @@
-
 const Expense = require('../models/Expense');
 const { logger } = require('../utils/logger');
 
@@ -7,15 +6,15 @@ exports.getAllExpenses = async (req, res) => {
   try {
     const query = {};
     if (req.query.seasonId) {
-      query.season = req.query.seasonId;
+      query.seasonId = req.query.seasonId;
     }
     if (req.query.pondId) {
-      query.pond = req.query.pondId;
+      query.pondId = req.query.pondId;
     }
     if (req.query.mainCategory) {
       query.mainCategory = req.query.mainCategory;
     }
-    const expenses = await Expense.find(query).populate('season').populate('pond').populate('employee');
+    const expenses = await Expense.find(query).populate('seasonId').populate('pondId').populate('employeeId');
     res.json(expenses);
   } catch (error) {
     logger.error('Error getting all expenses:', error);
@@ -24,32 +23,42 @@ exports.getAllExpenses = async (req, res) => {
 };
 
 // Create a new expense
-exports.createExpense = async (req, res) => {
-  const expense = new Expense({
-    date: req.body.date,
-    amount: req.body.amount,
-    mainCategory: req.body.mainCategory,
-    subCategory: req.body.subCategory,
-    description: req.body.description,
-    season: req.body.season,
-    pond: req.body.pond,
-    receiptUrl: req.body.receiptUrl,
-    employee: req.body.employee
-  });
-
   try {
+    const { date, amount, mainCategory, subCategory, description, seasonId, pondId, receiptUrl, employeeId } = req.body;
+    
+    // Basic validation
+    if (!date || !amount || !mainCategory || !subCategory || !seasonId) {
+      return res.status(400).json({ message: 'Missing required fields: date, amount, mainCategory, subCategory, and seasonId are required.' });
+    }
+
+    const expense = new Expense({
+      date,
+      amount,
+      mainCategory,
+      subCategory,
+      description,
+      seasonId,
+      pondId,
+      receiptUrl,
+      employeeId
+    });
+
     const newExpense = await expense.save();
-    res.status(201).json(newExpense);
+    const populatedExpense = await Expense.findById(newExpense._id)
+      .populate('seasonId')
+      .populate('pondId')
+      .populate('employeeId');
+      
+    res.status(201).json(populatedExpense);
   } catch (error) {
     logger.error('Error creating expense:', error);
     return res.status(400).json({ message: error.message });
   }
-};
 
 // Get a single expense
 exports.getExpenseById = async (req, res) => {
   try {
-    const expense = await Expense.findById(req.params.id).populate('season').populate('pond').populate('employee');
+    const expense = await Expense.findById(req.params.id).populate('seasonId').populate('pondId').populate('employeeId');
     if (expense === null) {
       return res.status(404).json({ message: 'Cannot find expense' });
     }
@@ -68,34 +77,16 @@ exports.updateExpense = async (req, res) => {
       return res.status(404).json({ message: 'Cannot find expense' });
     }
 
-    const { date, amount, mainCategory, subCategory, description, season, pond, receiptUrl, employee } = req.body;
-    if (date !== null) {
-      expense.date = date;
-    }
-    if (amount !== null) {
-      expense.amount = amount;
-    }
-    if (mainCategory !== null) {
-      expense.mainCategory = mainCategory;
-    }
-    if (subCategory !== null) {
-      expense.subCategory = subCategory;
-    }
-    if (description !== null) {
-      expense.description = description;
-    }
-    if (season !== null) {
-      expense.season = season;
-    }
-    if (pond !== null) {
-      expense.pond = pond;
-    }
-    if (receiptUrl !== null) {
-      expense.receiptUrl = receiptUrl;
-    }
-    if (employee !== null) {
-      expense.employee = employee;
-    }
+    const { date, amount, mainCategory, subCategory, description, seasonId, pondId, receiptUrl, employeeId } = req.body;
+    if (date !== undefined) { expense.date = date; }
+    if (amount !== undefined) { expense.amount = amount; }
+    if (mainCategory !== undefined) { expense.mainCategory = mainCategory; }
+    if (subCategory !== undefined) { expense.subCategory = subCategory; }
+    if (description !== undefined) { expense.description = description; }
+    if (seasonId !== undefined) { expense.seasonId = seasonId; }
+    if (pondId !== undefined) { expense.pondId = pondId; }
+    if (receiptUrl !== undefined) { expense.receiptUrl = receiptUrl; }
+    if (employeeId !== undefined) { expense.employeeId = employeeId; }
 
     const updatedExpense = await expense.save();
     res.json(updatedExpense);
@@ -126,7 +117,13 @@ exports.getExpenseSummary = async (req, res) => {
   try {
     const query = {};
     if (req.query.seasonId) {
-      query.season = req.query.seasonId;
+      try {
+        const { ObjectId } = require('mongoose').Types;
+        query.seasonId = new ObjectId(req.query.seasonId);
+      } catch (err) {
+        logger.error('Invalid seasonId format:', req.query.seasonId);
+        return res.status(400).json({ message: 'Invalid seasonId format' });
+      }
     }
 
     const summary = await Expense.aggregate([

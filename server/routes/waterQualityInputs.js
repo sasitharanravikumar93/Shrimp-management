@@ -22,6 +22,11 @@ router.get('/filtered', requireResourcePermission('waterQualityInputs', 'read'),
 // GET /api/water-quality-inputs/export - Export water quality data to CSV
 router.get('/export', requireResourcePermission('waterQualityInputs', 'read'), waterQualityInputController.exportWaterQualityData);
 
+// Specific routes MUST come before /:id wildcard
+router.get('/pond/:pondId', requireResourcePermission('waterQualityInputs', 'read'), waterQualityInputController.getWaterQualityInputsByPondId);
+router.get('/date-range', requireResourcePermission('waterQualityInputs', 'read'), ...waterQualityValidation.getByDateRange, waterQualityInputController.getWaterQualityInputsByDateRange);
+router.get('/season/:seasonId', requireResourcePermission('waterQualityInputs', 'read'), waterQualityInputController.getWaterQualityInputsBySeasonId);
+
 // GET /api/water-quality-inputs/:id - Get a water quality input by ID
 router.get('/:id', requireResourcePermission('waterQualityInputs', 'read'), waterQualityInputController.getWaterQualityInputById);
 
@@ -30,14 +35,5 @@ router.put('/:id', requireResourcePermission('waterQualityInputs', 'write'), ...
 
 // DELETE /api/water-quality-inputs/:id - Delete a water quality input by ID
 router.delete('/:id', requireResourcePermission('waterQualityInputs', 'delete'), waterQualityInputController.deleteWaterQualityInput);
-
-// GET /api/water-quality-inputs/pond/:pondId - Get water quality inputs by pond ID
-router.get('/pond/:pondId', requireResourcePermission('waterQualityInputs', 'read'), waterQualityInputController.getWaterQualityInputsByPondId);
-
-// GET /api/water-quality-inputs/date-range?startDate=...&endDate=... - Get water quality inputs by date range
-router.get('/date-range', requireResourcePermission('waterQualityInputs', 'read'), ...waterQualityValidation.getByDateRange, waterQualityInputController.getWaterQualityInputsByDateRange);
-
-// GET /api/water-quality-inputs/season/:seasonId - Get water quality inputs by season ID
-router.get('/season/:seasonId', requireResourcePermission('waterQualityInputs', 'read'), waterQualityInputController.getWaterQualityInputsBySeasonId);
 
 module.exports = router;

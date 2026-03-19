@@ -22,9 +22,9 @@ export interface User extends BaseEntity {
 // Season Types
 export interface Season extends BaseEntity {
   name: string;
-  status: 'Active' | 'Completed' | 'Planned';
-  startDate: string;
-  endDate?: string;
+  status: 'Planning' | 'Active' | 'Completed' | 'Planned';
+  startDate: string; // ISO string
+  endDate?: string; // ISO string
   description?: string;
 }
 
@@ -48,7 +48,7 @@ export interface Pond extends BaseEntity {
   name: string;
   size: number; // in square meters
   capacity: number; // maximum fish capacity
-  status: 'Active' | 'Maintenance' | 'Inactive';
+  status: 'Planning' | 'Active' | 'Inactive' | 'Completed' | 'Maintenance';
   seasonId: Season | string;
   location?: PondLocation;
   waterQuality?: WaterQuality;
@@ -80,9 +80,11 @@ export interface Expense extends BaseEntity {
 export interface FeedInput extends BaseEntity {
   pondId: Pond | string;
   seasonId: Season | string;
-  feedType: string;
-  quantity: number; // in kg
   date: string;
+  time: string;
+  inventoryItemId: string;
+  feedType?: string;
+  quantity: number; // in kg
   cost?: number;
   supplier?: string;
   notes?: string;
@@ -98,24 +100,31 @@ export interface WaterQualityInput extends BaseEntity {
   pH: number;
   temperature: number;
   dissolvedOxygen: number;
+  salinity: number;
   ammonia?: number;
   nitrite?: number;
   nitrate?: number;
   turbidity?: number;
   alkalinity?: number;
   hardness?: number;
+  chemicalUsed?: string;
+  chemicalQuantityUsed?: number;
   notes?: string;
   recordedBy?: User | string;
 }
 
 // Growth and Harvest Types
-export interface GrowthSample extends BaseEntity {
+export interface GrowthSampling extends BaseEntity {
   pondId: Pond | string;
   seasonId: Season | string;
   date: string;
-  sampleSize: number;
-  averageWeight: number; // in grams
+  time?: string;
+  sampleSize?: number;
+  averageWeight?: number; // in grams
+  totalWeight?: number;
+  totalCount?: number;
   averageLength?: number; // in cm
+  weightGrams?: number;
   mortality?: number;
   notes?: string;
   recordedBy?: User | string;
@@ -135,14 +144,22 @@ export interface HarvestRecord extends BaseEntity {
 
 // Inventory Types
 export interface InventoryItem extends BaseEntity {
-  name: string;
-  category: 'Feed' | 'Equipment' | 'Chemical' | 'Medication' | 'Other';
-  currentStock: number;
-  unit: string;
-  minimumStock: number;
-  maxStock?: number;
-  unitCost: number;
+  itemName: string;
+  name?: string;
+  itemType: 'Feed' | 'Chemical' | 'Probiotic' | 'Other' | 'Equipment' | 'Medication';
+  category?: 'Feed' | 'Equipment' | 'Chemical' | 'Medication' | 'Other';
   supplier?: string;
+  purchaseDate?: string;
+  initialQuantity?: number;
+  currentQuantity?: number;
+  currentStock?: number;
+  unit: 'kg' | 'g' | 'litre' | 'ml' | 'bag' | 'bottle' | string;
+  costPerUnit?: number;
+  unitCost?: number;
+  lowStockThreshold?: number;
+  minimumStock?: number;
+  maxStock?: number;
+  status?: 'In Stock' | 'Out of Stock' | 'Expired' | string;
   lastRestocked?: string;
   expiryDate?: string;
   location?: string;
@@ -157,6 +174,16 @@ export interface InventoryAdjustment extends BaseEntity {
   date: string;
   cost?: number;
   recordedBy?: User | string;
+}
+
+// Nursery Types
+export interface NurseryBatch extends BaseEntity {
+  batchName: string;
+  startDate: string;
+  initialCount: number;
+  species: string;
+  source: string;
+  seasonId: Season | string;
 }
 
 // Employee and Salary Types
@@ -201,7 +228,7 @@ export interface FormFieldValidation {
 export interface FormField {
   name: string;
   label: string;
-  type: 'text' | 'number' | 'email' | 'password' | 'date' | 'select' | 'textarea';
+  type: 'text' | 'number' | 'email' | 'password' | 'date' | 'select' | 'textarea' | 'time';
   validation?: FormFieldValidation;
   options?: Array<{ label: string; value: string | number }>;
   placeholder?: string;

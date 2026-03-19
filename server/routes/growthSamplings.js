@@ -8,6 +8,16 @@ router.post('/', growthSamplingController.createGrowthSampling);
 // GET /api/growth-samplings - Get all growth sampling entries
 router.get('/', growthSamplingController.getAllGrowthSamplings);
 
+// Specific routes MUST come before /:id wildcard
+// GET /api/growth-samplings/pond/:pondId - Get growth sampling entries by pond ID
+router.get('/pond/:pondId', growthSamplingController.getGrowthSamplingsByPondId);
+
+// GET /api/growth-samplings/date-range?startDate=...&endDate=...
+router.get('/date-range', growthSamplingController.getGrowthSamplingsByDateRange);
+
+// GET /api/growth-samplings/season/:seasonId - Get growth sampling entries by season ID
+router.get('/season/:seasonId', growthSamplingController.getGrowthSamplingsBySeasonId);
+
 // GET /api/growth-samplings/:id - Get a growth sampling entry by ID
 router.get('/:id', growthSamplingController.getGrowthSamplingById);
 
@@ -16,14 +26,5 @@ router.put('/:id', growthSamplingController.updateGrowthSampling);
 
 // DELETE /api/growth-samplings/:id - Delete a growth sampling entry by ID
 router.delete('/:id', growthSamplingController.deleteGrowthSampling);
-
-// GET /api/growth-samplings/pond/:pondId - Get growth sampling entries by pond ID
-router.get('/pond/:pondId', growthSamplingController.getGrowthSamplingsByPondId);
-
-// GET /api/growth-samplings/date-range?startDate=...&endDate=... - Get growth sampling entries by date range
-router.get('/date-range', growthSamplingController.getGrowthSamplingsByDateRange);
-
-// GET /api/growth-samplings/season/:seasonId - Get growth sampling entries by season ID
-router.get('/season/:seasonId', growthSamplingController.getGrowthSamplingsBySeasonId);
 
 module.exports = router;

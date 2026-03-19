@@ -16,89 +16,25 @@ import { motion } from 'framer-motion';
 import React, { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 
-/* eslint-disable react/prop-types */
-
 import { useStableMemo } from '../../../utils/performanceOptimization';
 
-const TREND_ICON_FONT_SIZE = 16;
-const CIRCULAR_KPI_CARD_DEFAULT_SIZE = 120;
-const PROGRESS_MAX_VALUE = 100;
-const CIRCULAR_PROGRESS_THICKNESS = 3;
+const MotionDiv = motion.div as any;
 
-interface TrendDisplayProps {
-  change: number;
-  changeText?: string;
-}
-
-const TrendDisplay: React.FC<TrendDisplayProps> = memo(({ change, changeText }) => {
-  const trendIcon = useStableMemo(() => {
-    if (change > 0)
-      return <TrendingUpIcon sx={{ fontSize: TREND_ICON_FONT_SIZE, color: 'success.main' }} />;
-    if (change < 0)
-      return <TrendingDownIcon sx={{ fontSize: TREND_ICON_FONT_SIZE, color: 'error.main' }} />;
-    return <TrendingFlatIcon sx={{ fontSize: TREND_ICON_FONT_SIZE, color: 'warning.main' }} />;
-  }, [change]);
-
-  const trendColor: string = useStableMemo(() => {
-    if (change > 0) return 'success.main';
-    if (change < 0) return 'error.main';
-    return 'warning.main';
-  }, [change]);
-
-  return (
-    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-      {trendIcon}
-      <Typography
-        variant='body2'
-        sx={{
-          ml: 0.5,
-          color: trendColor
-        }}
-      >
-        {changeText || `${change > 0 ? '+' : ''}${change}%`}
-      </Typography>
-    </Box>
-  );
-});
-
-TrendDisplay.displayName = 'TrendDisplay';
-
-// Type definitions for KPICard props
 export interface KPICardProps {
   title: string;
-  value: number;
+  value: number | string;
   icon?: React.ReactNode;
   color?: string;
   change?: number;
   changeText?: string;
   progressValue?: number | null;
-  progressColor?: 'primary' | 'secondary' | 'error' | 'warning' | 'info' | 'success';
+  progressColor?: 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning';
   isCurrency?: boolean;
   suffix?: string;
   delay?: number;
 }
 
-export interface CircularKPICardProps {
-  title: string;
-  value: number;
-  icon?: React.ReactNode;
-  color?: string;
-  change?: number;
-  changeText?: string;
-  size?: number;
-  delay?: number;
-}
-
-// Enhanced type definitions for better type safety
-
-interface MotionVariants {
-  initial: { opacity: number; y?: number; scale?: number };
-  animate: { opacity: number; y?: number; scale?: number };
-  transition: { duration: number; delay: number };
-  whileHover: { y?: number; scale?: number; transition: { duration: number } };
-}
-
-const KPICard: React.FC<KPICardProps> = memo(
+const KPICard = memo<KPICardProps>(
   ({
     title,
     value,
@@ -109,20 +45,30 @@ const KPICard: React.FC<KPICardProps> = memo(
     progressValue = null,
     progressColor = 'primary',
     isCurrency = false,
-    suffix,
+    suffix = '',
     delay = 0
   }) => {
     const { t } = useTranslation();
 
-    // Memoize value formatting to prevent recalculation
     const formattedValue = useStableMemo(() => {
-      if (isCurrency) {
+      if (isCurrency && typeof value === 'number') {
         return `${value.toLocaleString()}`;
       }
       return `${value}${suffix}`;
     }, [value, isCurrency, suffix]);
 
-    // Memoize avatar styles with proper typing
+    const trendIcon = useStableMemo(() => {
+      if (change > 0) return <TrendingUpIcon sx={{ fontSize: 16, color: 'success.main' }} />;
+      if (change < 0) return <TrendingDownIcon sx={{ fontSize: 16, color: 'error.main' }} />;
+      return <TrendingFlatIcon sx={{ fontSize: 16, color: 'warning.main' }} />;
+    }, [change]);
+
+    const trendColor = useStableMemo(() => {
+      if (change > 0) return 'success.main';
+      if (change < 0) return 'error.main';
+      return 'warning.main';
+    }, [change]);
+
     const avatarStyles = useStableMemo(
       () => ({
         bgcolor: color,
@@ -132,19 +78,22 @@ const KPICard: React.FC<KPICardProps> = memo(
       [color]
     );
 
-    // Memoize motion variants with proper typing
-    const motionVariants: MotionVariants = useStableMemo(
+    const motionVariants = useStableMemo(
       () => ({
         initial: { opacity: 0, y: 20 },
         animate: { opacity: 1, y: 0 },
-        transition: { duration: 0.5, delay },
-        whileHover: { y: -5, transition: { duration: 0.2 } }
+        transition: { duration: 0.5, delay }
       }),
       [delay]
     );
 
     return (
-      <motion.div {...motionVariants}>
+      <MotionDiv
+        initial='initial'
+        animate='animate'
+        variants={motionVariants as any}
+        whileHover={{ y: -5, transition: { duration: 0.2 } }}
+      >
         <Card
           elevation={3}
           sx={{
@@ -169,10 +118,21 @@ const KPICard: React.FC<KPICardProps> = memo(
                   {formattedValue}
                 </Typography>
                 {(change !== 0 || changeText) && (
-                  <TrendDisplay change={change} changeText={changeText} />
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    {trendIcon}
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        ml: 0.5,
+                        color: trendColor
+                      }}
+                    >
+                      {changeText || `${change > 0 ? '+' : ''}${change}%`}
+                    </Typography>
+                  </Box>
                 )}
               </Box>
-              {icon && <Avatar sx={avatarStyles}>{icon}</Avatar>}
+              <Avatar sx={avatarStyles}>{icon}</Avatar>
             </Box>
 
             {progressValue !== null && (
@@ -187,39 +147,37 @@ const KPICard: React.FC<KPICardProps> = memo(
             )}
           </CardContent>
         </Card>
-      </motion.div>
+      </MotionDiv>
     );
   }
 );
 
-// Circular KPI Card variant with performance optimizations and TypeScript
-export const CircularKPICard: React.FC<CircularKPICardProps> = memo(
-  ({
-    title,
-    value,
-    icon,
-    color = '#1976d2',
-    change = 0,
-    changeText = '',
-    size = CIRCULAR_KPI_CARD_DEFAULT_SIZE,
-    delay = 0
-  }) => {
+export interface CircularKPICardProps {
+  title: string;
+  value: number;
+  icon?: React.ReactNode;
+  color?: string;
+  change?: number;
+  changeText?: string;
+  size?: number;
+  delay?: number;
+}
+
+export const CircularKPICard = memo<CircularKPICardProps>(
+  ({ title, value, icon, color = '#1976d2', change = 0, changeText, size = 120, delay = 0 }) => {
     const { t } = useTranslation();
 
-    // Memoize calculations and styles with proper typing
-    const progressValue: number = useStableMemo(
-      () => (value > PROGRESS_MAX_VALUE ? PROGRESS_MAX_VALUE : Math.max(0, value)),
+    const FULL_PROGRESS = 100;
+    const AVATAR_SIZE_DIVISOR = 3;
+
+    const progressValue = useStableMemo(
+      () => (value > FULL_PROGRESS ? FULL_PROGRESS : value),
       [value]
     );
-
     const avatarSize = useStableMemo(
-      () => ({
-        width: size / CIRCULAR_PROGRESS_THICKNESS,
-        height: size / CIRCULAR_PROGRESS_THICKNESS
-      }),
+      () => ({ width: size / AVATAR_SIZE_DIVISOR, height: size / AVATAR_SIZE_DIVISOR }),
       [size]
     );
-
     const avatarStyles = useStableMemo(
       () => ({
         bgcolor: color,
@@ -228,18 +186,34 @@ export const CircularKPICard: React.FC<CircularKPICardProps> = memo(
       [color, avatarSize]
     );
 
-    const motionVariants: MotionVariants = useStableMemo(
+    const trendIcon = useStableMemo(() => {
+      return change > 0 ? (
+        <TrendingUpIcon sx={{ fontSize: 16, color: 'success.main' }} />
+      ) : (
+        <TrendingDownIcon sx={{ fontSize: 16, color: 'error.main' }} />
+      );
+    }, [change]);
+
+    const trendColor = useStableMemo(() => {
+      return change > 0 ? 'success.main' : change < 0 ? 'error.main' : 'warning.main';
+    }, [change]);
+
+    const motionVariants = useStableMemo(
       () => ({
         initial: { opacity: 0, scale: 0.9 },
         animate: { opacity: 1, scale: 1 },
-        transition: { duration: 0.5, delay },
-        whileHover: { scale: 1.05, transition: { duration: 0.2 } }
+        transition: { duration: 0.5, delay }
       }),
       [delay]
     );
 
     return (
-      <motion.div {...motionVariants}>
+      <MotionDiv
+        initial='initial'
+        animate='animate'
+        variants={motionVariants as any}
+        whileHover={{ scale: 1.05, transition: { duration: 0.2 } }}
+      >
         <Card
           elevation={3}
           sx={{
@@ -255,79 +229,63 @@ export const CircularKPICard: React.FC<CircularKPICardProps> = memo(
             }
           }}
         >
-          <CircularProgressWithAvatar
-            size={size}
-            value={progressValue}
-            color={color}
-            icon={icon}
-            avatarStyles={avatarStyles}
-          />
-
-          <Typography variant='body2' color='text.secondary' align='center' gutterBottom>
+          <Box sx={{ position: 'relative', display: 'inline-flex', mb: 1 }}>
+            <CircularProgress
+              variant='determinate'
+              value={FULL_PROGRESS}
+              size={size}
+              thickness={3}
+              sx={{
+                color: 'rgba(0, 0, 0, 0.08)',
+                position: 'absolute',
+                left: 0
+              }}
+            />
+            <CircularProgress
+              variant='determinate'
+              value={progressValue}
+              size={size}
+              thickness={3}
+              sx={{ color: color }}
+            />
+            <Box
+              sx={{
+                top: 0,
+                left: 0,
+                bottom: 0,
+                right: 0,
+                position: 'absolute',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <Avatar sx={avatarStyles}>{icon}</Avatar>
+            </Box>
+          </Box>
+          <Typography variant='h6' component='div' sx={{ fontWeight: 600, textAlign: 'center' }}>
             {t(title)}
           </Typography>
-
-          <Typography variant='h6' component='div' sx={{ fontWeight: 600, mb: 0.5 }}>
-            {value}%
-          </Typography>
-
-          {(change !== 0 || changeText) && <TrendDisplay change={change} changeText={changeText} />}
+          {(change !== 0 || changeText) && (
+            <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
+              {trendIcon}
+              <Typography
+                variant='body2'
+                sx={{
+                  ml: 0.5,
+                  color: trendColor
+                }}
+              >
+                {changeText || `${change > 0 ? '+' : ''}${change}%`}
+              </Typography>
+            </Box>
+          )}
         </Card>
-      </motion.div>
+      </MotionDiv>
     );
   }
 );
 
-interface CircularProgressWithAvatarProps {
-  size: number;
-  value: number;
-  color: string;
-  icon?: React.ReactNode;
-  avatarStyles: any;
-}
-
-const CircularProgressWithAvatar: React.FC<CircularProgressWithAvatarProps> = memo(
-  ({ size, value, color, icon, avatarStyles }) => (
-    <Box sx={{ position: 'relative', display: 'inline-flex', mb: 1 }}>
-      <CircularProgress
-        variant='determinate'
-        value={PROGRESS_MAX_VALUE}
-        size={size}
-        thickness={CIRCULAR_PROGRESS_THICKNESS}
-        sx={{
-          color: 'rgba(0, 0, 0, 0.08)',
-          position: 'absolute',
-          left: 0
-        }}
-      />
-      <CircularProgress
-        variant='determinate'
-        value={value}
-        size={size}
-        thickness={CIRCULAR_PROGRESS_THICKNESS}
-        sx={{ color }}
-      />
-      <Box
-        sx={{
-          top: 0,
-          left: 0,
-          bottom: 0,
-          right: 0,
-          position: 'absolute',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}
-      >
-        {icon && <Avatar sx={avatarStyles}>{icon}</Avatar>}
-      </Box>
-    </Box>
-  )
-);
-
-CircularProgressWithAvatar.displayName = 'CircularProgressWithAvatar';
-
-// Set display names for better debugging
 KPICard.displayName = 'KPICard';
 CircularKPICard.displayName = 'CircularKPICard';
 

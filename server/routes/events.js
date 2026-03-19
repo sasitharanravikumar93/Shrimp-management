@@ -8,6 +8,12 @@ router.post('/', eventController.createEvent);
 // GET /api/events - Get all events
 router.get('/', eventController.getAllEvents);
 
+// Specific routes MUST come before /:id wildcard
+router.get('/pond/:pondId', eventController.getEventsByPondId);
+router.get('/nursery/:nurseryBatchId', eventController.getEventsByNurseryBatchId);
+router.get('/season/:seasonId', eventController.getEventsBySeasonId);
+router.get('/date-range', eventController.getEventsByDateRange);
+
 // GET /api/events/:id - Get an event by ID
 router.get('/:id', eventController.getEventById);
 
@@ -16,17 +22,5 @@ router.put('/:id', eventController.updateEvent);
 
 // DELETE /api/events/:id - Delete an event by ID
 router.delete('/:id', eventController.deleteEvent);
-
-// GET /api/events/pond/:pondId - Get events by pond ID
-router.get('/pond/:pondId', eventController.getEventsByPondId);
-
-// GET /api/events/nursery/:nurseryBatchId - Get events by nursery batch ID
-router.get('/nursery/:nurseryBatchId', eventController.getEventsByNurseryBatchId);
-
-// GET /api/events/season/:seasonId - Get events by season ID
-router.get('/season/:seasonId', eventController.getEventsBySeasonId);
-
-// GET /api/events/date-range?startDate=...&endDate=... - Get events by date range
-router.get('/date-range', eventController.getEventsByDateRange);
 
 module.exports = router;

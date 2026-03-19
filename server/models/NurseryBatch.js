@@ -24,6 +24,16 @@ const nurseryBatchSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
+  unitCost: {
+    type: Number,
+    required: false,
+    default: 0
+  },
+  totalCost: {
+    type: Number,
+    required: false,
+    default: 0
+  },
   seasonId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Season',

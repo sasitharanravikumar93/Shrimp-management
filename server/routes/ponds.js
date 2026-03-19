@@ -25,6 +25,10 @@ router.post('/', requireResourcePermission('ponds', 'write'), pondValidation.cre
 // GET /api/ponds - Get all ponds (with caching)
 router.get('/', requireResourcePermission('ponds', 'read'), cacheMiddleware, pondController.getAllPonds);
 
+// Specific routes MUST come before /:id wildcard
+// GET /api/ponds/season/:seasonId - Get ponds by season ID
+router.get('/season/:seasonId', requireResourcePermission('ponds', 'read'), pondValidation.getBySeasonId, cacheMiddleware, pondController.getPondsBySeasonId);
+
 // GET /api/ponds/:id - Get a pond by ID
 router.get('/:id', requireResourcePermission('ponds', 'read'), pondController.getPondById);
 router.get('/:id/kpis', requireResourcePermission('ponds', 'read'), pondController.getPondKpis);
@@ -77,8 +81,5 @@ router.delete('/:id', requireResourcePermission('ponds', 'delete'), pondControll
       next();
     });
 });
-
-// GET /api/ponds/season/:seasonId - Get ponds by season ID
-router.get('/season/:seasonId', requireResourcePermission('ponds', 'read'), pondValidation.getBySeasonId, cacheMiddleware, pondController.getPondsBySeasonId);
 
 module.exports = router;

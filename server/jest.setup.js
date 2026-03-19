@@ -36,6 +36,45 @@ global.testUtils = {
   }
 };
 
+// Create a reusable schema-like factory that models can call
+const makeSchema = () => ({
+  pre: jest.fn(),
+  post: jest.fn(),
+  index: jest.fn(),
+  set: jest.fn(),
+  get: jest.fn(),
+  virtual: jest.fn(() => ({ get: jest.fn() })),
+  methods: {},
+  statics: {},
+  Types: { ObjectId: jest.fn() },
+});
+
+jest.mock('mongoose', () => {
+  const schemaMock = jest.fn().mockImplementation(makeSchema);
+
+  // Schema.Types.ObjectId must exist as a static on Schema itself
+  schemaMock.Types = { ObjectId: { isValid: jest.fn(() => true) } };
+
+  return {
+    connect: jest.fn(() => Promise.resolve()),
+    connection: { close: jest.fn() },
+    Schema: schemaMock,
+    model: jest.fn(),
+    Types: { ObjectId: { isValid: jest.fn(() => true) } }
+  };
+});
+
+// No longer mocking nodemailer as it is not installed
+
+// Mock file system operations for tests
+jest.mock('fs', () => ({
+  ...jest.requireActual('fs'),
+  writeFileSync: jest.fn(),
+  readFileSync: jest.fn(),
+  unlinkSync: jest.fn(),
+  existsSync: jest.fn(() => true)
+}));
+
 // Global cleanup handlers
 let cleanupHandlers = [];
 
@@ -54,22 +93,6 @@ afterEach(async () => {
   }
   cleanupHandlers = [];
 });
-
-// Mock external services that should not be called during tests
-jest.mock('nodemailer', () => ({
-  createTransport: jest.fn(() => ({
-    sendMail: jest.fn().mockResolvedValue({ messageId: 'test-message-id' })
-  }))
-}));
-
-// Mock file system operations for tests
-jest.mock('fs', () => ({
-  ...jest.requireActual('fs'),
-  writeFileSync: jest.fn(),
-  readFileSync: jest.fn(),
-  unlinkSync: jest.fn(),
-  existsSync: jest.fn(() => true)
-}));
 
 // Custom matchers for better test assertions
 expect.extend({

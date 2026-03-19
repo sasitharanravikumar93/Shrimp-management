@@ -22,6 +22,12 @@ router.get('/filtered', requireResourcePermission('feedInputs', 'read'), feedInp
 // GET /api/feed-inputs/export - Export feed data to CSV
 router.get('/export', requireResourcePermission('feedInputs', 'read'), feedInputController.exportFeedData);
 
+// Specific routes MUST come before /:id wildcard
+router.get('/pond/:pondId', requireResourcePermission('feedInputs', 'read'), feedInputController.getFeedInputsByPondId);
+router.get('/date-range', requireResourcePermission('feedInputs', 'read'), feedInputValidation.getByDateRange, feedInputController.getFeedInputsByDateRange);
+router.get('/season/:seasonId', requireResourcePermission('feedInputs', 'read'), feedInputController.getFeedInputsBySeasonId);
+router.get('/histogram', requireResourcePermission('feedInputs', 'read'), feedInputController.getFeedHistogramData);
+
 // GET /api/feed-inputs/:id - Get a feed input by ID
 router.get('/:id', requireResourcePermission('feedInputs', 'read'), feedInputController.getFeedInputById);
 
@@ -30,17 +36,5 @@ router.put('/:id', requireResourcePermission('feedInputs', 'write'), feedInputCo
 
 // DELETE /api/feed-inputs/:id - Delete a feed input by ID
 router.delete('/:id', requireResourcePermission('feedInputs', 'delete'), feedInputController.deleteFeedInput);
-
-// GET /api/feed-inputs/pond/:pondId - Get feed inputs by pond ID
-router.get('/pond/:pondId', requireResourcePermission('feedInputs', 'read'), feedInputController.getFeedInputsByPondId);
-
-// GET /api/feed-inputs/date-range?startDate=...&endDate=... - Get feed inputs by date range
-router.get('/date-range', requireResourcePermission('feedInputs', 'read'), feedInputValidation.getByDateRange, feedInputController.getFeedInputsByDateRange);
-
-// GET /api/feed-inputs/season/:seasonId - Get feed inputs by season ID
-router.get('/season/:seasonId', requireResourcePermission('feedInputs', 'read'), feedInputController.getFeedInputsBySeasonId);
-
-// GET /api/feed-inputs/histogram - Get aggregated histogram data for charts
-router.get('/histogram', requireResourcePermission('feedInputs', 'read'), feedInputController.getFeedHistogramData);
 
 module.exports = router;
