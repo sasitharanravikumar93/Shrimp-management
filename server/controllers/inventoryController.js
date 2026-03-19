@@ -1,56 +1,126 @@
+const { logger } = require('../utils/logger');
 const InventoryItem = require('../models/InventoryItem');
 const InventoryAdjustment = require('../models/InventoryAdjustment');
+const FeedInput = require('../models/FeedInput');
+const WaterQualityInput = require('../models/WaterQualityInput');
 const mongoose = require('mongoose');
+
+// Helper function to get the appropriate language for a user
+const getLanguageForUser = (req) => {
+  // Priority 1: User's language preference from their profile
+  if (req.user && req.user.language) {
+    return req.user.language;
+  }
+
+  // Priority 2: Accept-Language header
+  if (req.headers['accept-language']) {
+    const acceptedLanguages = req.headers['accept-language'].split(',').map(lang => lang.trim().split(';')[0]);
+    for (const lang of acceptedLanguages) {
+      if (['en', 'hi', 'ta', 'kn', 'te'].includes(lang)) {
+        return lang;
+      }
+    }
+  }
+
+  // Priority 3: Default language
+  return 'en';
+};
+
+// Helper function to translate a document with multilingual fields
+const translateDocument = (doc, language) => {
+  if (!doc) { return doc; }
+
+  // Convert Mongoose document to plain object if needed
+  const plainDoc = doc.toObject ? doc.toObject() : doc;
+
+  // Process itemName field if it's a Map
+  if (plainDoc.itemName && typeof plainDoc.itemName === 'object' && !(plainDoc.itemName instanceof Date)) {
+    if (plainDoc.itemName.get) {
+      // It's a Map
+      plainDoc.itemName = plainDoc.itemName.get(language) || plainDoc.itemName.get('en') || '';
+    } else if (plainDoc.itemName[language]) {
+      // It's a plain object
+      plainDoc.itemName = plainDoc.itemName[language];
+    } else if (plainDoc.itemName.en) {
+      plainDoc.itemName = plainDoc.itemName.en;
+    } else {
+      plainDoc.itemName = '';
+    }
+  }
+
+  return plainDoc;
+};
+
+// Helper function to translate an array of documents
+const translateDocuments = (docs, language) => {
+  return docs.map(doc => translateDocument(doc, language));
+};
 
 // Helper function to calculate current quantity
 const calculateCurrentQuantity = async (inventoryItemId) => {
-  const item = await InventoryItem.findById(inventoryItemId);
-  if (!item) {
-    return 0; // Or throw an error, depending on desired behavior
-  }
   const adjustments = await InventoryAdjustment.find({ inventoryItemId });
   const totalAdjustment = adjustments.reduce((sum, adj) => sum + adj.quantityChange, 0);
-  return item.initialQuantity + totalAdjustment;
+  return totalAdjustment;
 };
 
 // Create a new inventory item
 exports.createInventoryItem = async (req, res) => {
+  logger.info('Creating a new inventory item', { body: req.body });
+  logger.info(`Received itemName: ${JSON.stringify(req.body.itemName)}`);
   try {
-    const { itemName, itemType, supplier, purchaseDate, initialQuantity, unit, costPerUnit, lowStockThreshold } = req.body;
+    const { itemName, itemType, supplier, purchaseDate, unit, costPerUnit, quantityBought, seasonId } = req.body;
 
     // Basic validation
-    if (!itemName || !itemType || !purchaseDate || initialQuantity === undefined || !unit || costPerUnit === undefined) {
-      return res.status(400).json({ message: 'Item name, type, purchase date, initial quantity, unit, and cost per unit are required' });
+    if (!itemName || !itemType || !purchaseDate || !unit || costPerUnit === undefined || quantityBought === undefined || !seasonId) {
+      return res.status(400).json({ message: 'Item name, type, purchase date, unit, cost per unit, quantity bought, and season are required' });
+    }
+
+    // Convert simple string to multilingual map if needed
+    let processedItemName;
+    if (typeof itemName === 'string') {
+      processedItemName = { en: itemName };
+    } else if (typeof itemName === 'object' && !Array.isArray(itemName) && Object.keys(itemName).length > 0) {
+      processedItemName = itemName;
+    } else {
+      return res.status(400).json({ message: 'Item name must be a non-empty string or a non-empty object with language keys (e.g., { "en": "Item A", "ta": "உருப்படி ஏ" })' });
     }
 
     const inventoryItem = new InventoryItem({
-      itemName, itemType, supplier, purchaseDate, initialQuantity, unit, costPerUnit, lowStockThreshold
+      itemName: processedItemName, itemType, supplier, purchaseDate, unit, costPerUnit, quantityBought, seasonId
     });
     await inventoryItem.save();
 
-    // Create an initial adjustment for the initial quantity
-    const initialAdjustment = new InventoryAdjustment({
+    // Create initial inventory adjustment
+    const inventoryAdjustment = new InventoryAdjustment({
       inventoryItemId: inventoryItem._id,
-      adjustmentType: 'Initial Stock',
-      quantityChange: initialQuantity,
-      reason: 'Initial stock entry',
+      adjustmentType: 'Purchase',
+      quantityChange: quantityBought,
+      reason: 'Initial stock',
     });
-    await initialAdjustment.save();
+    await inventoryAdjustment.save();
 
     res.status(201).json(inventoryItem);
   } catch (error) {
     if (error.code === 11000) { // Duplicate key error
-      return res.status(400).json({ message: 'Inventory item with this name already exists.' });
+      return res.status(400).json({ message: 'Inventory item with this name already exists for this season.' });
     }
     res.status(500).json({ message: 'Error creating inventory item', error: error.message });
+    logger.error('Error creating inventory item', { error: error.message, stack: error.stack });
   }
 };
 
 // Get all inventory items (active by default)
 exports.getAllInventoryItems = async (req, res) => {
+  logger.info('Getting all inventory items', { query: req.query });
   try {
-    const { itemType, search, includeInactive } = req.query;
-    let query = { isActive: true };
+    const language = getLanguageForUser(req);
+    const { itemType, search, includeInactive, seasonId } = req.query;
+    const query = { isActive: true };
+
+    if (!seasonId) {
+      return res.status(400).json({ message: 'Season ID is required' });
+    }
+    query.seasonId = seasonId;
 
     if (includeInactive === 'true') {
       delete query.isActive;
@@ -61,49 +131,76 @@ exports.getAllInventoryItems = async (req, res) => {
     }
 
     if (search) {
-      query.itemName = { $regex: search, $options: 'i' }; // Case-insensitive search
+      // For multilingual search, we would need to search across all language fields
+      // For simplicity, we'll search in the English field
+      query['itemName.en'] = { $regex: search, $options: 'i' }; // Case-insensitive search in English
     }
 
     const inventoryItems = await InventoryItem.find(query);
 
-    // Calculate current quantity for each item
-    const itemsWithQuantity = await Promise.all(inventoryItems.map(async (item) => {
-      const currentQuantity = await calculateCurrentQuantity(item._id);
-      return { ...item.toObject(), currentQuantity };
-    }));
+    // The concept of a single 'currentQuantity' is replaced by adjustments.
+    // We will return the bought quantity for the bought log.
+    const itemsWithQuantity = inventoryItems.map(item => {
+      return { ...item.toObject(), quantityBought: item.quantityBought };
+    });
 
-    res.json(itemsWithQuantity);
+    const translatedItems = translateDocuments(itemsWithQuantity, language);
+
+    res.json(translatedItems);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching inventory items', error: error.message });
+    logger.error('Error fetching inventory items', { error: error.message, stack: error.stack });
   }
 };
 
 // Get a single inventory item by ID
 exports.getInventoryItemById = async (req, res) => {
+  logger.info(`Getting inventory item by ID: ${req.params.id}`);
   try {
+    const language = getLanguageForUser(req);
     const inventoryItem = await InventoryItem.findById(req.params.id);
     if (!inventoryItem) {
       return res.status(404).json({ message: 'Inventory item not found' });
     }
 
     const currentQuantity = await calculateCurrentQuantity(inventoryItem._id);
-    res.json({ ...inventoryItem.toObject(), currentQuantity });
+    res.json({ ...translateDocument(inventoryItem, language), currentQuantity });
   } catch (error) {
     if (error.name === 'CastError') {
       return res.status(400).json({ message: 'Invalid inventory item ID' });
     }
     res.status(500).json({ message: 'Error fetching inventory item', error: error.message });
+    logger.error(`Error fetching inventory item with ID: ${req.params.id}`, { error: error.message, stack: error.stack });
   }
 };
 
 // Update an inventory item
 exports.updateInventoryItem = async (req, res) => {
+  logger.info(`Updating inventory item by ID: ${req.params.id}`, { body: req.body });
   try {
-    const { itemName, itemType, supplier, purchaseDate, initialQuantity, unit, costPerUnit, lowStockThreshold } = req.body;
+    const { itemName, itemType, supplier, purchaseDate, unit, costPerUnit, quantityBought } = req.body;
+    const updateData = {};
+
+    // Convert simple string to multilingual map if needed
+    if (itemName !== undefined) {
+      if (typeof itemName === 'string') {
+        updateData.itemName = { en: itemName };
+      } else if (typeof itemName === 'object' && !Array.isArray(itemName) && Object.keys(itemName).length > 0) {
+        updateData.itemName = itemName;
+      } else {
+        return res.status(400).json({ message: 'Item name must be a non-empty string or a non-empty object with language keys (e.g., { "en": "Item A", "ta": "உருப்படி ஏ" })' });
+      }
+    }
+    if (itemType !== undefined) { updateData.itemType = itemType; }
+    if (supplier !== undefined) { updateData.supplier = supplier; }
+    if (purchaseDate !== undefined) { updateData.purchaseDate = purchaseDate; }
+    if (unit !== undefined) { updateData.unit = unit; }
+    if (costPerUnit !== undefined) { updateData.costPerUnit = costPerUnit; }
+    if (quantityBought !== undefined) { updateData.quantityBought = quantityBought; }
 
     const inventoryItem = await InventoryItem.findByIdAndUpdate(
       req.params.id,
-      { itemName, itemType, supplier, purchaseDate, initialQuantity, unit, costPerUnit, lowStockThreshold },
+      updateData,
       { new: true, runValidators: true }
     );
 
@@ -120,11 +217,13 @@ exports.updateInventoryItem = async (req, res) => {
       return res.status(400).json({ message: 'Inventory item with this name already exists.' });
     }
     res.status(500).json({ message: 'Error updating inventory item', error: error.message });
+    logger.error(`Error updating inventory item with ID: ${req.params.id}`, { error: error.message, stack: error.stack });
   }
 };
 
 // Soft delete an inventory item
 exports.deleteInventoryItem = async (req, res) => {
+  logger.info(`Soft-deleting inventory item by ID: ${req.params.id}`);
   try {
     const inventoryItem = await InventoryItem.findByIdAndUpdate(
       req.params.id,
@@ -142,11 +241,13 @@ exports.deleteInventoryItem = async (req, res) => {
       return res.status(400).json({ message: 'Invalid inventory item ID' });
     }
     res.status(500).json({ message: 'Error soft-deleting inventory item', error: error.message });
+    logger.error(`Error soft-deleting inventory item with ID: ${req.params.id}`, { error: error.message, stack: error.stack });
   }
 };
 
 // Create an inventory adjustment
 exports.createInventoryAdjustment = async (req, res) => {
+  logger.info('Creating a new inventory adjustment', { body: req.body });
   try {
     const { inventoryItemId, adjustmentType, quantityChange, reason, relatedDocument, relatedDocumentModel } = req.body;
 
@@ -182,6 +283,7 @@ exports.createInventoryAdjustment = async (req, res) => {
   } catch (error) {
     if (res && typeof res.status === 'function') {
       res.status(500).json({ message: 'Error creating inventory adjustment', error: error.message });
+      logger.error('Error creating inventory adjustment', { error: error.message, stack: error.stack });
     } else {
       throw new Error(`Error creating inventory adjustment: ${error.message}`);
     }
@@ -190,6 +292,7 @@ exports.createInventoryAdjustment = async (req, res) => {
 
 // Get adjustments for a specific inventory item
 exports.getInventoryAdjustmentsByItemId = async (req, res) => {
+  logger.info(`Getting inventory adjustments for item ID: ${req.params.id}`);
   try {
     const { id } = req.params; // inventoryItemId
 
@@ -206,23 +309,90 @@ exports.getInventoryAdjustmentsByItemId = async (req, res) => {
       return res.status(400).json({ message: 'Invalid inventory item ID' });
     }
     res.status(500).json({ message: 'Error fetching inventory adjustments', error: error.message });
+    logger.error(`Error fetching inventory adjustments for item ID: ${req.params.id}`, { error: error.message, stack: error.stack });
+  }
+};
+
+exports.getAggregatedStock = async (req, res) => {
+  logger.info('Getting aggregated stock', { query: req.query });
+  try {
+    const { seasonId } = req.query;
+    if (!seasonId) {
+      return res.status(400).json({ message: 'Season ID is required' });
+    }
+
+    const language = getLanguageForUser(req);
+
+    const stock = await InventoryItem.aggregate([
+      {
+        $match: {
+          seasonId: new mongoose.Types.ObjectId(seasonId),
+          isActive: true
+        }
+      },
+      {
+        $lookup: {
+          from: 'inventoryadjustments',
+          localField: '_id',
+          foreignField: 'inventoryItemId',
+          as: 'adjustments'
+        }
+      },
+      {
+        $addFields: {
+          currentQuantity: { $sum: '$adjustments.quantityChange' },
+          translatedItemName: {
+            $ifNull: [`$itemName.${language}`, '$itemName.en']
+          }
+        }
+      },
+      {
+        $group: {
+          _id: {
+            itemName: '$translatedItemName',
+            itemType: '$itemType',
+            unit: '$unit'
+          },
+          currentQuantity: { $sum: '$currentQuantity' },
+        }
+      },
+      {
+        $project: {
+          _id: 0,
+          itemName: '$_id.itemName',
+          itemType: '$_id.itemType',
+          unit: '$_id.unit',
+          currentQuantity: 1
+        }
+      }
+    ]);
+
+    res.json(stock);
+  } catch (error) {
+    if (error instanceof mongoose.Error.CastError) {
+      return res.status(400).json({ message: 'Invalid Season ID format' });
+    }
+    res.status(500).json({ message: 'Error fetching aggregated stock', error: error.message });
+    logger.error('Error fetching aggregated stock', { error: error.message, stack: error.stack });
   }
 };
 
 // Get aggregated inventory data (current quantity and usage)
 exports.getAggregatedInventoryData = async (req, res) => {
+  logger.info('Getting aggregated inventory data', { query: req.query });
   try {
+    const language = getLanguageForUser(req);
     const { seasonId, pondId, itemType, itemName } = req.query;
 
     // --- Aggregation for Current Calculated Quantity --- 
     const currentQuantityAggregation = await InventoryAdjustment.aggregate([
-      { 
+      {
         $group: {
           _id: '$inventoryItemId',
           totalQuantityChange: { $sum: '$quantityChange' }
         }
       },
-      { 
+      {
         $lookup: {
           from: 'inventoryitems', // The collection name for InventoryItem model
           localField: '_id',
@@ -230,10 +400,10 @@ exports.getAggregatedInventoryData = async (req, res) => {
           as: 'itemDetails'
         }
       },
-      { 
-        $unwind: '$itemDetails' 
+      {
+        $unwind: '$itemDetails'
       },
-      { 
+      {
         $project: {
           _id: 0,
           inventoryItemId: '$_id',
@@ -244,23 +414,41 @@ exports.getAggregatedInventoryData = async (req, res) => {
           currentCalculatedQuantity: '$totalQuantityChange'
         }
       },
-      { 
+      {
         $match: { 'itemDetails.isActive': true } // Only include active inventory items
       }
     ]);
+
+    // Translate item names in the aggregation result
+    const translatedCurrentQuantityAggregation = currentQuantityAggregation.map(item => {
+      if (item.itemName && typeof item.itemName === 'object') {
+        if (item.itemName.get) {
+          // It's a Map
+          item.itemName = item.itemName.get(language) || item.itemName.get('en') || '';
+        } else if (item.itemName[language]) {
+          // It's a plain object
+          item.itemName = item.itemName[language];
+        } else if (item.itemName.en) {
+          item.itemName = item.itemName.en;
+        } else {
+          item.itemName = '';
+        }
+      }
+      return item;
+    });
 
     // --- Aggregation for Usage Data (per pond, per category, per item) ---
     // This part will aggregate from FeedInput and WaterQualityInput
     // Note: This assumes FeedInput and WaterQualityInput models have 'inventoryItemId' and 'quantity' fields
     // and 'pondId' and 'seasonId' for filtering.
 
-    let usageQuery = {};
-    if (seasonId) usageQuery.seasonId = new mongoose.Types.ObjectId(seasonId);
-    if (pondId) usageQuery.pondId = new mongoose.Types.ObjectId(pondId);
+    const usageQuery = {};
+    if (seasonId) { usageQuery.seasonId = new mongoose.Types.ObjectId(seasonId); }
+    if (pondId) { usageQuery.pondId = new mongoose.Types.ObjectId(pondId); }
 
     const feedUsageAggregation = await FeedInput.aggregate([
       { $match: usageQuery },
-      { 
+      {
         $lookup: {
           from: 'inventoryitems',
           localField: 'inventoryItemId',
@@ -270,7 +458,7 @@ exports.getAggregatedInventoryData = async (req, res) => {
       },
       { $unwind: '$itemDetails' },
       { $match: { 'itemDetails.itemType': 'Feed' } }, // Ensure it's a feed item
-      { 
+      {
         $group: {
           _id: {
             pond: '$pondId',
@@ -282,7 +470,7 @@ exports.getAggregatedInventoryData = async (req, res) => {
           totalCostUsed: { $sum: { $multiply: ['$quantity', '$itemDetails.costPerUnit'] } }
         }
       },
-      { 
+      {
         $project: {
           _id: 0,
           pondId: '$_id.pond',
@@ -295,9 +483,27 @@ exports.getAggregatedInventoryData = async (req, res) => {
       }
     ]);
 
+    // Translate item names in the feed usage aggregation
+    const translatedFeedUsageAggregation = feedUsageAggregation.map(item => {
+      if (item.itemName && typeof item.itemName === 'object') {
+        if (item.itemName.get) {
+          // It's a Map
+          item.itemName = item.itemName.get(language) || item.itemName.get('en') || '';
+        } else if (item.itemName[language]) {
+          // It's a plain object
+          item.itemName = item.itemName[language];
+        } else if (item.itemName.en) {
+          item.itemName = item.itemName.en;
+        } else {
+          item.itemName = '';
+        }
+      }
+      return item;
+    });
+
     const waterQualityUsageAggregation = await WaterQualityInput.aggregate([
       { $match: usageQuery },
-      { 
+      {
         $lookup: {
           from: 'inventoryitems',
           localField: 'chemicalUsed', 
@@ -307,7 +513,7 @@ exports.getAggregatedInventoryData = async (req, res) => {
       },
       { $unwind: '$chemicalItemDetails' },
       { $match: { 'chemicalItemDetails.itemType': { $in: ['Chemical', 'Probiotic'] } } }, // Ensure it's a chemical/probiotic item
-      { 
+      {
         $group: {
           _id: {
             pond: '$pondId',
@@ -319,7 +525,7 @@ exports.getAggregatedInventoryData = async (req, res) => {
           totalCostUsed: { $sum: { $multiply: ['$chemicalQuantityUsed', '$chemicalItemDetails.costPerUnit'] } }
         }
       },
-      { 
+      {
         $project: {
           _id: 0,
           pondId: '$_id.pond',
@@ -332,8 +538,26 @@ exports.getAggregatedInventoryData = async (req, res) => {
       }
     ]);
 
+    // Translate item names in the water quality usage aggregation
+    const translatedWaterQualityUsageAggregation = waterQualityUsageAggregation.map(item => {
+      if (item.itemName && typeof item.itemName === 'object') {
+        if (item.itemName.get) {
+          // It's a Map
+          item.itemName = item.itemName.get(language) || item.itemName.get('en') || '';
+        } else if (item.itemName[language]) {
+          // It's a plain object
+          item.itemName = item.itemName[language];
+        } else if (item.itemName.en) {
+          item.itemName = item.itemName.en;
+        } else {
+          item.itemName = '';
+        }
+      }
+      return item;
+    });
+
     // Combine and filter usage aggregations if itemType or itemName are specified in query
-    let combinedUsage = [...feedUsageAggregation, ...waterQualityUsageAggregation];
+    let combinedUsage = [...translatedFeedUsageAggregation, ...translatedWaterQualityUsageAggregation];
 
     if (itemType) {
       combinedUsage = combinedUsage.filter(usage => usage.itemType === itemType);
@@ -342,9 +566,10 @@ exports.getAggregatedInventoryData = async (req, res) => {
       combinedUsage = combinedUsage.filter(usage => usage.itemName === itemName);
     }
 
-    res.json({ currentStock: currentQuantityAggregation, usageSummary: combinedUsage });
+    res.json({ currentStock: translatedCurrentQuantityAggregation, usageSummary: combinedUsage });
 
   } catch (error) {
     res.status(500).json({ message: 'Error fetching aggregated inventory data', error: error.message });
+    logger.error('Error fetching aggregated inventory data', { error: error.message, stack: error.stack });
   }
 };

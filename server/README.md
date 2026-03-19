@@ -31,6 +31,20 @@ This is the backend server for the Shrimp Farm Management System, built with Nod
    npm run dev
    ```
 
+## Development Authentication Bypass
+
+To make development easier, you can bypass authentication in development mode:
+
+1. In your `.env` file, add:
+   ```
+   NODE_ENV=development
+   DEV_BYPASS_AUTH=true
+   ```
+
+2. Restart your server
+
+This will allow you to access all API endpoints without authentication. See [Development Authentication Bypass](../docs/DEVELOPMENT_AUTH_BYPASS.md) for more details.
+
 ## API Endpoints
 
 The server exposes RESTful API endpoints for managing the shrimp farm data:

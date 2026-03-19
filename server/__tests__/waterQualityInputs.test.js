@@ -9,22 +9,29 @@ const notificationController = require('../controllers/notificationController');
 
 // Mock models and controllers
 jest.mock('../models/WaterQualityInput', () => {
-  const mockWaterQualityInput = function(data) {
+  const mockWaterQualityInput = jest.fn().mockImplementation(function(data) {
     this._doc = data;
     this._id = 'wqId123';
     this.save = jest.fn().mockResolvedValue(this);
-  };
+    this.toObject = jest.fn().mockReturnValue(this);
+  });
   mockWaterQualityInput.find = jest.fn().mockReturnThis();
   mockWaterQualityInput.findById = jest.fn().mockReturnThis();
   mockWaterQualityInput.findByIdAndUpdate = jest.fn().mockReturnThis();
-  mockWaterQualityInput.findByIdAndDelete = jest.fn();
-  mockWaterQualityInput.populate = jest.fn().mockResolvedValue({});
+  mockWaterQualityInput.findByIdAndDelete = jest.fn().mockReturnThis();
+  mockWaterQualityInput.populate = jest.fn().mockReturnThis();
+  mockWaterQualityInput.sort = jest.fn().mockReturnThis();
+  mockWaterQualityInput.skip = jest.fn().mockReturnThis();
+  mockWaterQualityInput.limit = jest.fn().mockReturnThis();
+  mockWaterQualityInput.countDocuments = jest.fn();
+  mockWaterQualityInput.exec = jest.fn();
   return mockWaterQualityInput;
 });
 
 jest.mock('../models/Pond', () => ({ findById: jest.fn() }));
 jest.mock('../models/Season', () => ({ findById: jest.fn() }));
 jest.mock('../models/AlertRule', () => ({ find: jest.fn() }));
+
 jest.mock('../controllers/inventoryController', () => ({
   createInventoryItem: jest.fn(),
   getAllInventoryItems: jest.fn(),
@@ -35,6 +42,7 @@ jest.mock('../controllers/inventoryController', () => ({
   getInventoryAdjustmentsByItemId: jest.fn(),
   getAggregatedInventoryData: jest.fn(),
 }));
+
 jest.mock('../controllers/notificationController', () => ({
   createNotificationInternal: jest.fn(),
   getNotifications: jest.fn(),
@@ -44,7 +52,7 @@ jest.mock('../controllers/notificationController', () => ({
 }));
 
 describe('WaterQualityInput API', () => {
-  afterEach(() => {
+  beforeEach(() => {
     jest.clearAllMocks();
   });
 
@@ -67,13 +75,12 @@ describe('WaterQualityInput API', () => {
 
       Pond.findById.mockResolvedValue({ _id: 'pondId123', name: 'Pond 1' });
       Season.findById.mockResolvedValue({ _id: 'seasonId123', name: 'Season 1' });
-      AlertRule.find.mockResolvedValue([]); // No breached rules
-
-      WaterQualityInput.findById.mockImplementation(() => ({
-          populate: jest.fn().mockImplementation(() => ({
-              populate: jest.fn().mockResolvedValue(createdWQ)
-          }))
-      }));
+      AlertRule.find.mockResolvedValue([]); 
+      
+      WaterQualityInput.findById.mockReturnValue({
+        populate: jest.fn().mockReturnThis()
+      });
+      WaterQualityInput.populate.mockResolvedValue(createdWQ);
 
       const res = await request(app).post('/api/water-quality-inputs').send(newWQData);
 
@@ -85,32 +92,33 @@ describe('WaterQualityInput API', () => {
       const invalidData = { pondId: 'pondId123' }; 
       const res = await request(app).post('/api/water-quality-inputs').send(invalidData);
       expect(res.statusCode).toEqual(400);
+      expect(res.body).toHaveProperty('message', 'Date, time, pond ID, pH, dissolved oxygen, temperature, salinity, and season ID are required');
     });
   });
 
   describe('GET /api/water-quality-inputs', () => {
     it('should return all water quality inputs', async () => {
       const mockData = [{ _id: 'wq1', pondId: 'p1' }];
-      WaterQualityInput.find.mockImplementation(() => ({
-          populate: jest.fn().mockImplementation(() => ({
-              populate: jest.fn().mockResolvedValue(mockData)
-          }))
-      }));
+      WaterQualityInput.find.mockReturnThis();
+      WaterQualityInput.populate.mockReturnThis();
+      WaterQualityInput.skip.mockReturnThis();
+      WaterQualityInput.limit.mockReturnThis();
+      WaterQualityInput.sort.mockResolvedValue(mockData);
+      WaterQualityInput.countDocuments.mockResolvedValue(1);
 
       const res = await request(app).get('/api/water-quality-inputs');
       expect(res.statusCode).toEqual(200);
-      expect(res.body).toEqual(mockData);
+      expect(res.body.data).toEqual(mockData);
     });
   });
 
   describe('GET /api/water-quality-inputs/:id', () => {
     it('should return a water quality input by ID', async () => {
       const mockData = { _id: 'wq1', pondId: 'p1' };
-      WaterQualityInput.findById.mockImplementation(() => ({
-          populate: jest.fn().mockImplementation(() => ({
-              populate: jest.fn().mockResolvedValue(mockData)
-          }))
-      }));
+      WaterQualityInput.findById.mockReturnValue({
+        populate: jest.fn().mockReturnThis()
+      });
+      WaterQualityInput.populate.mockResolvedValue(mockData);
 
       const res = await request(app).get('/api/water-quality-inputs/wq1');
       expect(res.statusCode).toEqual(200);
@@ -134,11 +142,7 @@ describe('WaterQualityInput API', () => {
       Pond.findById.mockResolvedValue({ _id: 'pondId123' });
       Season.findById.mockResolvedValue({ _id: 'seasonId123' });
       
-      WaterQualityInput.findByIdAndUpdate.mockImplementation(() => ({
-          populate: jest.fn().mockImplementation(() => ({
-              populate: jest.fn().mockResolvedValue({ _id: 'wq1', ...updatedData })
-          }))
-      }));
+      WaterQualityInput.findByIdAndUpdate.mockResolvedValue({ _id: 'wq1', ...updatedData });
 
       const res = await request(app).put('/api/water-quality-inputs/wq1').send(updatedData);
       expect(res.statusCode).toEqual(200);
@@ -153,51 +157,43 @@ describe('WaterQualityInput API', () => {
     });
   });
 
-  describe('GET /api/water-quality-inputs/pond/:pondId', () => {
-    it('should return water quality inputs by pond ID', async () => {
-      Pond.findById.mockResolvedValue({ _id: 'p1' });
-      const mockData = [{ _id: 'wq1', pondId: 'p1' }];
-      WaterQualityInput.find.mockImplementation(() => ({
-          populate: jest.fn().mockImplementation(() => ({
-              populate: jest.fn().mockResolvedValue(mockData)
-          }))
-      }));
+  describe('GET /api/water-quality-inputs/filtered', () => {
+    it('should return filtered water quality inputs by date range and pond ID', async () => {
+      const startDate = '2023-08-01';
+      const endDate = '2023-08-31';
+      const pondId = 'pondId123';
+      const mockWaterQualityInputs = [
+        { _id: 'wq1', date: new Date('2023-08-10'), pH: 7.5, pondId: { name: 'Pond A' } },
+        { _id: 'wq2', date: new Date('2023-08-20'), pH: 7.6, pondId: { name: 'Pond A' } },
+      ];
+      WaterQualityInput.find.mockReturnThis();
+      WaterQualityInput.populate.mockReturnThis();
+      WaterQualityInput.exec.mockResolvedValue(mockWaterQualityInputs);
 
-      const res = await request(app).get('/api/water-quality-inputs/pond/p1');
-      expect(res.statusCode).toEqual(200);
-      expect(res.body).toEqual(mockData);
-    });
-  });
-  
-  describe('GET /api/water-quality-inputs/season/:seasonId', () => {
-    it('should return water quality inputs by season ID', async () => {
-      Season.findById.mockResolvedValue({ _id: 's1' });
-      const mockData = [{ _id: 'wq1', seasonId: 's1' }];
-      WaterQualityInput.find.mockImplementation(() => ({
-          populate: jest.fn().mockImplementation(() => ({
-              populate: jest.fn().mockResolvedValue(mockData)
-          }))
-      }));
+      const res = await request(app).get(`/api/water-quality-inputs/filtered?startDate=${startDate}&endDate=${endDate}&pondId=${pondId}`);
 
-      const res = await request(app).get('/api/water-quality-inputs/season/s1');
       expect(res.statusCode).toEqual(200);
-      expect(res.body).toEqual(mockData);
-    });
-  });
-  
-  describe('GET /api/water-quality-inputs/date-range', () => {
-    it('should return water quality inputs by date range', async () => {
-      const mockData = [{ _id: 'wq1' }];
-      WaterQualityInput.find.mockImplementation(() => ({
-          populate: jest.fn().mockImplementation(() => ({
-              populate: jest.fn().mockResolvedValue(mockData)
-          }))
-      }));
-
-      const res = await request(app).get('/api/water-quality-inputs/date-range?startDate=2023-08-01&endDate=2023-08-31');
-      expect(res.statusCode).toEqual(200);
-      expect(res.body).toEqual(mockData);
+      expect(res.body).toEqual(mockWaterQualityInputs);
     });
   });
 
+  describe('GET /api/water-quality-inputs/export', () => {
+    it('should export water quality data to CSV', async () => {
+      const startDate = '2023-08-01';
+      const endDate = '2023-08-31';
+      const pondId = 'pondId123';
+      const mockWaterQualityInputs = [
+        { _id: 'wq1', date: new Date('2023-08-10'), time: '08:00', pH: 7.5, dissolvedOxygen: 6.0, temperature: 28, salinity: 30, ammonia: 0.1, nitrite: 0.05, alkalinity: 120, pondId: { name: { en: 'Pond A' } }, seasonId: { name: { en: 'Season 1' } } },
+      ];
+      WaterQualityInput.find.mockReturnThis();
+      WaterQualityInput.populate.mockReturnThis();
+      WaterQualityInput.sort.mockResolvedValue(mockWaterQualityInputs);
+
+      const res = await request(app).get(`/api/water-quality-inputs/export?startDate=${startDate}&endDate=${endDate}&pondId=${pondId}`);
+
+      expect(res.statusCode).toEqual(200);
+      expect(res.headers['content-type']).toEqual('text/csv; charset=utf-8');
+      expect(res.text).toContain('Date,Time,Pond,pH,Dissolved Oxygen,Temperature,Salinity,Ammonia,Nitrite,Alkalinity,Season');
+    });
+  });
 });

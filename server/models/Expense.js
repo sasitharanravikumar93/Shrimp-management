@@ -5,15 +5,19 @@ const expenseSchema = new mongoose.Schema({
     type: Date,
     required: true
   },
-  category: {
-    type: String,
-    required: true,
-    enum: ['Labor', 'Electricity', 'Fuel', 'Maintenance', 'Equipment', 'Other']
-  },
   amount: {
     type: Number,
     required: true,
     min: 0
+  },
+  mainCategory: {
+    type: String,
+    required: true,
+    enum: ['Culture', 'Farm', 'Operational', 'Salary']
+  },
+  subCategory: {
+    type: String,
+    required: true
   },
   description: {
     type: String,
@@ -22,12 +26,19 @@ const expenseSchema = new mongoose.Schema({
   pondId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Pond',
-    required: false // Optional, can be season-wide
+    required: false
   },
   seasonId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Season',
     required: true
+  },
+  receiptUrl: {
+    type: String
+  },
+  employeeId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Employee'
   }
 }, {
   timestamps: true

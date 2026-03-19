@@ -1,90 +1,137 @@
 const Expense = require('../models/Expense');
-const Season = require('../models/Season');
-const Pond = require('../models/Pond');
+const { logger } = require('../utils/logger');
+
+// Get all expenses with filtering
+exports.getAllExpenses = async (req, res) => {
+  try {
+    const query = {};
+    if (req.query.seasonId) {
+      query.seasonId = req.query.seasonId;
+    }
+    if (req.query.pondId) {
+      query.pondId = req.query.pondId;
+    }
+    if (req.query.mainCategory) {
+      query.mainCategory = req.query.mainCategory;
+    }
+    const expenses = await Expense.find(query).populate('seasonId').populate('pondId').populate('employeeId');
+    res.json(expenses);
+  } catch (error) {
+    logger.error('Error getting all expenses:', error);
+    return res.status(500).json({ message: error.message });
+  }
+};
 
 // Create a new expense
 exports.createExpense = async (req, res) => {
+  const expense = new Expense({
+    date: req.body.date,
+    amount: req.body.amount,
+    mainCategory: req.body.mainCategory,
+    subCategory: req.body.subCategory,
+    description: req.body.description,
+    seasonId: req.body.seasonId,
+    pondId: req.body.pondId,
+    receiptUrl: req.body.receiptUrl,
+    employeeId: req.body.employeeId
+  });
+
   try {
-    const { date, category, amount, description, pondId, seasonId } = req.body;
-    
-    if (!date || !category || amount === undefined || !seasonId) {
-      return res.status(400).json({ message: 'Date, category, amount, and seasonId are required' });
-    }
-
-    // Check if season exists
-    const season = await Season.findById(seasonId);
-    if (!season) {
-      return res.status(404).json({ message: 'Season not found' });
-    }
-
-    if (pondId) {
-      const pond = await Pond.findById(pondId);
-      if (!pond) {
-        return res.status(404).json({ message: 'Pond not found' });
-      }
-    }
-
-    const expense = new Expense({ date, category, amount, description, pondId, seasonId });
-    await expense.save();
-    res.status(201).json(expense);
+    const newExpense = await expense.save();
+    res.status(201).json(newExpense);
   } catch (error) {
-    res.status(500).json({ message: 'Error creating expense', error: error.message });
+    logger.error('Error creating expense:', error);
+    return res.status(400).json({ message: error.message });
   }
 };
 
-// Get all expenses
-exports.getAllExpenses = async (req, res) => {
-  try {
-    const { seasonId, pondId } = req.query;
-    let query = {};
-    if (seasonId) query.seasonId = seasonId;
-    if (pondId) query.pondId = pondId;
-    
-    const expenses = await Expense.find(query)
-      .populate('pondId', 'name')
-      .populate('seasonId', 'name')
-      .sort({ date: -1 });
-    res.json(expenses);
-  } catch (error) {
-    res.status(500).json({ message: 'Error fetching expenses', error: error.message });
-  }
-};
-
-// Get single expense
+// Get a single expense
 exports.getExpenseById = async (req, res) => {
   try {
-    const expense = await Expense.findById(req.params.id)
-      .populate('pondId', 'name')
-      .populate('seasonId', 'name');
-    if (!expense) return res.status(404).json({ message: 'Expense not found' });
+    const expense = await Expense.findById(req.params.id).populate('seasonId').populate('pondId').populate('employeeId');
+    if (expense === null) {
+      return res.status(404).json({ message: 'Cannot find expense' });
+    }
     res.json(expense);
   } catch (error) {
-    res.status(500).json({ message: 'Error fetching expense', error: error.message });
+    logger.error('Error getting expense by ID:', error);
+    return res.status(500).json({ message: error.message });
   }
 };
 
-// Update expense
+// Update an expense
 exports.updateExpense = async (req, res) => {
   try {
-    const expense = await Expense.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true }
-    );
-    if (!expense) return res.status(404).json({ message: 'Expense not found' });
-    res.json(expense);
+    const expense = await Expense.findById(req.params.id);
+    if (expense === null) {
+      return res.status(404).json({ message: 'Cannot find expense' });
+    }
+
+    const { date, amount, mainCategory, subCategory, description, seasonId, pondId, receiptUrl, employeeId } = req.body;
+    if (date !== undefined) { expense.date = date; }
+    if (amount !== undefined) { expense.amount = amount; }
+    if (mainCategory !== undefined) { expense.mainCategory = mainCategory; }
+    if (subCategory !== undefined) { expense.subCategory = subCategory; }
+    if (description !== undefined) { expense.description = description; }
+    if (seasonId !== undefined) { expense.seasonId = seasonId; }
+    if (pondId !== undefined) { expense.pondId = pondId; }
+    if (receiptUrl !== undefined) { expense.receiptUrl = receiptUrl; }
+    if (employeeId !== undefined) { expense.employeeId = employeeId; }
+
+    const updatedExpense = await expense.save();
+    res.json(updatedExpense);
   } catch (error) {
-    res.status(500).json({ message: 'Error updating expense', error: error.message });
+    logger.error('Error updating expense:', error);
+    return res.status(400).json({ message: error.message });
   }
 };
 
-// Delete expense
+// Delete an expense
 exports.deleteExpense = async (req, res) => {
   try {
-    const expense = await Expense.findByIdAndDelete(req.params.id);
-    if (!expense) return res.status(404).json({ message: 'Expense not found' });
-    res.json({ message: 'Expense deleted successfully' });
+    const expense = await Expense.findById(req.params.id);
+    if (expense === null) {
+      return res.status(404).json({ message: 'Cannot find expense' });
+    }
+
+    await expense.deleteOne();
+    res.json({ message: 'Deleted Expense' });
   } catch (error) {
-    res.status(500).json({ message: 'Error deleting expense', error: error.message });
+    logger.error('Error deleting expense:', error);
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+// Get expense summary
+exports.getExpenseSummary = async (req, res) => {
+  try {
+    const query = {};
+    if (req.query.seasonId) {
+      query.seasonId = req.query.seasonId;
+    }
+
+    const summary = await Expense.aggregate([
+      { $match: query },
+      {
+        $group: {
+          _id: '$mainCategory',
+          totalAmount: { $sum: '$amount' }
+        }
+      }
+    ]);
+
+    const totalExpenses = summary.reduce((acc, item) => acc + item.totalAmount, 0);
+
+    const summaryByCategory = summary.map(item => ({
+      category: item._id,
+      totalAmount: item.totalAmount,
+      percentage: totalExpenses > 0 ? (item.totalAmount / totalExpenses) * 100 : 0
+    }));
+
+    res.json({ totalExpenses, summaryByCategory });
+
+  } catch (error) {
+    logger.error('Error getting expense summary:', error);
+    return res.status(500).json({ message: error.message });
   }
 };

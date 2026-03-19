@@ -1,0 +1,217 @@
+{
+  "title": "Environment Variables Documentation",
+  "generatedAt": "2025-08-25T15:01:02.965Z",
+  "schema": {
+    "NODE_ENV": {
+      "required": true,
+      "type": "string",
+      "enum": [
+        "development",
+        "production",
+        "test",
+        "staging"
+      ],
+      "default": "development",
+      "description": "Application environment"
+    },
+    "REACT_APP_API_BASE_URL": {
+      "required": true,
+      "type": "url",
+      "default": "http://localhost:5001/api",
+      "description": "Base URL for API endpoints"
+    },
+    "REACT_APP_API_TIMEOUT": {
+      "required": false,
+      "type": "number",
+      "default": 30000,
+      "description": "API request timeout in milliseconds"
+    },
+    "REACT_APP_API_RETRY_COUNT": {
+      "required": false,
+      "type": "number",
+      "default": 3,
+      "description": "Number of API retry attempts"
+    },
+    "REACT_APP_VERSION": {
+      "required": false,
+      "type": "string",
+      "default": "1.0.0",
+      "description": "Application version"
+    },
+    "REACT_APP_BUILD_DATE": {
+      "required": false,
+      "type": "string",
+      "default": "auto-generated",
+      "description": "Build date timestamp"
+    },
+    "REACT_APP_APP_NAME": {
+      "required": false,
+      "type": "string",
+      "default": "Fish Farm Management",
+      "description": "Application name"
+    },
+    "REACT_APP_ENABLE_PWA": {
+      "required": false,
+      "type": "boolean",
+      "default": true,
+      "description": "Enable Progressive Web App features"
+    },
+    "REACT_APP_ENABLE_ANALYTICS": {
+      "required": false,
+      "type": "boolean",
+      "default": false,
+      "description": "Enable analytics tracking"
+    },
+    "REACT_APP_ENABLE_ERROR_REPORTING": {
+      "required": false,
+      "type": "boolean",
+      "default": true,
+      "description": "Enable error reporting to external services"
+    },
+    "REACT_APP_ENABLE_PERFORMANCE_MONITORING": {
+      "required": false,
+      "type": "boolean",
+      "default": false,
+      "description": "Enable performance monitoring"
+    },
+    "REACT_APP_DEBUG_ENABLED": {
+      "required": false,
+      "type": "boolean",
+      "default": "environment-dependent",
+      "description": "Enable debug utilities"
+    },
+    "REACT_APP_SHOW_PERFORMANCE_MONITOR": {
+      "required": false,
+      "type": "boolean",
+      "default": false,
+      "description": "Show performance monitor overlay"
+    },
+    "REACT_APP_ENABLE_VERBOSE_LOGGING": {
+      "required": false,
+      "type": "boolean",
+      "default": "environment-dependent",
+      "description": "Enable verbose logging"
+    },
+    "REACT_APP_ANALYTICS_ID": {
+      "required": false,
+      "type": "string",
+      "default": null,
+      "description": "Analytics service ID (Google Analytics, etc.)"
+    },
+    "REACT_APP_ERROR_REPORTING_DSN": {
+      "required": false,
+      "type": "string",
+      "default": null,
+      "description": "Error reporting service DSN (Sentry, Bugsnag, etc.)"
+    },
+    "REACT_APP_LOGGING_ENDPOINT": {
+      "required": false,
+      "type": "url",
+      "default": null,
+      "description": "Remote logging endpoint"
+    },
+    "REACT_APP_STORAGE_PREFIX": {
+      "required": false,
+      "type": "string",
+      "default": "fishfarm_",
+      "description": "Prefix for localStorage and sessionStorage keys"
+    },
+    "REACT_APP_CACHE_TTL": {
+      "required": false,
+      "type": "number",
+      "default": 300000,
+      "description": "Default cache TTL in milliseconds"
+    },
+    "REACT_APP_DEFAULT_LANGUAGE": {
+      "required": false,
+      "type": "string",
+      "default": "en",
+      "description": "Default application language"
+    },
+    "REACT_APP_SUPPORTED_LANGUAGES": {
+      "required": false,
+      "type": "string",
+      "default": "en,es,fr,de,it,pt,hi,zh,ja",
+      "description": "Comma-separated list of supported languages"
+    },
+    "REACT_APP_ENABLE_CSP": {
+      "required": false,
+      "type": "boolean",
+      "default": true,
+      "description": "Enable Content Security Policy"
+    },
+    "REACT_APP_SESSION_TIMEOUT": {
+      "required": false,
+      "type": "number",
+      "default": 1800000,
+      "description": "Session timeout in milliseconds"
+    },
+    "REACT_APP_THEME_MODE": {
+      "required": false,
+      "type": "string",
+      "enum": [
+        "light",
+        "dark",
+        "auto"
+      ],
+      "default": "auto",
+      "description": "Default theme mode"
+    },
+    "REACT_APP_DEFAULT_PAGE_SIZE": {
+      "required": false,
+      "type": "number",
+      "default": 25,
+      "description": "Default pagination page size"
+    },
+    "REACT_APP_ENABLE_COMPRESSION": {
+      "required": false,
+      "type": "boolean",
+      "default": true,
+      "description": "Enable response compression"
+    },
+    "REACT_APP_ENABLE_CACHING": {
+      "required": false,
+      "type": "boolean",
+      "default": true,
+      "description": "Enable application caching"
+    },
+    "GENERATE_SOURCEMAP": {
+      "required": false,
+      "type": "boolean",
+      "default": "environment-dependent",
+      "description": "Generate source maps"
+    },
+    "SKIP_PREFLIGHT_CHECK": {
+      "required": false,
+      "type": "boolean",
+      "default": false,
+      "description": "Skip Create React App preflight checks"
+    }
+  },
+  "environments": {
+    "development": {
+      "description": "Local development environment",
+      "recommendedVariables": [
+        "NODE_ENV",
+        "REACT_APP_API_BASE_URL",
+        "REACT_APP_DEBUG_ENABLED"
+      ]
+    },
+    "production": {
+      "description": "Production environment",
+      "requiredVariables": [
+        "NODE_ENV",
+        "REACT_APP_API_BASE_URL",
+        "REACT_APP_ANALYTICS_ID",
+        "REACT_APP_ERROR_REPORTING_DSN"
+      ]
+    },
+    "test": {
+      "description": "Testing environment",
+      "minimumVariables": [
+        "NODE_ENV",
+        "REACT_APP_API_BASE_URL"
+      ]
+    }
+  }
+}

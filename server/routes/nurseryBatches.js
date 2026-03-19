@@ -9,11 +9,13 @@ router.post('/', nurseryBatchController.createNurseryBatch);
 router.get('/', nurseryBatchController.getAllNurseryBatches);
 
 // Specific routes MUST come before /:id wildcard
-// GET /api/nursery-batches/season/:seasonId - Get nursery batches by season ID
 router.get('/season/:seasonId', nurseryBatchController.getNurseryBatchesBySeasonId);
 
 // GET /api/nursery-batches/:id - Get a nursery batch by ID
 router.get('/:id', nurseryBatchController.getNurseryBatchById);
+
+// GET /api/nursery-batches/:id/events - Get events for a nursery batch
+router.get('/:id/events', nurseryBatchController.getEventsForNurseryBatch);
 
 // PUT /api/nursery-batches/:id - Update a nursery batch by ID
 router.put('/:id', nurseryBatchController.updateNurseryBatch);

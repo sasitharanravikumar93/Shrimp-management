@@ -2,10 +2,9 @@ const mongoose = require('mongoose');
 
 const inventoryItemSchema = new mongoose.Schema({
   itemName: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true
+    type: Map,
+    of: String,
+    required: true
   },
   itemType: {
     type: String,
@@ -20,11 +19,6 @@ const inventoryItemSchema = new mongoose.Schema({
     type: Date,
     required: true
   },
-  initialQuantity: {
-    type: Number,
-    required: true,
-    min: 0
-  },
   unit: {
     type: String,
     required: true,
@@ -35,9 +29,15 @@ const inventoryItemSchema = new mongoose.Schema({
     required: true,
     min: 0
   },
-  lowStockThreshold: {
+  quantityBought: {
     type: Number,
+    required: true,
     min: 0
+  },
+  seasonId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Season',
+    required: true
   },
   isActive: {
     type: Boolean,

@@ -20,6 +20,17 @@ This is the frontend for the Shrimp Farm Management System, built with React and
 
    This will start the app on [http://localhost:3000](http://localhost:3000) and automatically open it in your default browser.
 
+## Development Authentication Bypass
+
+When the backend is configured to bypass authentication in development mode, the frontend will work without requiring login. This makes development and testing much easier.
+
+To enable this feature:
+1. Configure the backend with `NODE_ENV=development` and `DEV_BYPASS_AUTH=true`
+2. Restart the backend server
+3. No changes needed in the frontend
+
+See the backend documentation for more details.
+
 ## Project Structure
 
 - `src/App.js`: Main application component

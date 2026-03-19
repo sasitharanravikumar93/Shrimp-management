@@ -1,0 +1,547 @@
+/**
+ * RTL (Right-to-Left) CSS Styles
+ * Global RTL styles to complement JavaScript RTL utilities
+ */
+
+/* RTL body classes */
+body.rtl {
+  direction: rtl;
+}
+
+body.ltr {
+  direction: ltr;
+}
+
+/* RTL-specific utility classes */
+.rtl-container {
+  direction: inherit;
+}
+
+/* Text alignment utilities for RTL */
+.rtl .text-start {
+  text-align: right !important;
+}
+
+.rtl .text-end {
+  text-align: left !important;
+}
+
+.ltr .text-start {
+  text-align: left !important;
+}
+
+.ltr .text-end {
+  text-align: right !important;
+}
+
+/* Float utilities for RTL */
+.rtl .float-start {
+  float: right !important;
+}
+
+.rtl .float-end {
+  float: left !important;
+}
+
+.ltr .float-start {
+  float: left !important;
+}
+
+.ltr .float-end {
+  float: right !important;
+}
+
+/* Margin utilities for RTL */
+.rtl .me-1 {
+  margin-left: 0.25rem !important;
+  margin-right: 0 !important;
+}
+
+.rtl .me-2 {
+  margin-left: 0.5rem !important;
+  margin-right: 0 !important;
+}
+
+.rtl .me-3 {
+  margin-left: 1rem !important;
+  margin-right: 0 !important;
+}
+
+.rtl .me-4 {
+  margin-left: 1.5rem !important;
+  margin-right: 0 !important;
+}
+
+.rtl .me-5 {
+  margin-left: 3rem !important;
+  margin-right: 0 !important;
+}
+
+.rtl .ms-1 {
+  margin-right: 0.25rem !important;
+  margin-left: 0 !important;
+}
+
+.rtl .ms-2 {
+  margin-right: 0.5rem !important;
+  margin-left: 0 !important;
+}
+
+.rtl .ms-3 {
+  margin-right: 1rem !important;
+  margin-left: 0 !important;
+}
+
+.rtl .ms-4 {
+  margin-right: 1.5rem !important;
+  margin-left: 0 !important;
+}
+
+.rtl .ms-5 {
+  margin-right: 3rem !important;
+  margin-left: 0 !important;
+}
+
+.ltr .me-1 {
+  margin-right: 0.25rem !important;
+  margin-left: 0 !important;
+}
+
+.ltr .me-2 {
+  margin-right: 0.5rem !important;
+  margin-left: 0 !important;
+}
+
+.ltr .me-3 {
+  margin-right: 1rem !important;
+  margin-left: 0 !important;
+}
+
+.ltr .me-4 {
+  margin-right: 1.5rem !important;
+  margin-left: 0 !important;
+}
+
+.ltr .me-5 {
+  margin-right: 3rem !important;
+  margin-left: 0 !important;
+}
+
+.ltr .ms-1 {
+  margin-left: 0.25rem !important;
+  margin-right: 0 !important;
+}
+
+.ltr .ms-2 {
+  margin-left: 0.5rem !important;
+  margin-right: 0 !important;
+}
+
+.ltr .ms-3 {
+  margin-left: 1rem !important;
+  margin-right: 0 !important;
+}
+
+.ltr .ms-4 {
+  margin-left: 1.5rem !important;
+  margin-right: 0 !important;
+}
+
+.ltr .ms-5 {
+  margin-left: 3rem !important;
+  margin-right: 0 !important;
+}
+
+/* Padding utilities for RTL */
+.rtl .pe-1 {
+  padding-left: 0.25rem !important;
+  padding-right: 0 !important;
+}
+
+.rtl .pe-2 {
+  padding-left: 0.5rem !important;
+  padding-right: 0 !important;
+}
+
+.rtl .pe-3 {
+  padding-left: 1rem !important;
+  padding-right: 0 !important;
+}
+
+.rtl .pe-4 {
+  padding-left: 1.5rem !important;
+  padding-right: 0 !important;
+}
+
+.rtl .pe-5 {
+  padding-left: 3rem !important;
+  padding-right: 0 !important;
+}
+
+.rtl .ps-1 {
+  padding-right: 0.25rem !important;
+  padding-left: 0 !important;
+}
+
+.rtl .ps-2 {
+  padding-right: 0.5rem !important;
+  padding-left: 0 !important;
+}
+
+.rtl .ps-3 {
+  padding-right: 1rem !important;
+  padding-left: 0 !important;
+}
+
+.rtl .ps-4 {
+  padding-right: 1.5rem !important;
+  padding-left: 0 !important;
+}
+
+.rtl .ps-5 {
+  padding-right: 3rem !important;
+  padding-left: 0 !important;
+}
+
+/* Border utilities for RTL */
+.rtl .border-start {
+  border-left: 0 !important;
+  border-right: 1px solid #dee2e6 !important;
+}
+
+.rtl .border-end {
+  border-right: 0 !important;
+  border-left: 1px solid #dee2e6 !important;
+}
+
+.ltr .border-start {
+  border-left: 1px solid #dee2e6 !important;
+  border-right: 0 !important;
+}
+
+.ltr .border-end {
+  border-right: 1px solid #dee2e6 !important;
+  border-left: 0 !important;
+}
+
+/* Position utilities for RTL */
+.rtl .start-0 {
+  right: 0 !important;
+  left: auto !important;
+}
+
+.rtl .start-50 {
+  right: 50% !important;
+  left: auto !important;
+}
+
+.rtl .start-100 {
+  right: 100% !important;
+  left: auto !important;
+}
+
+.rtl .end-0 {
+  left: 0 !important;
+  right: auto !important;
+}
+
+.rtl .end-50 {
+  left: 50% !important;
+  right: auto !important;
+}
+
+.rtl .end-100 {
+  left: 100% !important;
+  right: auto !important;
+}
+
+.ltr .start-0 {
+  left: 0 !important;
+  right: auto !important;
+}
+
+.ltr .start-50 {
+  left: 50% !important;
+  right: auto !important;
+}
+
+.ltr .start-100 {
+  left: 100% !important;
+  right: auto !important;
+}
+
+.ltr .end-0 {
+  right: 0 !important;
+  left: auto !important;
+}
+
+.ltr .end-50 {
+  right: 50% !important;
+  left: auto !important;
+}
+
+.ltr .end-100 {
+  right: 100% !important;
+  left: auto !important;
+}
+
+/* Transform utilities for RTL */
+.rtl .translate-middle-x {
+  transform: translateX(50%) !important;
+}
+
+.ltr .translate-middle-x {
+  transform: translateX(-50%) !important;
+}
+
+/* Icon rotation for RTL */
+.rtl .icon-flip {
+  transform: scaleX(-1);
+}
+
+.rtl .icon-rotate-180 {
+  transform: rotate(180deg);
+}
+
+/* Card and component RTL adjustments */
+.rtl .card-header {
+  text-align: right;
+}
+
+.rtl .card-title {
+  text-align: right;
+}
+
+.rtl .navbar-brand {
+  margin-right: 0;
+  margin-left: 1rem;
+}
+
+.rtl .navbar-nav .nav-link {
+  padding-right: 0;
+  padding-left: 0.5rem;
+}
+
+/* Form RTL adjustments */
+.rtl .form-check-input {
+  margin-left: 0;
+  margin-right: -1.25em;
+}
+
+.rtl .form-check-label {
+  padding-left: 0;
+  padding-right: 1.25em;
+}
+
+.rtl .form-floating > label {
+  right: 0;
+  left: auto;
+  transform-origin: 100% 0;
+}
+
+.rtl .form-floating > .form-control:focus ~ label,
+.rtl .form-floating > .form-control:not(:placeholder-shown) ~ label {
+  transform: scale(0.85) translateY(-0.5rem) translateX(0.15rem);
+}
+
+/* Table RTL adjustments */
+.rtl .table th,
+.rtl .table td {
+  text-align: right;
+}
+
+.rtl .table-responsive {
+  direction: rtl;
+}
+
+.rtl .table-responsive .table {
+  direction: rtl;
+}
+
+/* Dropdown RTL adjustments */
+.rtl .dropdown-menu {
+  right: 0;
+  left: auto;
+}
+
+.rtl .dropdown-toggle::after {
+  margin-left: 0;
+  margin-right: 0.255em;
+}
+
+/* Navigation RTL adjustments */
+.rtl .breadcrumb-item + .breadcrumb-item::before {
+  content: "/";
+  padding-right: 0;
+  padding-left: 0.5rem;
+}
+
+.rtl .pagination .page-link {
+  margin-left: 0;
+  margin-right: -1px;
+}
+
+.rtl .pagination .page-item:first-child .page-link {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-top-right-radius: 0.375rem;
+  border-bottom-right-radius: 0.375rem;
+}
+
+.rtl .pagination .page-item:last-child .page-link {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-top-left-radius: 0.375rem;
+  border-bottom-left-radius: 0.375rem;
+}
+
+/* Alert RTL adjustments */
+.rtl .alert-dismissible .btn-close {
+  left: 0;
+  right: auto;
+  padding: 0.75rem 1.25rem 0.75rem 0;
+}
+
+/* Modal RTL adjustments */
+.rtl .modal-header .btn-close {
+  margin: -0.5rem 0 -0.5rem auto;
+}
+
+/* Toast RTL adjustments */
+.rtl .toast-header .btn-close {
+  margin-right: auto;
+  margin-left: -0.375rem;
+}
+
+/* Progress bar RTL adjustments */
+.rtl .progress-bar {
+  direction: ltr;
+}
+
+/* Carousel RTL adjustments */
+.rtl .carousel-control-prev,
+.rtl .carousel-control-next {
+  transform: scaleX(-1);
+}
+
+/* Badge RTL adjustments */
+.rtl .badge {
+  direction: ltr;
+}
+
+/* Accordion RTL adjustments */
+.rtl .accordion-button::after {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+.rtl .accordion-button:not(.collapsed)::after {
+  transform: rotate(-180deg);
+}
+
+/* Offcanvas RTL adjustments */
+.rtl .offcanvas-start {
+  right: 0;
+  left: auto;
+  border-left: 1px solid rgba(0, 0, 0, 0.2);
+  border-right: 0;
+  transform: translateX(100%);
+}
+
+.rtl .offcanvas-end {
+  left: 0;
+  right: auto;
+  border-right: 1px solid rgba(0, 0, 0, 0.2);
+  border-left: 0;
+  transform: translateX(-100%);
+}
+
+/* Custom scrollbar for RTL */
+.rtl ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.rtl ::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.rtl ::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.rtl ::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Animation adjustments for RTL */
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+.rtl .slide-in-start {
+  animation: slideInRight 0.3s ease-out;
+}
+
+.rtl .slide-in-end {
+  animation: slideInLeft 0.3s ease-out;
+}
+
+.ltr .slide-in-start {
+  animation: slideInLeft 0.3s ease-out;
+}
+
+.ltr .slide-in-end {
+  animation: slideInRight 0.3s ease-out;
+}
+
+/* Responsive RTL adjustments */
+@media (max-width: 768px) {
+  .rtl .container,
+  .rtl .container-fluid {
+    padding-right: 15px;
+    padding-left: 15px;
+  }
+
+  .rtl .row {
+    margin-right: -15px;
+    margin-left: -15px;
+  }
+
+  .rtl .col,
+  .rtl [class*="col-"] {
+    padding-right: 15px;
+    padding-left: 15px;
+  }
+}
+
+/* Print styles for RTL */
+@media print {
+  .rtl * {
+    direction: rtl !important;
+    text-align: right !important;
+  }
+
+  .rtl .table th,
+  .rtl .table td {
+    text-align: right !important;
+  }
+}

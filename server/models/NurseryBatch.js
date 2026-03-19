@@ -2,10 +2,9 @@ const mongoose = require('mongoose');
 
 const nurseryBatchSchema = new mongoose.Schema({
   batchName: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true
+    type: Map,
+    of: String,
+    required: true
   },
   startDate: {
     type: Date,
@@ -39,9 +38,27 @@ const nurseryBatchSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Season',
     required: true
+  },
+  size: {
+    type: Number, // e.g., area in sq meters or liters
+    required: true
+  },
+  capacity: {
+    type: Number, // e.g., max shrimp count
+    required: true
+  },
+  status: {
+    type: String,
+    enum: ['Planning', 'Active', 'Inactive', 'Completed'],
+    default: 'Planning'
   }
 }, {
   timestamps: true
 });
+
+// Add indexes for better query performance
+nurseryBatchSchema.index({ seasonId: 1 });
+nurseryBatchSchema.index({ status: 1 });
+nurseryBatchSchema.index({ seasonId: 1, status: 1 });
 
 module.exports = mongoose.model('NurseryBatch', nurseryBatchSchema);

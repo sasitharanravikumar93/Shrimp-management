@@ -1,11 +1,14 @@
+/* Import RTL styles */
+@import "./styles/rtl.css";
+
 /* Base reset — font handled by MUI CssBaseline + theme.ts */
 body {
   margin: 0;
+
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
 }
