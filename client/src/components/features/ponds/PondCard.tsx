@@ -51,17 +51,17 @@ const PondCard = memo<PondCardProps>(({ pond, onClick, selected = false }) => {
   return (
     <Card onClick={handleClick} sx={cardStyles}>
       <CardContent>
-        <Typography variant="h6">{pond.name}</Typography>
-        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, mt: 1 }}>
+        <Typography variant='h6'>{pond.name}</Typography>
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
           {chipData.map(({ label, key }) => (
-            <Chip key={key} label={label} size="small" />
+            <Chip key={key} label={label} size='small' />
           ))}
           {pond.status && (
-            <Chip 
-              label={t(pond.status.toLowerCase())} 
-              size="small" 
+            <Chip
+              label={t(pond.status.toLowerCase())}
+              size='small'
               color={pond.status === 'Active' ? 'success' : 'default'}
-              variant="outlined"
+              variant='outlined'
             />
           )}
         </Box>

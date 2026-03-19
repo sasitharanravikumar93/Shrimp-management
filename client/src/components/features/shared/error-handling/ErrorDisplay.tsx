@@ -59,13 +59,13 @@ const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
   const getSeverityIcon = (severity: 'error' | 'warning' | 'info' | 'success') => {
     switch (severity) {
       case 'error':
-        return <ErrorIcon color="error" />;
+        return <ErrorIcon color='error' />;
       case 'warning':
-        return <WarningIcon color="warning" />;
+        return <WarningIcon color='warning' />;
       case 'info':
-        return <InfoIcon color="info" />;
+        return <InfoIcon color='info' />;
       default:
-        return <ErrorIcon color="error" />;
+        return <ErrorIcon color='error' />;
     }
   };
 
@@ -90,12 +90,12 @@ const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
     if (!errorInfo.recoveryActions?.length) return null;
 
     return (
-      <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
+      <Stack direction='row' spacing={1} sx={{ mt: 2 }}>
         {errorInfo.recoveryActions.map((action: any) => (
           <Button
             key={action.name}
             variant={action.primary ? 'contained' : 'outlined'}
-            size="small"
+            size='small'
             onClick={() => {
               if (action.action) action.action();
               if (action.name === 'retry' && onRetry) {
@@ -118,7 +118,7 @@ const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
         severity={errorInfo.severity as any}
         action={
           onRetry && (
-            <Button size="small" onClick={onRetry} startIcon={<RefreshIcon />}>
+            <Button size='small' onClick={onRetry} startIcon={<RefreshIcon />}>
               Retry
             </Button>
           )
@@ -142,15 +142,15 @@ const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
         {...props}
       >
         <AlertTitle>{errorInfo.title}</AlertTitle>
-        <Typography variant="body2" sx={{ mb: 1 }}>
+        <Typography variant='body2' sx={{ mb: 1 }}>
           {errorInfo.message}
         </Typography>
 
         {errorInfo.errorId && (
           <Chip
             label={`Error ID: ${errorInfo.errorId}`}
-            size="small"
-            variant="outlined"
+            size='small'
+            variant='outlined'
             sx={{ mb: 1 }}
           />
         )}
@@ -160,7 +160,7 @@ const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
         {process.env.NODE_ENV === 'development' && (
           <Box sx={{ mt: 2 }}>
             <Button
-              size="small"
+              size='small'
               onClick={() => setShowTechnicalDetails(!showTechnicalDetails)}
               startIcon={showTechnicalDetails ? <ExpandLessIcon /> : <ExpandMoreIcon />}
               sx={{ textTransform: 'none' }}
@@ -170,7 +170,7 @@ const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
 
             <Collapse in={showTechnicalDetails}>
               <Box sx={{ mt: 1, p: 1, bgcolor: 'grey.100', borderRadius: 1 }}>
-                <Typography variant="caption" component="div">
+                <Typography variant='caption' component='div'>
                   <strong>Error Type:</strong> {errorInfo.classifiedError?.type}
                   <br />
                   <strong>Original Message:</strong> {errorInfo.originalError?.message}
@@ -202,23 +202,23 @@ const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
     >
       <Box sx={{ mb: 3 }}>{getSeverityIcon(errorInfo.severity as any)}</Box>
 
-      <Typography variant="h5" component="h2" gutterBottom>
+      <Typography variant='h5' component='h2' gutterBottom>
         {errorInfo.title}
       </Typography>
 
-      <Typography variant="body1" color="text.secondary" paragraph>
+      <Typography variant='body1' color='text.secondary' paragraph>
         {errorInfo.message}
       </Typography>
 
       {errorInfo.errorId && (
         <Box sx={{ mb: 3 }}>
-          <Chip label={`Error ID: ${errorInfo.errorId}`} variant="outlined" />
+          <Chip label={`Error ID: ${errorInfo.errorId}`} variant='outlined' />
         </Box>
       )}
 
       {renderRecoveryActions()}
 
-      <Typography variant="caption" color="text.secondary" sx={{ mt: 3, display: 'block' }}>
+      <Typography variant='caption' color='text.secondary' sx={{ mt: 3, display: 'block' }}>
         If this problem persists, please contact support with the Error ID above.
       </Typography>
     </Paper>

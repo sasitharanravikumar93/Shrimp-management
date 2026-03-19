@@ -7,12 +7,12 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 
 import { GlobalErrorBoundary } from './components/features/shared/error-handling/GlobalErrorBoundary';
 import Layout from './components/features/shared/layout/Layout';
+import GlobalNotification from './components/GlobalNotification';
 import { OfflineSyncProvider } from './context/OfflineSyncContext';
 import { SeasonProvider } from './context/SeasonContext';
 import i18n from './i18n';
 import theme, { darkTheme } from './theme';
 import { RTLProvider, useRTL, createRTLTheme } from './utils/rtlUtils';
-import GlobalNotification from './components/GlobalNotification';
 
 // Lazy load pages for code splitting
 const DashboardPage = lazy(() => import('./pages/DashboardPage'));
@@ -95,8 +95,11 @@ const AppContent: React.FC = () => {
                       <Route path='/inventory-management' element={<InventoryManagementPage />} />
                       <Route path='/historical-insights' element={<HistoricalInsightsPage />} />
                       <Route path='/expense-management' element={<ExpenseManagementPage />} />
-                      <Route path='/expenses' element={<Navigate to="/expense-management" replace />} />
-                      
+                      <Route
+                        path='/expenses'
+                        element={<Navigate to='/expense-management' replace />}
+                      />
+
                       {/* New feature routes */}
                       <Route path='/harvest' element={<HarvestManagementPage />} />
                       <Route path='/post-harvest-report' element={<PostHarvestReportPage />} />

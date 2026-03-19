@@ -88,9 +88,9 @@ const KPICard = memo<KPICardProps>(
     );
 
     return (
-      <MotionDiv 
-        initial="initial"
-        animate="animate"
+      <MotionDiv
+        initial='initial'
+        animate='animate'
         variants={motionVariants as any}
         whileHover={{ y: -5, transition: { duration: 0.2 } }}
       >
@@ -111,17 +111,17 @@ const KPICard = memo<KPICardProps>(
               sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}
             >
               <Box>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
+                <Typography variant='body2' color='text.secondary' gutterBottom>
                   {t(title)}
                 </Typography>
-                <Typography variant="h5" component="div" sx={{ fontWeight: 600, mb: 1 }}>
+                <Typography variant='h5' component='div' sx={{ fontWeight: 600, mb: 1 }}>
                   {formattedValue}
                 </Typography>
                 {(change !== 0 || changeText) && (
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     {trendIcon}
                     <Typography
-                      variant="body2"
+                      variant='body2'
                       sx={{
                         ml: 0.5,
                         color: trendColor
@@ -138,7 +138,7 @@ const KPICard = memo<KPICardProps>(
             {progressValue !== null && (
               <Box sx={{ mt: 2 }}>
                 <LinearProgress
-                  variant="determinate"
+                  variant='determinate'
                   value={progressValue}
                   color={progressColor}
                   sx={{ borderRadius: 2, height: 8 }}
@@ -208,9 +208,9 @@ export const CircularKPICard = memo<CircularKPICardProps>(
     );
 
     return (
-      <MotionDiv 
-        initial="initial"
-        animate="animate"
+      <MotionDiv
+        initial='initial'
+        animate='animate'
         variants={motionVariants as any}
         whileHover={{ scale: 1.05, transition: { duration: 0.2 } }}
       >
@@ -231,7 +231,7 @@ export const CircularKPICard = memo<CircularKPICardProps>(
         >
           <Box sx={{ position: 'relative', display: 'inline-flex', mb: 1 }}>
             <CircularProgress
-              variant="determinate"
+              variant='determinate'
               value={FULL_PROGRESS}
               size={size}
               thickness={3}
@@ -242,7 +242,7 @@ export const CircularKPICard = memo<CircularKPICardProps>(
               }}
             />
             <CircularProgress
-              variant="determinate"
+              variant='determinate'
               value={progressValue}
               size={size}
               thickness={3}
@@ -263,14 +263,14 @@ export const CircularKPICard = memo<CircularKPICardProps>(
               <Avatar sx={avatarStyles}>{icon}</Avatar>
             </Box>
           </Box>
-          <Typography variant="h6" component="div" sx={{ fontWeight: 600, textAlign: 'center' }}>
+          <Typography variant='h6' component='div' sx={{ fontWeight: 600, textAlign: 'center' }}>
             {t(title)}
           </Typography>
           {(change !== 0 || changeText) && (
             <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
               {trendIcon}
               <Typography
-                variant="body2"
+                variant='body2'
                 sx={{
                   ml: 0.5,
                   color: trendColor

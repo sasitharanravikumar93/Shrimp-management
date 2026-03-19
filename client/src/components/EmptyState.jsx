@@ -1,6 +1,4 @@
-import React from 'react';
-import { Box, Typography, Button } from '@mui/material';
-import { 
+import {
   InboxOutlined as InboxIcon,
   ScienceOutlined as ScienceIcon,
   WaterDropOutlined as WaterIcon,
@@ -9,7 +7,9 @@ import {
   CalendarMonthOutlined as SeasonIcon,
   InventoryOutlined as InventoryIcon
 } from '@mui/icons-material';
+import { Box, Typography, Button } from '@mui/material';
 import { motion } from 'framer-motion';
+import React from 'react';
 
 const iconMap = {
   default: InboxIcon,
@@ -18,10 +18,10 @@ const iconMap = {
   feed: FeedIcon,
   pond: PondIcon,
   season: SeasonIcon,
-  inventory: InventoryIcon,
+  inventory: InventoryIcon
 };
 
-const EmptyState = ({ 
+const EmptyState = ({
   icon = 'default',
   title = 'No data yet',
   description = 'Get started by adding your first entry.',
@@ -45,7 +45,7 @@ const EmptyState = ({
           justifyContent: 'center',
           py: compact ? 4 : 8,
           px: 3,
-          textAlign: 'center',
+          textAlign: 'center'
         }}
       >
         <Box
@@ -57,38 +57,34 @@ const EmptyState = ({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            mb: 2,
+            mb: 2
           }}
         >
-          <IconComponent 
-            sx={{ 
-              fontSize: compact ? 32 : 40, 
+          <IconComponent
+            sx={{
+              fontSize: compact ? 32 : 40,
               color: 'primary.main',
               opacity: 0.7
-            }} 
+            }}
           />
         </Box>
-        <Typography 
-          variant={compact ? 'subtitle1' : 'h6'} 
-          color="text.primary" 
+        <Typography
+          variant={compact ? 'subtitle1' : 'h6'}
+          color='text.primary'
           gutterBottom
           sx={{ fontWeight: 600 }}
         >
           {title}
         </Typography>
-        <Typography 
-          variant="body2" 
-          color="text.secondary" 
+        <Typography
+          variant='body2'
+          color='text.secondary'
           sx={{ maxWidth: 360, mb: actionLabel ? 3 : 0 }}
         >
           {description}
         </Typography>
         {actionLabel && onAction && (
-          <Button
-            variant="contained"
-            onClick={onAction}
-            sx={{ mt: 1 }}
-          >
+          <Button variant='contained' onClick={onAction} sx={{ mt: 1 }}>
             {actionLabel}
           </Button>
         )}

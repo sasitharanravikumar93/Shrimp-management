@@ -37,7 +37,9 @@ const sanitizeErrorForUser = error => {
   }
 
   // Always return a generic error message to prevent technical details from being shown to users
-  const sanitizedError = new Error('An unexpected error occurred. Please try again or refresh the page.');
+  const sanitizedError = new Error(
+    'An unexpected error occurred. Please try again or refresh the page.'
+  );
 
   // Keep useful original error for development debugging only
   if (process.env.NODE_ENV === 'development') {
@@ -156,11 +158,15 @@ export const withGlobalErrorHandling = (Component, options = {}) => {
 
           if (errorArg instanceof Error) {
             // Sanitize error before showing
-            const sanitizedError = new Error('An unexpected error occurred. Please try again or refresh the page.');
+            const sanitizedError = new Error(
+              'An unexpected error occurred. Please try again or refresh the page.'
+            );
             showError(sanitizedError);
           } else if (typeof errorArg === 'string' && errorArg.includes('Error')) {
             // Show generic message instead of the actual error
-            const sanitizedError = new Error('An unexpected error occurred. Please try again or refresh the page.');
+            const sanitizedError = new Error(
+              'An unexpected error occurred. Please try again or refresh the page.'
+            );
             showError(sanitizedError);
           } else if (
             typeof errorArg === 'string' &&
@@ -172,7 +178,9 @@ export const withGlobalErrorHandling = (Component, options = {}) => {
               errorArg.toLowerCase().includes('timeout'))
           ) {
             // Show generic message instead of the actual error
-            const sanitizedError = new Error('An unexpected error occurred. Please try again or refresh the page.');
+            const sanitizedError = new Error(
+              'An unexpected error occurred. Please try again or refresh the page.'
+            );
             showError(sanitizedError);
           }
         };

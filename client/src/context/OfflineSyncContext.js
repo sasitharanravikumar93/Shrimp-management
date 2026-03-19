@@ -46,8 +46,9 @@ export const OfflineSyncProvider = ({ children }) => {
       // This is a placeholder for the actual API call function
       // In a real implementation, you would pass the actual API call function
       const apiCall = async (endpoint, method, data) => {
-        const url = `${process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001/api'
-          }${endpoint}`;
+        const url = `${
+          process.env.REACT_APP_API_BASE_URL || 'http://localhost:5001/api'
+        }${endpoint}`;
 
         const options = {
           method,

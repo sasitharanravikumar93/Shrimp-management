@@ -40,9 +40,10 @@ export class GlobalErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       // Sanitize the error to prevent showing raw technical details to users
-      const sanitizedError = this.state.error instanceof Error 
-        ? new Error('An unexpected error occurred. Please try again or refresh the page.')
-        : new Error('An unexpected error occurred. Please try again or refresh the page.');
+      const sanitizedError =
+        this.state.error instanceof Error
+          ? new Error('An unexpected error occurred. Please try again or refresh the page.')
+          : new Error('An unexpected error occurred. Please try again or refresh the page.');
 
       // Add technical details only for development
       if (process.env.NODE_ENV === 'development') {

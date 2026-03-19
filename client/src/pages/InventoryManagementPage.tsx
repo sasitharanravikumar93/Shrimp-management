@@ -46,7 +46,6 @@ const InventoryManagementPage: React.FC = () => {
   const [historyItem, setHistoryItem] = useState<any>(null);
   const [view, setView] = useState('bought'); // 'bought' or 'stock'
 
-
   const fetchInventoryItems = useCallback(async () => {
     if (!selectedSeason || !(selectedSeason._id || selectedSeason.id)) {
       setInventoryItems([]);
@@ -132,30 +131,30 @@ const InventoryManagementPage: React.FC = () => {
   };
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-        <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }}>
+    <Container maxWidth='lg' sx={{ mt: 4, mb: 4 }}>
+      <Box display='flex' justifyContent='space-between' alignItems='center' mb={3}>
+        <Typography variant='h4' component='h1' sx={{ fontWeight: 700 }}>
           {t('inventory_management')}
         </Typography>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={() => handleOpenForm()}>
+        <Button variant='contained' startIcon={<AddIcon />} onClick={() => handleOpenForm()}>
           {t('add_new_item')}
         </Button>
       </Box>
 
       <Box sx={{ mb: 2 }}>
         <ToggleButtonGroup
-          color="primary"
+          color='primary'
           value={view}
           exclusive
           onChange={(e, newView) => newView && setView(newView)}
         >
-          <ToggleButton value="bought">{t('inventory_bought')}</ToggleButton>
-          <ToggleButton value="stock">{t('current_stock')}</ToggleButton>
+          <ToggleButton value='bought'>{t('inventory_bought')}</ToggleButton>
+          <ToggleButton value='stock'>{t('current_stock')}</ToggleButton>
         </ToggleButtonGroup>
       </Box>
 
       <Paper sx={{ p: 3, mb: 3 }}>
-        <Box sx={{ display: "flex", gap: 2, mb: 3, flexWrap: "wrap" }}>
+        <Box sx={{ display: 'flex', gap: 2, mb: 3, flexWrap: 'wrap' }}>
           <TextField
             fullWidth
             label={t('search_inventory')}
@@ -163,15 +162,15 @@ const InventoryManagementPage: React.FC = () => {
             onChange={handleSearchChange}
             InputProps={{
               endAdornment: (
-                <InputAdornment position="end">
+                <InputAdornment position='end'>
                   <SearchIcon />
                 </InputAdornment>
               )
             }}
             sx={{ flexGrow: 1, minWidth: 300 }}
           />
-          <ToggleButtonGroup size="small" value={filter} exclusive onChange={handleFilterChange}>
-            <ToggleButton value="all">{t('all')}</ToggleButton>
+          <ToggleButtonGroup size='small' value={filter} exclusive onChange={handleFilterChange}>
+            <ToggleButton value='all'>{t('all')}</ToggleButton>
             {itemTypes.map((type: any) => (
               <ToggleButton key={type} value={type.toLowerCase()}>
                 {t(type.toLowerCase())}
@@ -182,13 +181,13 @@ const InventoryManagementPage: React.FC = () => {
       </Paper>
 
       {loading && (
-        <Box display="flex" justifyContent="center" mt={5}>
+        <Box display='flex' justifyContent='center' mt={5}>
           <CircularProgress />
         </Box>
       )}
 
       {error && (
-        <Alert severity="error" sx={{ mt: 2 }}>
+        <Alert severity='error' sx={{ mt: 2 }}>
           {error}
         </Alert>
       )}
@@ -204,15 +203,15 @@ const InventoryManagementPage: React.FC = () => {
                   <TableCell>{t('purchaseDate')}</TableCell>
                   <TableCell>{t('supplier')}</TableCell>
                   <TableCell>{t('unit')}</TableCell>
-                  <TableCell align="right">{t('costPerUnit')}</TableCell>
-                  <TableCell align="right">{t('quantity_bought')}</TableCell>
+                  <TableCell align='right'>{t('costPerUnit')}</TableCell>
+                  <TableCell align='right'>{t('quantity_bought')}</TableCell>
                   <TableCell>{t('actions')}</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
                 {filteredItems.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} align="center">
+                    <TableCell colSpan={8} align='center'>
                       {t('no_inventory_items_found')}
                     </TableCell>
                   </TableRow>
@@ -221,19 +220,28 @@ const InventoryManagementPage: React.FC = () => {
                     <TableRow key={item._id}>
                       <TableCell>{getItemName(item)}</TableCell>
                       <TableCell>{item.itemType}</TableCell>
-                      <TableCell>{item.purchaseDate ? new Date(item.purchaseDate).toLocaleDateString() : 'N/A'}</TableCell>
+                      <TableCell>
+                        {item.purchaseDate
+                          ? new Date(item.purchaseDate).toLocaleDateString()
+                          : 'N/A'}
+                      </TableCell>
                       <TableCell>{item.supplier}</TableCell>
                       <TableCell>{item.unit}</TableCell>
-                      <TableCell align="right">{item.costPerUnit}</TableCell>
-                      <TableCell align="right">{item.quantityBought}</TableCell>
+                      <TableCell align='right'>{item.costPerUnit}</TableCell>
+                      <TableCell align='right'>{item.quantityBought}</TableCell>
                       <TableCell>
-                        <IconButton color="primary" onClick={() => handleOpenForm(item)}>
+                        <IconButton color='primary' onClick={() => handleOpenForm(item)}>
                           <EditIcon />
                         </IconButton>
-                        <IconButton onClick={() => { setHistoryItem(item); setOpenHistoryModal(true); }}>
+                        <IconButton
+                          onClick={() => {
+                            setHistoryItem(item);
+                            setOpenHistoryModal(true);
+                          }}
+                        >
                           <HistoryIcon />
                         </IconButton>
-                        <IconButton color="error" onClick={() => handleDeleteItem(item._id)}>
+                        <IconButton color='error' onClick={() => handleDeleteItem(item._id)}>
                           <DeleteIcon />
                         </IconButton>
                       </TableCell>
@@ -251,9 +259,15 @@ const InventoryManagementPage: React.FC = () => {
       {openForm && (
         <InventoryForm
           open={openForm}
-          onClose={() => { setOpenForm(false); fetchInventoryItems(); }}
+          onClose={() => {
+            setOpenForm(false);
+            fetchInventoryItems();
+          }}
           item={editingItem}
-          onSave={() => { setOpenForm(false); fetchInventoryItems(); }}
+          onSave={() => {
+            setOpenForm(false);
+            fetchInventoryItems();
+          }}
         />
       )}
 

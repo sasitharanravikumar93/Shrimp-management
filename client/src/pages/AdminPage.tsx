@@ -56,8 +56,8 @@ import {
 } from 'recharts';
 
 import ResponsiveTable from '../components/features/farm/ResponsiveTable';
-import { useApiData, useApiMutation } from '../hooks/useApi';
 import { useSeason } from '../context/SeasonContext';
+import { useApiData, useApiMutation } from '../hooks/useApi';
 import {
   getSeasons,
   createSeason,
@@ -326,20 +326,20 @@ const AdminPage: React.FC = () => {
 
   if (seasonsLoading || pondsLoading) {
     return (
-      <Container maxWidth="lg" sx={{ mt: 2, mb: 4 }}>
+      <Container maxWidth='lg' sx={{ mt: 2, mb: 4 }}>
         <CircularProgress />
       </Container>
     );
   }
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 2, mb: 4 }}>
+    <Container maxWidth='lg' sx={{ mt: 2, mb: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4" component="h1" sx={{ fontWeight: 700 }}>
+        <Typography variant='h4' component='h1' sx={{ fontWeight: 700 }}>
           {t('admin_panel')}
         </Typography>
         <Button
-          variant="outlined"
+          variant='outlined'
           startIcon={<ExportIcon />}
           onClick={() =>
             exportToCSV(activeTab === 0 ? seasons : activeTab === 1 ? ponds : [], 'admin-data')
@@ -354,14 +354,14 @@ const AdminPage: React.FC = () => {
           <Tabs
             value={activeTab}
             onChange={handleTabChange}
-            aria-label="admin tabs"
-            variant="scrollable"
-            scrollButtons="auto"
+            aria-label='admin tabs'
+            variant='scrollable'
+            scrollButtons='auto'
             sx={{ mb: 3 }}
           >
-            <Tab icon={<SeasonIcon />} label={t('seasons')} iconPosition="start" />
-            <Tab icon={<PondIcon />} label={t('ponds')} iconPosition="start" />
-            <Tab icon={<CopyIcon />} label={t('copy_pond_details')} iconPosition="start" />
+            <Tab icon={<SeasonIcon />} label={t('seasons')} iconPosition='start' />
+            <Tab icon={<PondIcon />} label={t('ponds')} iconPosition='start' />
+            <Tab icon={<CopyIcon />} label={t('copy_pond_details')} iconPosition='start' />
           </Tabs>
 
           {activeTab !== 2 && (
@@ -372,7 +372,7 @@ const AdminPage: React.FC = () => {
                 onChange={handleSearch}
                 InputProps={{
                   startAdornment: (
-                    <InputAdornment position="start">
+                    <InputAdornment position='start'>
                       <SearchIcon />
                     </InputAdornment>
                   )
@@ -381,20 +381,20 @@ const AdminPage: React.FC = () => {
               />
 
               <ToggleButtonGroup
-                size="small"
+                size='small'
                 value={filter}
                 exclusive
                 onChange={handleFilterChange}
               >
-                <ToggleButton value="all">{t('all')}</ToggleButton>
+                <ToggleButton value='all'>{t('all')}</ToggleButton>
                 {(activeTab === 0 || activeTab === 1) && (
                   <>
-                    <ToggleButton value="active">{t('active')}</ToggleButton>
-                    <ToggleButton value="planning">{t('planning')}</ToggleButton>
+                    <ToggleButton value='active'>{t('active')}</ToggleButton>
+                    <ToggleButton value='planning'>{t('planning')}</ToggleButton>
                     {activeTab === 0 ? (
-                      <ToggleButton value="completed">{t('completed')}</ToggleButton>
+                      <ToggleButton value='completed'>{t('completed')}</ToggleButton>
                     ) : (
-                      <ToggleButton value="inactive">{t('inactive')}</ToggleButton>
+                      <ToggleButton value='inactive'>{t('inactive')}</ToggleButton>
                     )}
                   </>
                 )}
@@ -406,12 +406,12 @@ const AdminPage: React.FC = () => {
             {activeTab === 0 && (
               <Grid container spacing={3}>
                 <Grid item xs={12}>
-                  <Card variant="outlined">
+                  <Card variant='outlined'>
                     <CardHeader
                       title={t('manage_seasons')}
                       action={
                         <Button
-                          variant="contained"
+                          variant='contained'
                           startIcon={<AddIcon />}
                           onClick={() => handleOpenDialog('season')}
                         >
@@ -421,14 +421,19 @@ const AdminPage: React.FC = () => {
                     />
                     <CardContent>
                       <Box sx={{ height: 300, mb: 3 }}>
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width='100%' height='100%'>
                           <BarChart data={yieldData}>
-                            <CartesianGrid strokeDasharray="3 3" />
-                            <XAxis dataKey="name" />
+                            <CartesianGrid strokeDasharray='3 3' />
+                            <XAxis dataKey='name' />
                             <YAxis />
                             <RechartsTooltip />
                             <Legend />
-                            <Bar dataKey="yield" name={t('season_yield')} fill="#2563EB" radius={[4, 4, 0, 0]} />
+                            <Bar
+                              dataKey='yield'
+                              name={t('season_yield')}
+                              fill='#2563EB'
+                              radius={[4, 4, 0, 0]}
+                            />
                           </BarChart>
                         </ResponsiveContainer>
                       </Box>
@@ -444,12 +449,14 @@ const AdminPage: React.FC = () => {
                           {
                             id: 'startDate',
                             label: t('startDate'),
-                            render: (value: any) => (value ? format(new Date(value), 'yyyy-MM-dd') : 'N/A')
+                            render: (value: any) =>
+                              value ? format(new Date(value), 'yyyy-MM-dd') : 'N/A'
                           },
                           {
                             id: 'endDate',
                             label: t('endDate'),
-                            render: (value: any) => (value ? format(new Date(value), 'yyyy-MM-dd') : 'N/A')
+                            render: (value: any) =>
+                              value ? format(new Date(value), 'yyyy-MM-dd') : 'N/A'
                           },
                           {
                             id: 'status',
@@ -457,9 +464,13 @@ const AdminPage: React.FC = () => {
                             render: (value: any) => (
                               <Chip
                                 label={value || 'N/A'}
-                                size="small"
+                                size='small'
                                 color={
-                                  value === 'Active' ? 'success' : value === 'Planning' ? 'warning' : 'default'
+                                  value === 'Active'
+                                    ? 'success'
+                                    : value === 'Planning'
+                                    ? 'warning'
+                                    : 'default'
                                 }
                               />
                             )
@@ -469,10 +480,17 @@ const AdminPage: React.FC = () => {
                             label: t('actions'),
                             render: (_: any, row: any) => (
                               <Box sx={{ display: 'flex' }}>
-                                <IconButton size="small" onClick={() => handleOpenDialog('season', row)}>
+                                <IconButton
+                                  size='small'
+                                  onClick={() => handleOpenDialog('season', row)}
+                                >
                                   <EditIcon />
                                 </IconButton>
-                                <IconButton size="small" color="error" onClick={() => handleDelete('season', row._id || row.id)}>
+                                <IconButton
+                                  size='small'
+                                  color='error'
+                                  onClick={() => handleDelete('season', row._id || row.id)}
+                                >
                                   <DeleteIcon />
                                 </IconButton>
                               </Box>
@@ -480,7 +498,7 @@ const AdminPage: React.FC = () => {
                           }
                         ]}
                         data={getPagedData(seasons)}
-                        rowKey="_id"
+                        rowKey='_id'
                       />
 
                       <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
@@ -488,7 +506,7 @@ const AdminPage: React.FC = () => {
                           count={getTotalPages(seasons)}
                           page={page}
                           onChange={(e, v) => setPage(v)}
-                          color="primary"
+                          color='primary'
                         />
                       </Box>
                     </CardContent>
@@ -500,12 +518,12 @@ const AdminPage: React.FC = () => {
             {activeTab === 1 && (
               <Grid container spacing={3}>
                 <Grid item xs={12}>
-                  <Card variant="outlined">
+                  <Card variant='outlined'>
                     <CardHeader
                       title={t('manage_ponds')}
                       action={
                         <Button
-                          variant="contained"
+                          variant='contained'
                           startIcon={<AddIcon />}
                           onClick={() => handleOpenDialog('pond')}
                         >
@@ -522,9 +540,14 @@ const AdminPage: React.FC = () => {
                             render: (value: any, row: any) => (
                               <Typography
                                 onClick={() => navigate(`/pond/${row._id || row.id}`)}
-                                sx={{ cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
+                                sx={{
+                                  cursor: 'pointer',
+                                  '&:hover': { textDecoration: 'underline' }
+                                }}
                               >
-                                {typeof value === 'object' ? value[i18n.language] || value.en : value}
+                                {typeof value === 'object'
+                                  ? value[i18n.language] || value.en
+                                  : value}
                               </Typography>
                             )
                           },
@@ -548,9 +571,13 @@ const AdminPage: React.FC = () => {
                             render: (value: any) => (
                               <Chip
                                 label={value || 'N/A'}
-                                size="small"
+                                size='small'
                                 color={
-                                  value === 'Active' ? 'success' : value === 'Planning' ? 'warning' : 'default'
+                                  value === 'Active'
+                                    ? 'success'
+                                    : value === 'Planning'
+                                    ? 'warning'
+                                    : 'default'
                                 }
                               />
                             )
@@ -560,10 +587,17 @@ const AdminPage: React.FC = () => {
                             label: t('actions'),
                             render: (_: any, row: any) => (
                               <Box sx={{ display: 'flex' }}>
-                                <IconButton size="small" onClick={() => handleOpenDialog('pond', row)}>
+                                <IconButton
+                                  size='small'
+                                  onClick={() => handleOpenDialog('pond', row)}
+                                >
                                   <EditIcon />
                                 </IconButton>
-                                <IconButton size="small" color="error" onClick={() => handleDelete('pond', row._id || row.id)}>
+                                <IconButton
+                                  size='small'
+                                  color='error'
+                                  onClick={() => handleDelete('pond', row._id || row.id)}
+                                >
                                   <DeleteIcon />
                                 </IconButton>
                               </Box>
@@ -571,14 +605,14 @@ const AdminPage: React.FC = () => {
                           }
                         ]}
                         data={getPagedData(ponds)}
-                        rowKey="_id"
+                        rowKey='_id'
                       />
                       <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
                         <Pagination
                           count={getTotalPages(ponds)}
                           page={page}
                           onChange={(e, v) => setPage(v)}
-                          color="primary"
+                          color='primary'
                         />
                       </Box>
                     </CardContent>
@@ -588,21 +622,23 @@ const AdminPage: React.FC = () => {
             )}
 
             {activeTab === 2 && (
-              <Card variant="outlined">
+              <Card variant='outlined'>
                 <CardHeader title={t('copy_pond_details')} />
                 <CardContent>
-                  <Grid container spacing={3} alignItems="center">
+                  <Grid container spacing={3} alignItems='center'>
                     <Grid item xs={12} md={4}>
                       <FormControl fullWidth>
                         <InputLabel>{t('source_season')}</InputLabel>
                         <Select
                           value={sourceSeason}
                           label={t('source_season')}
-                          onChange={(e) => setSourceSeason(e.target.value as string)}
+                          onChange={e => setSourceSeason(e.target.value as string)}
                         >
                           {seasons.map((s: any) => (
                             <MenuItem key={s._id} value={s._id}>
-                              {typeof s.name === 'object' ? s.name[i18n.language] || s.name.en : s.name}
+                              {typeof s.name === 'object'
+                                ? s.name[i18n.language] || s.name.en
+                                : s.name}
                             </MenuItem>
                           ))}
                         </Select>
@@ -614,11 +650,13 @@ const AdminPage: React.FC = () => {
                         <Select
                           value={targetSeason}
                           label={t('target_season')}
-                          onChange={(e) => setTargetSeason(e.target.value as string)}
+                          onChange={e => setTargetSeason(e.target.value as string)}
                         >
                           {seasons.map((s: any) => (
                             <MenuItem key={s._id} value={s._id}>
-                              {typeof s.name === 'object' ? s.name[i18n.language] || s.name.en : s.name}
+                              {typeof s.name === 'object'
+                                ? s.name[i18n.language] || s.name.en
+                                : s.name}
                             </MenuItem>
                           ))}
                         </Select>
@@ -626,7 +664,7 @@ const AdminPage: React.FC = () => {
                     </Grid>
                     <Grid item xs={12} md={4}>
                       <Button
-                        variant="contained"
+                        variant='contained'
                         fullWidth
                         onClick={handleCopyPondDetails}
                         disabled={!sourceSeason || !targetSeason}
@@ -642,9 +680,11 @@ const AdminPage: React.FC = () => {
         </CardContent>
       </Card>
 
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth='sm' fullWidth>
         <DialogTitle>
-          {(editingItem ? t('edit') : t('add')) + ' ' + (dialogType === 'season' ? t('season') : t('pond'))}
+          {`${editingItem ? t('edit') : t('add')} ${
+            dialogType === 'season' ? t('season') : t('pond')
+          }`}
         </DialogTitle>
         <form onSubmit={handleSubmit}>
           <DialogContent>
@@ -653,7 +693,7 @@ const AdminPage: React.FC = () => {
                 <TextField
                   fullWidth
                   label={t('name')}
-                  name="name"
+                  name='name'
                   value={formData.name}
                   onChange={handleInputChange}
                   required
@@ -665,8 +705,8 @@ const AdminPage: React.FC = () => {
                     <TextField
                       fullWidth
                       label={t('startDate')}
-                      name="startDate"
-                      type="date"
+                      name='startDate'
+                      type='date'
                       value={formData.startDate}
                       onChange={handleInputChange}
                       InputLabelProps={{ shrink: true }}
@@ -677,8 +717,8 @@ const AdminPage: React.FC = () => {
                     <TextField
                       fullWidth
                       label={t('endDate')}
-                      name="endDate"
-                      type="date"
+                      name='endDate'
+                      type='date'
                       value={formData.endDate}
                       onChange={handleInputChange}
                       InputLabelProps={{ shrink: true }}
@@ -692,8 +732,8 @@ const AdminPage: React.FC = () => {
                     <TextField
                       fullWidth
                       label={t('size_m2')}
-                      name="size"
-                      type="number"
+                      name='size'
+                      type='number'
                       value={formData.size}
                       onChange={handleInputChange}
                       required
@@ -703,8 +743,8 @@ const AdminPage: React.FC = () => {
                     <TextField
                       fullWidth
                       label={t('capacity')}
-                      name="capacity"
-                      type="number"
+                      name='capacity'
+                      type='number'
                       value={formData.capacity}
                       onChange={handleInputChange}
                       required
@@ -714,14 +754,16 @@ const AdminPage: React.FC = () => {
                     <FormControl fullWidth required>
                       <InputLabel>{t('season')}</InputLabel>
                       <Select
-                        name="seasonId"
+                        name='seasonId'
                         value={formData.seasonId}
                         label={t('season')}
                         onChange={handleInputChange}
                       >
                         {seasons.map((s: any) => (
                           <MenuItem key={s._id} value={s._id}>
-                            {typeof s.name === 'object' ? s.name[i18n.language] || s.name.en : s.name}
+                            {typeof s.name === 'object'
+                              ? s.name[i18n.language] || s.name.en
+                              : s.name}
                           </MenuItem>
                         ))}
                       </Select>
@@ -733,15 +775,17 @@ const AdminPage: React.FC = () => {
                 <FormControl fullWidth required>
                   <InputLabel>{t('status')}</InputLabel>
                   <Select
-                    name="status"
+                    name='status'
                     value={formData.status}
                     label={t('status')}
                     onChange={handleInputChange}
                   >
-                    <MenuItem value="Active">{t('active')}</MenuItem>
-                    <MenuItem value="Planning">{t('planning')}</MenuItem>
-                    {dialogType === 'season' && <MenuItem value="Completed">{t('completed')}</MenuItem>}
-                    {dialogType === 'pond' && <MenuItem value="Inactive">{t('inactive')}</MenuItem>}
+                    <MenuItem value='Active'>{t('active')}</MenuItem>
+                    <MenuItem value='Planning'>{t('planning')}</MenuItem>
+                    {dialogType === 'season' && (
+                      <MenuItem value='Completed'>{t('completed')}</MenuItem>
+                    )}
+                    {dialogType === 'pond' && <MenuItem value='Inactive'>{t('inactive')}</MenuItem>}
                   </Select>
                 </FormControl>
               </Grid>
@@ -749,7 +793,9 @@ const AdminPage: React.FC = () => {
           </DialogContent>
           <DialogActions>
             <Button onClick={handleCloseDialog}>{t('cancel')}</Button>
-            <Button type="submit" variant="contained">{t('save')}</Button>
+            <Button type='submit' variant='contained'>
+              {t('save')}
+            </Button>
           </DialogActions>
         </form>
       </Dialog>

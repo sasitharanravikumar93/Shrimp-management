@@ -1,4 +1,12 @@
-import React, { createContext, useContext, useReducer, useEffect, useCallback, ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useReducer,
+  useEffect,
+  useCallback,
+  ReactNode
+} from 'react';
+
 import { getSeasons } from '../services/api';
 import { createAsyncReducer, createAsyncActions, createAsyncState } from '../utils/stateManagement';
 

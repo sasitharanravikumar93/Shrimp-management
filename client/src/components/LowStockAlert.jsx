@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
 import { Box } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+
 import AlertBanner from './AlertBanner';
 
 // Assuming inventory api calls are not in api.ts maybe they are in 'services/inventory' or in 'api.ts'. I will fetch directly since we're in Vite.
@@ -26,15 +27,15 @@ const LowStockAlert = () => {
 
   if (lowStockItems.length === 0) return null;
 
-  const message = `Low Stock Alert: ${lowStockItems.length} item(s) are below threshold (${lowStockItems.map(i => `${i.itemName} [${i.currentQuantity}]`).join(', ')}).`;
+  const message = `Low Stock Alert: ${
+    lowStockItems.length
+  } item(s) are below threshold (${lowStockItems
+    .map(i => `${i.itemName} [${i.currentQuantity}]`)
+    .join(', ')}).`;
 
   return (
     <Box sx={{ mb: 2 }}>
-      <AlertBanner 
-        severity="error"
-        message={message}
-        dismissible
-      />
+      <AlertBanner severity='error' message={message} dismissible />
     </Box>
   );
 };

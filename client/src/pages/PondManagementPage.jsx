@@ -189,7 +189,9 @@ const PondManagementPage = () => {
       if (!selectedSeason || !selectedSeason._id) return;
       try {
         // Updated to use both filter and seasonId for robustness
-        const response = await api.get(`/inventory-items?itemType=Feed&seasonId=${selectedSeason._id}`);
+        const response = await api.get(
+          `/inventory-items?itemType=Feed&seasonId=${selectedSeason._id}`
+        );
         setFeedInventoryItems(response || []);
       } catch (err) {
         logger.error('Error fetching feed inventory:', err);
@@ -202,8 +204,12 @@ const PondManagementPage = () => {
     const fetchChemicalProbioticInventory = async () => {
       if (!selectedSeason || !selectedSeason._id) return;
       try {
-        const chemicalResponse = await api.get(`/inventory-items?itemType=Chemical&seasonId=${selectedSeason._id}`);
-        const probioticResponse = await api.get(`/inventory-items?itemType=Probiotic&seasonId=${selectedSeason._id}`);
+        const chemicalResponse = await api.get(
+          `/inventory-items?itemType=Chemical&seasonId=${selectedSeason._id}`
+        );
+        const probioticResponse = await api.get(
+          `/inventory-items?itemType=Probiotic&seasonId=${selectedSeason._id}`
+        );
         setChemicalProbioticInventoryItems([
           ...(chemicalResponse || []),
           ...(probioticResponse || [])
@@ -294,13 +300,13 @@ const PondManagementPage = () => {
     loading: createFeedInputLoading,
     error: createFeedInputError
   } = useApiMutation(createFeedInput, API_DATA_CACHE_DURATION);
-  
+
   const {
     mutate: createWaterQualityInputMutation,
     loading: createWaterQualityInputLoading,
     error: createWaterQualityInputError
   } = useApiMutation(createWaterQualityInput, API_DATA_CACHE_DURATION);
-  
+
   const {
     mutate: createGrowthSamplingMutation,
     loading: createGrowthSamplingLoading,
@@ -404,7 +410,9 @@ const PondManagementPage = () => {
       await createFeedInputMutation({
         date: data.date.toISOString().split('T')[0],
         time: data.time.toLocaleTimeString('en-US', {
-          hour12: false, hour: '2-digit', minute: '2-digit'
+          hour12: false,
+          hour: '2-digit',
+          minute: '2-digit'
         }),
         pondId: pondId,
         inventoryItemId: feedType,
@@ -428,7 +436,7 @@ const PondManagementPage = () => {
         details.salinity = parseFloat(data.salinity);
         details.inventoryItemId = chemicalType;
         details.quantityUsed = parseFloat(data.quantityUsed);
-        
+
         await createWaterQualityInputMutation({
           pondId,
           date: data.date,
@@ -440,7 +448,7 @@ const PondManagementPage = () => {
       } else if (data.eventType === 'Growth Sampling') {
         details.totalWeight = parseFloat(data.totalWeight);
         details.totalCount = parseInt(data.totalCount);
-        
+
         await createGrowthSamplingMutation({
           pondId,
           date: data.date,
@@ -455,7 +463,7 @@ const PondManagementPage = () => {
           details.species = data.species;
           details.initialCount = parseInt(data.initialCount);
         }
-        
+
         await createEventMutation({
           pondId,
           seasonId: selectedSeason._id,
@@ -559,19 +567,19 @@ const PondManagementPage = () => {
 
   if (isLoading) {
     return (
-      <Container maxWidth="lg" sx={{ mt: 2, mb: 4 }}>
+      <Container maxWidth='lg' sx={{ mt: 2, mb: 4 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
           <Box>
-            <Skeleton variant="text" width={200} height={36} />
+            <Skeleton variant='text' width={200} height={36} />
             <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
-              <Skeleton variant="rounded" width={80} height={24} sx={{ borderRadius: 2 }} />
-              <Skeleton variant="rounded" width={60} height={24} sx={{ borderRadius: 2 }} />
-              <Skeleton variant="rounded" width={60} height={24} sx={{ borderRadius: 2 }} />
+              <Skeleton variant='rounded' width={80} height={24} sx={{ borderRadius: 2 }} />
+              <Skeleton variant='rounded' width={60} height={24} sx={{ borderRadius: 2 }} />
+              <Skeleton variant='rounded' width={60} height={24} sx={{ borderRadius: 2 }} />
             </Box>
           </Box>
-          <Skeleton variant="rounded" width={140} height={40} sx={{ borderRadius: 2 }} />
+          <Skeleton variant='rounded' width={140} height={40} sx={{ borderRadius: 2 }} />
         </Box>
-        <Skeleton variant="rounded" width="100%" height={400} sx={{ borderRadius: 3 }} />
+        <Skeleton variant='rounded' width='100%' height={400} sx={{ borderRadius: 3 }} />
       </Container>
     );
   }
@@ -755,9 +763,9 @@ const PondManagementPage = () => {
         <Grid container spacing={3} sx={{ mb: 3 }}>
           <Grid item xs={12} md={6} lg={4}>
             <HarvestProjection
-              currentWeight={152} 
-              targetWeight={250} 
-              growthRate={5.2} 
+              currentWeight={152}
+              targetWeight={250}
+              growthRate={5.2}
               startDate='2023-06-01'
               pondName={
                 pond.name && typeof pond.name === 'object'
@@ -767,7 +775,10 @@ const PondManagementPage = () => {
             />
           </Grid>
           <Grid item xs={12} md={6} lg={8}>
-            <FinancialOverviewWidget pondId={pondId} seasonId={selectedSeason?._id || pond?.seasonId?._id} />
+            <FinancialOverviewWidget
+              pondId={pondId}
+              seasonId={selectedSeason?._id || pond?.seasonId?._id}
+            />
           </Grid>
         </Grid>
 
@@ -1477,7 +1488,9 @@ const PondManagementPage = () => {
                         <TextField {...field} label='Nursery Batch' fullWidth select>
                           {nurseryBatches.map(batch => (
                             <MenuItem key={batch._id} value={batch._id}>
-                              {typeof batch.batchName === 'object' ? batch.batchName.en : batch.batchName}
+                              {typeof batch.batchName === 'object'
+                                ? batch.batchName.en
+                                : batch.batchName}
                             </MenuItem>
                           ))}
                         </TextField>

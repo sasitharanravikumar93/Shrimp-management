@@ -1,12 +1,36 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Container, Typography, Box, Button, Card, CardContent, Checkbox,
-  List, ListItem, ListItemIcon, ListItemText, ListItemSecondaryAction,
-  IconButton, Dialog, DialogTitle, DialogContent, DialogActions,
-  TextField, MenuItem, CircularProgress, Chip, Divider
+import {
+  Add as AddIcon,
+  Delete as DeleteIcon,
+  Edit as EditIcon,
+  TaskAlt as TaskIcon
+} from '@mui/icons-material';
+import {
+  Container,
+  Typography,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Checkbox,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  ListItemSecondaryAction,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  MenuItem,
+  CircularProgress,
+  Chip,
+  Divider
 } from '@mui/material';
-import { Add as AddIcon, Delete as DeleteIcon, Edit as EditIcon, TaskAlt as TaskIcon } from '@mui/icons-material';
+import React, { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
+
 import { useSeason } from '../context/SeasonContext';
 import { getTasks, createTask, updateTask, deleteTask, getPonds } from '../services/api';
 
@@ -52,7 +76,7 @@ const TaskManagementPage = () => {
     }
   };
 
-  const handleToggleComplete = async (task) => {
+  const handleToggleComplete = async task => {
     try {
       await updateTask(task._id, { completed: !task.completed });
       fetchData();
@@ -67,7 +91,7 @@ const TaskManagementPage = () => {
     setOpenModal(true);
   };
 
-  const handleOpenEdit = (task) => {
+  const handleOpenEdit = task => {
     reset({
       title: task.title,
       description: task.description || '',
@@ -81,7 +105,7 @@ const TaskManagementPage = () => {
     setOpenModal(true);
   };
 
-  const onSubmit = async (data) => {
+  const onSubmit = async data => {
     try {
       const payload = { ...data, seasonId: selectedSeason.id };
       if (!payload.pondId) delete payload.pondId; // allow null pond
@@ -97,7 +121,7 @@ const TaskManagementPage = () => {
     }
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async id => {
     if (window.confirm('Delete this task?')) {
       try {
         await deleteTask(id);
@@ -108,18 +132,23 @@ const TaskManagementPage = () => {
     }
   };
 
-  if (!selectedSeason) return <Container><Typography mt={5}>Select a season first.</Typography></Container>;
+  if (!selectedSeason)
+    return (
+      <Container>
+        <Typography mt={5}>Select a season first.</Typography>
+      </Container>
+    );
 
   const pendingTasks = tasks.filter(t => !t.completed);
   const completedTasks = tasks.filter(t => t.completed);
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+    <Container maxWidth='lg' sx={{ mt: 4, mb: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-        <Typography variant="h4" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <TaskIcon fontSize="large" color="primary" /> Task Management
+        <Typography variant='h4' sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <TaskIcon fontSize='large' color='primary' /> Task Management
         </Typography>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={handleOpenAdd}>
+        <Button variant='contained' startIcon={<AddIcon />} onClick={handleOpenAdd}>
           New Task
         </Button>
       </Box>
@@ -127,46 +156,93 @@ const TaskManagementPage = () => {
       {loading ? (
         <CircularProgress />
       ) : (
-        <Card variant="outlined">
+        <Card variant='outlined'>
           <CardContent>
-            <Typography variant="h6" gutterBottom>Pending Tasks ({pendingTasks.length})</Typography>
+            <Typography variant='h6' gutterBottom>
+              Pending Tasks ({pendingTasks.length})
+            </Typography>
             <List>
               {pendingTasks.map(task => (
-                <ListItem key={task._id} sx={{ bgcolor: 'background.paper', mb: 1, borderRadius: 1, border: '1px solid', borderColor: 'divider' }}>
+                <ListItem
+                  key={task._id}
+                  sx={{
+                    bgcolor: 'background.paper',
+                    mb: 1,
+                    borderRadius: 1,
+                    border: '1px solid',
+                    borderColor: 'divider'
+                  }}
+                >
                   <ListItemIcon>
-                    <Checkbox edge="start" checked={task.completed} onChange={() => handleToggleComplete(task)} />
+                    <Checkbox
+                      edge='start'
+                      checked={task.completed}
+                      onChange={() => handleToggleComplete(task)}
+                    />
                   </ListItemIcon>
-                  <ListItemText 
-                    primary={task.title} 
+                  <ListItemText
+                    primary={task.title}
                     secondary={
                       <React.Fragment>
-                        <Typography variant="body2" component="span">{new Date(task.dueDate).toLocaleDateString()}</Typography>
-                        {task.pondId && <Chip size="small" label={`Pond Data Linked`} sx={{ ml: 1, height: 20 }} />}
-                        <Chip size="small" label={task.category} sx={{ ml: 1, height: 20 }} variant="outlined" color="primary" />
-                        {task.frequency !== 'Once' && <Chip size="small" label={task.frequency} sx={{ ml: 1, height: 20 }} />}
+                        <Typography variant='body2' component='span'>
+                          {new Date(task.dueDate).toLocaleDateString()}
+                        </Typography>
+                        {task.pondId && (
+                          <Chip
+                            size='small'
+                            label={`Pond Data Linked`}
+                            sx={{ ml: 1, height: 20 }}
+                          />
+                        )}
+                        <Chip
+                          size='small'
+                          label={task.category}
+                          sx={{ ml: 1, height: 20 }}
+                          variant='outlined'
+                          color='primary'
+                        />
+                        {task.frequency !== 'Once' && (
+                          <Chip size='small' label={task.frequency} sx={{ ml: 1, height: 20 }} />
+                        )}
                       </React.Fragment>
                     }
                   />
                   <ListItemSecondaryAction>
-                    <IconButton edge="end" onClick={() => handleOpenEdit(task)}><EditIcon /></IconButton>
-                    <IconButton edge="end" onClick={() => handleDelete(task._id)} color="error"><DeleteIcon /></IconButton>
+                    <IconButton edge='end' onClick={() => handleOpenEdit(task)}>
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton edge='end' onClick={() => handleDelete(task._id)} color='error'>
+                      <DeleteIcon />
+                    </IconButton>
                   </ListItemSecondaryAction>
                 </ListItem>
               ))}
-              {pendingTasks.length === 0 && <Typography variant="body2" color="text.secondary">No pending tasks.</Typography>}
+              {pendingTasks.length === 0 && (
+                <Typography variant='body2' color='text.secondary'>
+                  No pending tasks.
+                </Typography>
+              )}
             </List>
 
             <Divider sx={{ my: 3 }} />
 
-            <Typography variant="h6" gutterBottom>Completed</Typography>
+            <Typography variant='h6' gutterBottom>
+              Completed
+            </Typography>
             <List sx={{ opacity: 0.7 }}>
               {completedTasks.slice(0, 10).map(task => (
                 <ListItem key={task._id}>
                   <ListItemIcon>
-                    <Checkbox edge="start" checked={task.completed} onChange={() => handleToggleComplete(task)} />
+                    <Checkbox
+                      edge='start'
+                      checked={task.completed}
+                      onChange={() => handleToggleComplete(task)}
+                    />
                   </ListItemIcon>
-                  <ListItemText 
-                    primary={<Typography sx={{ textDecoration: 'line-through' }}>{task.title}</Typography>} 
+                  <ListItemText
+                    primary={
+                      <Typography sx={{ textDecoration: 'line-through' }}>{task.title}</Typography>
+                    }
                   />
                 </ListItem>
               ))}
@@ -175,70 +251,97 @@ const TaskManagementPage = () => {
         </Card>
       )}
 
-      <Dialog open={openModal} onClose={() => setOpenModal(false)} maxWidth="sm" fullWidth>
+      <Dialog open={openModal} onClose={() => setOpenModal(false)} maxWidth='sm' fullWidth>
         <form onSubmit={handleSubmit(onSubmit)}>
           <DialogTitle>{editingId ? 'Edit Task' : 'New Task'}</DialogTitle>
           <DialogContent dividers>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <Controller
-                name="title"
+                name='title'
                 control={control}
                 rules={{ required: true }}
-                render={({ field }) => <TextField {...field} label="Title" fullWidth required />}
+                render={({ field }) => <TextField {...field} label='Title' fullWidth required />}
               />
               <Controller
-                name="description"
+                name='description'
                 control={control}
-                render={({ field }) => <TextField {...field} label="Description" fullWidth multiline rows={2} />}
+                render={({ field }) => (
+                  <TextField {...field} label='Description' fullWidth multiline rows={2} />
+                )}
               />
               <Box sx={{ display: 'flex', gap: 2 }}>
                 <Controller
-                  name="category"
+                  name='category'
                   control={control}
                   render={({ field }) => (
-                    <TextField {...field} select label="Category" fullWidth>
-                      {['Routine', 'Maintenance', 'Health', 'General'].map(o => <MenuItem key={o} value={o}>{o}</MenuItem>)}
+                    <TextField {...field} select label='Category' fullWidth>
+                      {['Routine', 'Maintenance', 'Health', 'General'].map(o => (
+                        <MenuItem key={o} value={o}>
+                          {o}
+                        </MenuItem>
+                      ))}
                     </TextField>
                   )}
                 />
                 <Controller
-                  name="frequency"
+                  name='frequency'
                   control={control}
                   render={({ field }) => (
-                    <TextField {...field} select label="Frequency" fullWidth>
-                      {['Once', 'Daily', 'Weekly', 'Monthly'].map(o => <MenuItem key={o} value={o}>{o}</MenuItem>)}
+                    <TextField {...field} select label='Frequency' fullWidth>
+                      {['Once', 'Daily', 'Weekly', 'Monthly'].map(o => (
+                        <MenuItem key={o} value={o}>
+                          {o}
+                        </MenuItem>
+                      ))}
                     </TextField>
                   )}
                 />
               </Box>
               <Controller
-                name="dueDate"
+                name='dueDate'
                 control={control}
                 rules={{ required: true }}
-                render={({ field }) => <TextField {...field} label="Due Date" type="date" fullWidth InputLabelProps={{ shrink: true }} required />}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    label='Due Date'
+                    type='date'
+                    fullWidth
+                    InputLabelProps={{ shrink: true }}
+                    required
+                  />
+                )}
               />
               <Box sx={{ display: 'flex', gap: 2 }}>
                 <Controller
-                  name="pondId"
+                  name='pondId'
                   control={control}
                   render={({ field }) => (
-                    <TextField {...field} select label="Related Pond (Optional)" fullWidth>
-                      <MenuItem value=""><em>None</em></MenuItem>
-                      {ponds.map(p => <MenuItem key={p.id || p._id} value={p.id || p._id}>{p.name}</MenuItem>)}
+                    <TextField {...field} select label='Related Pond (Optional)' fullWidth>
+                      <MenuItem value=''>
+                        <em>None</em>
+                      </MenuItem>
+                      {ponds.map(p => (
+                        <MenuItem key={p.id || p._id} value={p.id || p._id}>
+                          {p.name}
+                        </MenuItem>
+                      ))}
                     </TextField>
                   )}
                 />
                 <Controller
-                  name="assignedTo"
+                  name='assignedTo'
                   control={control}
-                  render={({ field }) => <TextField {...field} label="Assign To" fullWidth />}
+                  render={({ field }) => <TextField {...field} label='Assign To' fullWidth />}
                 />
               </Box>
             </Box>
           </DialogContent>
           <DialogActions>
             <Button onClick={() => setOpenModal(false)}>Cancel</Button>
-            <Button type="submit" variant="contained">Save</Button>
+            <Button type='submit' variant='contained'>
+              Save
+            </Button>
           </DialogActions>
         </form>
       </Dialog>

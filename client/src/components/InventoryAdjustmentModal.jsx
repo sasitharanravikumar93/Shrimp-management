@@ -1,4 +1,3 @@
-import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -7,8 +6,10 @@ import {
   TextField,
   Button,
   Typography,
-  Box,
+  Box
 } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+
 import useApi from '../hooks/useApi';
 
 const InventoryAdjustmentModal = ({ open, onClose, item }) => {
@@ -25,12 +26,12 @@ const InventoryAdjustmentModal = ({ open, onClose, item }) => {
     }
   }, [open]);
 
-  const handleQuantityChange = (e) => {
+  const handleQuantityChange = e => {
     setAdjustmentQuantity(e.target.value);
     setError(null);
   };
 
-  const handleReasonChange = (e) => {
+  const handleReasonChange = e => {
     setReason(e.target.value);
     setError(null);
   };
@@ -57,7 +58,7 @@ const InventoryAdjustmentModal = ({ open, onClose, item }) => {
         inventoryItemId: item._id,
         adjustmentType: parseFloat(adjustmentQuantity) > 0 ? 'Addition' : 'Subtraction',
         quantityChange: Math.abs(parseFloat(adjustmentQuantity)),
-        reason: reason,
+        reason: reason
       });
 
       onClose();
@@ -68,17 +69,17 @@ const InventoryAdjustmentModal = ({ open, onClose, item }) => {
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth='sm'>
       <DialogTitle>Adjust Inventory for {item?.itemName}</DialogTitle>
       <DialogContent>
-        <Typography variant="body1" sx={{ mb: 2 }}>
+        <Typography variant='body1' sx={{ mb: 2 }}>
           Current Quantity: {item?.initialQuantity} {item?.unit}
         </Typography>
         <TextField
           autoFocus
-          margin="dense"
-          label="Adjustment Quantity (e.g., -5 for deduction, 10 for addition)"
-          type="number"
+          margin='dense'
+          label='Adjustment Quantity (e.g., -5 for deduction, 10 for addition)'
+          type='number'
           fullWidth
           value={adjustmentQuantity}
           onChange={handleQuantityChange}
@@ -86,9 +87,9 @@ const InventoryAdjustmentModal = ({ open, onClose, item }) => {
           helperText={error}
         />
         <TextField
-          margin="dense"
-          label="Reason for Adjustment"
-          type="text"
+          margin='dense'
+          label='Reason for Adjustment'
+          type='text'
           fullWidth
           multiline
           rows={3}
@@ -99,7 +100,7 @@ const InventoryAdjustmentModal = ({ open, onClose, item }) => {
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
-        <Button onClick={handleSubmit} variant="contained">
+        <Button onClick={handleSubmit} variant='contained'>
           Adjust
         </Button>
       </DialogActions>

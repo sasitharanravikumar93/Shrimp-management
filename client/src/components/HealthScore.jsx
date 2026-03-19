@@ -1,15 +1,10 @@
-import React from 'react';
-import { 
-  Box, 
-  Typography, 
-  CircularProgress,
-  Tooltip
-} from '@mui/material';
-import { 
+import {
   CheckCircle as CheckCircleIcon,
   Warning as WarningIcon,
   Error as ErrorIcon
 } from '@mui/icons-material';
+import { Box, Typography, CircularProgress, Tooltip } from '@mui/material';
+import React from 'react';
 
 const HealthScore = ({ score, size = 80, showLabel = true }) => {
   // Determine color based on score
@@ -21,9 +16,9 @@ const HealthScore = ({ score, size = 80, showLabel = true }) => {
 
   // Determine icon based on score
   const getIcon = () => {
-    if (score >= 80) return <CheckCircleIcon sx={{ color: '#28A745', fontSize: size/3 }} />;
-    if (score >= 60) return <WarningIcon sx={{ color: '#FFC107', fontSize: size/3 }} />;
-    return <ErrorIcon sx={{ color: '#DC3545', fontSize: size/3 }} />;
+    if (score >= 80) return <CheckCircleIcon sx={{ color: '#28A745', fontSize: size / 3 }} />;
+    if (score >= 60) return <WarningIcon sx={{ color: '#FFC107', fontSize: size / 3 }} />;
+    return <ErrorIcon sx={{ color: '#DC3545', fontSize: size / 3 }} />;
   };
 
   // Determine status text based on score
@@ -37,23 +32,23 @@ const HealthScore = ({ score, size = 80, showLabel = true }) => {
     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       <Box sx={{ position: 'relative', display: 'inline-flex' }}>
         <CircularProgress
-          variant="determinate"
+          variant='determinate'
           value={100}
           size={size}
           thickness={4}
           sx={{
-            color: 'rgba(0, 0, 0, 0.08)',
+            color: 'rgba(0, 0, 0, 0.08)'
           }}
         />
         <CircularProgress
-          variant="determinate"
+          variant='determinate'
           value={score}
           size={size}
           thickness={4}
           sx={{
             color: getColor(),
             position: 'absolute',
-            left: 0,
+            left: 0
           }}
         />
         <Box
@@ -65,7 +60,7 @@ const HealthScore = ({ score, size = 80, showLabel = true }) => {
             position: 'absolute',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
+            justifyContent: 'center'
           }}
         >
           {getIcon()}
@@ -73,10 +68,10 @@ const HealthScore = ({ score, size = 80, showLabel = true }) => {
       </Box>
       {showLabel && (
         <Tooltip title={`Health Score: ${score}/100`}>
-          <Typography 
-            variant="body2" 
-            sx={{ 
-              mt: 1, 
+          <Typography
+            variant='body2'
+            sx={{
+              mt: 1,
               fontWeight: 'bold',
               color: getColor()
             }}

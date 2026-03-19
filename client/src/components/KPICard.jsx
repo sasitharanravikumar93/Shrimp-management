@@ -1,27 +1,27 @@
-import React from 'react';
-import { 
-  Card, 
-  CardContent, 
-  Typography, 
-  Avatar, 
-  Box, 
-  CircularProgress,
-  LinearProgress
-} from '@mui/material';
-import { 
-  TrendingUp as TrendingUpIcon, 
+import {
+  TrendingUp as TrendingUpIcon,
   TrendingDown as TrendingDownIcon,
   TrendingFlat as TrendingFlatIcon
 } from '@mui/icons-material';
+import {
+  Card,
+  CardContent,
+  Typography,
+  Avatar,
+  Box,
+  CircularProgress,
+  LinearProgress
+} from '@mui/material';
 import { motion } from 'framer-motion';
+import React from 'react';
 
-const KPICard = ({ 
-  title, 
-  value, 
-  icon, 
-  color = '#1976d2', 
-  change = 0, 
-  changeText = '', 
+const KPICard = ({
+  title,
+  value,
+  icon,
+  color = '#1976d2',
+  change = 0,
+  changeText = '',
   progressValue = null,
   progressColor = 'primary',
   isCurrency = false,
@@ -29,7 +29,7 @@ const KPICard = ({
   delay = 0
 }) => {
   // Format value based on type
-  const formatValue = (val) => {
+  const formatValue = val => {
     if (isCurrency) {
       return `${val.toLocaleString()}`;
     }
@@ -50,9 +50,9 @@ const KPICard = ({
       transition={{ duration: 0.5, delay }}
       whileHover={{ y: -5, transition: { duration: 0.2 } }}
     >
-      <Card 
+      <Card
         elevation={3}
-        sx={{ 
+        sx={{
           height: '100%',
           display: 'flex',
           flexDirection: 'column',
@@ -65,20 +65,21 @@ const KPICard = ({
         <CardContent sx={{ flexGrow: 1, p: 2 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <Box>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
+              <Typography variant='body2' color='text.secondary' gutterBottom>
                 {title}
               </Typography>
-              <Typography variant="h5" component="div" sx={{ fontWeight: 600, mb: 1 }}>
+              <Typography variant='h5' component='div' sx={{ fontWeight: 600, mb: 1 }}>
                 {formatValue(value)}
               </Typography>
               {(change !== 0 || changeText) && (
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   {getTrendIcon()}
-                  <Typography 
-                    variant="body2" 
-                    sx={{ 
+                  <Typography
+                    variant='body2'
+                    sx={{
                       ml: 0.5,
-                      color: change > 0 ? 'success.main' : change < 0 ? 'error.main' : 'warning.main'
+                      color:
+                        change > 0 ? 'success.main' : change < 0 ? 'error.main' : 'warning.main'
                     }}
                   >
                     {changeText || `${change > 0 ? '+' : ''}${change}%`}
@@ -86,16 +87,14 @@ const KPICard = ({
                 </Box>
               )}
             </Box>
-            <Avatar sx={{ bgcolor: color, width: 50, height: 50 }}>
-              {icon}
-            </Avatar>
+            <Avatar sx={{ bgcolor: color, width: 50, height: 50 }}>{icon}</Avatar>
           </Box>
-          
+
           {progressValue !== null && (
             <Box sx={{ mt: 2 }}>
-              <LinearProgress 
-                variant="determinate" 
-                value={progressValue} 
+              <LinearProgress
+                variant='determinate'
+                value={progressValue}
                 color={progressColor}
                 sx={{ borderRadius: 2, height: 8 }}
               />
@@ -108,12 +107,12 @@ const KPICard = ({
 };
 
 // Circular KPI Card variant
-export const CircularKPICard = ({ 
-  title, 
-  value, 
-  icon, 
-  color = '#1976d2', 
-  change = 0, 
+export const CircularKPICard = ({
+  title,
+  value,
+  icon,
+  color = '#1976d2',
+  change = 0,
   changeText = '',
   size = 120,
   delay = 0
@@ -125,9 +124,9 @@ export const CircularKPICard = ({
       transition={{ duration: 0.5, delay }}
       whileHover={{ scale: 1.05, transition: { duration: 0.2 } }}
     >
-      <Card 
+      <Card
         elevation={3}
-        sx={{ 
+        sx={{
           height: '100%',
           display: 'flex',
           flexDirection: 'column',
@@ -141,21 +140,21 @@ export const CircularKPICard = ({
         }}
       >
         <Box sx={{ position: 'relative', display: 'inline-flex', mb: 1 }}>
-          <CircularProgress 
-            variant="determinate" 
-            value={100} 
-            size={size} 
+          <CircularProgress
+            variant='determinate'
+            value={100}
+            size={size}
             thickness={3}
-            sx={{ 
+            sx={{
               color: 'rgba(0, 0, 0, 0.08)',
               position: 'absolute',
               left: 0
             }}
           />
-          <CircularProgress 
-            variant="determinate" 
-            value={value > 100 ? 100 : value} 
-            size={size} 
+          <CircularProgress
+            variant='determinate'
+            value={value > 100 ? 100 : value}
+            size={size}
             thickness={3}
             sx={{ color: color }}
           />
@@ -168,26 +167,25 @@ export const CircularKPICard = ({
               position: 'absolute',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
+              justifyContent: 'center'
             }}
           >
-            <Avatar sx={{ bgcolor: color, width: size/3, height: size/3 }}>
-              {icon}
-            </Avatar>
+            <Avatar sx={{ bgcolor: color, width: size / 3, height: size / 3 }}>{icon}</Avatar>
           </Box>
         </Box>
-        <Typography variant="h6" component="div" sx={{ fontWeight: 600, textAlign: 'center' }}>
+        <Typography variant='h6' component='div' sx={{ fontWeight: 600, textAlign: 'center' }}>
           {title}
         </Typography>
         {(change !== 0 || changeText) && (
           <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
-            {change > 0 ? 
-              <TrendingUpIcon sx={{ fontSize: 16, color: 'success.main' }} /> : 
+            {change > 0 ? (
+              <TrendingUpIcon sx={{ fontSize: 16, color: 'success.main' }} />
+            ) : (
               <TrendingDownIcon sx={{ fontSize: 16, color: 'error.main' }} />
-            }
-            <Typography 
-              variant="body2" 
-              sx={{ 
+            )}
+            <Typography
+              variant='body2'
+              sx={{
                 ml: 0.5,
                 color: change > 0 ? 'success.main' : change < 0 ? 'error.main' : 'warning.main'
               }}

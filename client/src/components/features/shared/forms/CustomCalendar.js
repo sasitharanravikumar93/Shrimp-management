@@ -25,7 +25,7 @@ const CustomCalendar = ({
   toolbar: _toolbar = true
 }) => {
   // Event styles for calendar
-  const eventStyleGetter = (event) => {
+  const eventStyleGetter = event => {
     let backgroundColor = '#2563EB';
     let className = 'rbc-event-routine';
 
@@ -65,7 +65,7 @@ const CustomCalendar = ({
   };
 
   // Map MUI view names to react-big-calendar view names
-  const getViewValue = (viewName) => {
+  const getViewValue = viewName => {
     switch (viewName) {
       case 'day':
         return Views.DAY;
@@ -77,7 +77,7 @@ const CustomCalendar = ({
   };
 
   // Map react-big-calendar view names to MUI view names
-  const getMuiViewName = (viewValue) => {
+  const getMuiViewName = viewValue => {
     switch (viewValue) {
       case Views.DAY:
         return 'day';
@@ -99,7 +99,7 @@ const CustomCalendar = ({
   return (
     <Card elevation={3} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <CardHeader
-        title="Events Calendar"
+        title='Events Calendar'
         action={
           <ToggleButtonGroup
             value={getMuiViewName(view)}
@@ -109,16 +109,16 @@ const CustomCalendar = ({
                 onViewChange(getViewValue(newView));
               }
             }}
-            size="small"
+            size='small'
             sx={{ height: 36 }}
           >
-            <ToggleButton value="month" aria-label="month view">
+            <ToggleButton value='month' aria-label='month view'>
               <MonthViewIcon />
             </ToggleButton>
-            <ToggleButton value="week" aria-label="week view">
+            <ToggleButton value='week' aria-label='week view'>
               <WeekViewIcon />
             </ToggleButton>
-            <ToggleButton value="day" aria-label="day view">
+            <ToggleButton value='day' aria-label='day view'>
               <DayViewIcon />
             </ToggleButton>
           </ToggleButtonGroup>
@@ -137,8 +137,8 @@ const CustomCalendar = ({
           <Calendar
             localizer={localizer}
             events={processedEvents}
-            startAccessor="start"
-            endAccessor="end"
+            startAccessor='start'
+            endAccessor='end'
             style={{ height: '100%' }}
             onSelectEvent={onEventSelect}
             onNavigate={onDateChange}

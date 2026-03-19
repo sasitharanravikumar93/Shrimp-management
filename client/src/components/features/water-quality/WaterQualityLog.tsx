@@ -26,7 +26,7 @@ const WaterQualityLog: React.FC = () => {
     <Card sx={{ mt: 2 }}>
       <CardContent>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h6">Water Quality Log</Typography>
+          <Typography variant='h6'>Water Quality Log</Typography>
         </Box>
         <Box
           sx={{
@@ -38,48 +38,48 @@ const WaterQualityLog: React.FC = () => {
           }}
         >
           <Box sx={{ m: 1 }}>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant='body2' color='text.secondary'>
               DO (mg/L)
             </Typography>
-            <Chip label="5.9" color="success" />
+            <Chip label='5.9' color='success' />
           </Box>
           <Box sx={{ m: 1 }}>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant='body2' color='text.secondary'>
               pH
             </Typography>
-            <Chip label="8.3" color="success" />
+            <Chip label='8.3' color='success' />
           </Box>
           <Box sx={{ m: 1 }}>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant='body2' color='text.secondary'>
               Ammonia (ppm)
             </Typography>
-            <Chip label="0.1" color="success" />
+            <Chip label='0.1' color='success' />
           </Box>
           <Box sx={{ m: 1 }}>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant='body2' color='text.secondary'>
               Salinity (ppt)
             </Typography>
-            <Chip label="15" color="primary" />
+            <Chip label='15' color='primary' />
           </Box>
           <Box sx={{ m: 1 }}>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant='body2' color='text.secondary'>
               Latest Reading
             </Typography>
-            <Chip label="Today, 8:00 AM" color="default" />
+            <Chip label='Today, 8:00 AM' color='default' />
           </Box>
         </Box>
-        <Typography variant="subtitle1" gutterBottom>
+        <Typography variant='subtitle1' gutterBottom>
           Key Parameters (Last 7 Days)
         </Typography>
-        <ResponsiveContainer width="100%" height={300}>
+        <ResponsiveContainer width='100%' height={300}>
           <LineChart data={waterQualityData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="date" />
+            <CartesianGrid strokeDasharray='3 3' />
+            <XAxis dataKey='date' />
             <YAxis />
             <Tooltip />
             <Legend />
-            <Line type="monotone" dataKey="do" stroke="#82ca9d" name="DO (mg/L)" />
-            <Line type="monotone" dataKey="ph" stroke="#ffc658" name="pH" />
+            <Line type='monotone' dataKey='do' stroke='#82ca9d' name='DO (mg/L)' />
+            <Line type='monotone' dataKey='ph' stroke='#ffc658' name='pH' />
           </LineChart>
         </ResponsiveContainer>
       </CardContent>

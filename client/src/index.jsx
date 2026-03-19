@@ -15,7 +15,7 @@ import * as serviceWorker from './serviceWorker';
  */
 const setupGlobalErrorHandlers = () => {
   // Function to safely call global error handler
-  const showGlobalError = (error) => {
+  const showGlobalError = error => {
     const handler = window.showGlobalError || window.__GLOBAL_ERROR_HANDLER__?.showError;
     if (handler) {
       handler(error);
@@ -26,7 +26,7 @@ const setupGlobalErrorHandlers = () => {
   };
 
   // Capture uncaught JavaScript errors
-  window.addEventListener('error', (event) => {
+  window.addEventListener('error', event => {
     const error = event.error || new Error(event.message || 'Unknown runtime error');
     console.error('Uncaught error:', error);
 
@@ -37,10 +37,11 @@ const setupGlobalErrorHandlers = () => {
   });
 
   // Capture unhandled promise rejections
-  window.addEventListener('unhandledrejection', (event) => {
-    const error = event.reason instanceof Error
-      ? event.reason
-      : new Error(`Unhandled promise rejection: ${event.reason || 'Unknown error'}`);
+  window.addEventListener('unhandledrejection', event => {
+    const error =
+      event.reason instanceof Error
+        ? event.reason
+        : new Error(`Unhandled promise rejection: ${event.reason || 'Unknown error'}`);
     console.error('Unhandled promise rejection:', error);
 
     // Only show modal in production or if development error modal is enabled
@@ -59,11 +60,12 @@ const setupGlobalErrorHandlers = () => {
       const errorArg = args.find(arg => arg instanceof Error || arg?.message || arg?.stack);
       if (errorArg instanceof Error) {
         showGlobalError(errorArg);
-      } else if (typeof errorArg === 'string' && (
-        errorArg.includes('Error') ||
-        errorArg.includes('Exception') ||
-        errorArg.includes('Failed')
-      )) {
+      } else if (
+        typeof errorArg === 'string' &&
+        (errorArg.includes('Error') ||
+          errorArg.includes('Exception') ||
+          errorArg.includes('Failed'))
+      ) {
         showGlobalError(new Error(errorArg));
       }
     };

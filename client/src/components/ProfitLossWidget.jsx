@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, Typography, Box, CircularProgress, Divider } from '@mui/material';
 import { TrendingUp, TrendingDown } from '@mui/icons-material';
-import { getProfitAndLoss } from '../services/api';
+import { Card, CardContent, Typography, Box, CircularProgress, Divider } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+
 import { useSeason } from '../context/SeasonContext';
+import { getProfitAndLoss } from '../services/api';
 
 const ProfitLossWidget = () => {
   const { selectedSeason } = useSeason();
@@ -20,10 +21,18 @@ const ProfitLossWidget = () => {
   }, [selectedSeason]);
 
   if (!selectedSeason) return null;
-  
+
   if (loading) {
     return (
-      <Card sx={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', p: 3 }}>
+      <Card
+        sx={{
+          height: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          p: 3
+        }}
+      >
         <CircularProgress size={30} />
       </Card>
     );
@@ -36,32 +45,52 @@ const ProfitLossWidget = () => {
   return (
     <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <CardContent sx={{ flexGrow: 1 }}>
-        <Typography color="text.secondary" gutterBottom variant="h6">
+        <Typography color='text.secondary' gutterBottom variant='h6'>
           Season P&L Overview
         </Typography>
-        
+
         <Box sx={{ mt: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="body1" color="text.secondary">Total Revenue</Typography>
-          <Typography variant="h6" color="success.main">${data.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2})}</Typography>
+          <Typography variant='body1' color='text.secondary'>
+            Total Revenue
+          </Typography>
+          <Typography variant='h6' color='success.main'>
+            ${data.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+          </Typography>
         </Box>
-        
+
         <Box sx={{ mt: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="body1" color="text.secondary">Total Operational Cost</Typography>
-          <Typography variant="h6" color="error.main">-${data.totalCost.toLocaleString(undefined, { minimumFractionDigits: 2})}</Typography>
+          <Typography variant='body1' color='text.secondary'>
+            Total Operational Cost
+          </Typography>
+          <Typography variant='h6' color='error.main'>
+            -${data.totalCost.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+          </Typography>
         </Box>
 
         <Divider sx={{ my: 2 }} />
 
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant="h6" fontWeight="bold">Net Margin</Typography>
+          <Typography variant='h6' fontWeight='bold'>
+            Net Margin
+          </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            {isProfit ? <TrendingUp color="success" /> : <TrendingDown color="error" />}
-            <Typography variant="h5" color={isProfit ? 'success.main' : 'error.main'} fontWeight="bold">
-              ${Math.abs(data.netProfitLoss).toLocaleString(undefined, { minimumFractionDigits: 2})}
+            {isProfit ? <TrendingUp color='success' /> : <TrendingDown color='error' />}
+            <Typography
+              variant='h5'
+              color={isProfit ? 'success.main' : 'error.main'}
+              fontWeight='bold'
+            >
+              $
+              {Math.abs(data.netProfitLoss).toLocaleString(undefined, { minimumFractionDigits: 2 })}
             </Typography>
           </Box>
         </Box>
-        <Typography align="right" variant="body2" color={isProfit ? 'success.main' : 'error.main'} sx={{ mt: 0.5 }}>
+        <Typography
+          align='right'
+          variant='body2'
+          color={isProfit ? 'success.main' : 'error.main'}
+          sx={{ mt: 0.5 }}
+        >
           ({data.margin.toFixed(2)}%)
         </Typography>
       </CardContent>

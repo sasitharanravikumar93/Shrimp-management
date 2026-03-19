@@ -1,21 +1,18 @@
-import React from 'react';
+import { Home as HomeIcon, NavigateNext as NavigateNextIcon } from '@mui/icons-material';
 import { Breadcrumbs as MuiBreadcrumbs, Typography, Link, Box } from '@mui/material';
+import React from 'react';
 import { useLocation, Link as RouterLink } from 'react-router-dom';
-import { 
-  Home as HomeIcon, 
-  NavigateNext as NavigateNextIcon 
-} from '@mui/icons-material';
 
 const routeLabels = {
   '': 'Dashboard',
-  'admin': 'Administration',
-  'pond': 'Pond Management',
+  admin: 'Administration',
+  pond: 'Pond Management',
   'feed-view': 'Feed History',
   'water-quality-view': 'Water Quality History',
-  'nursery': 'Nursery Management',
+  nursery: 'Nursery Management',
   'inventory-management': 'Inventory',
-  'harvest': 'Harvest & Sales',
-  'historical-insights': 'Historical Insights',
+  harvest: 'Harvest & Sales',
+  'historical-insights': 'Historical Insights'
 };
 
 const AppBreadcrumbs = () => {
@@ -28,39 +25,36 @@ const AppBreadcrumbs = () => {
   const breadcrumbs = [
     { label: 'Dashboard', path: '/', isLast: pathSegments.length === 0 },
     ...pathSegments.map((segment, idx) => {
-      const path = '/' + pathSegments.slice(0, idx + 1).join('/');
-      const label = routeLabels[segment] || 
-        (segment.match(/^[0-9a-fA-F]{24}$/) ? `Details` : 
-         segment.charAt(0).toUpperCase() + segment.slice(1));
+      const path = `/${pathSegments.slice(0, idx + 1).join('/')}`;
+      const label =
+        routeLabels[segment] ||
+        (segment.match(/^[0-9a-fA-F]{24}$/)
+          ? `Details`
+          : segment.charAt(0).toUpperCase() + segment.slice(1));
       return {
         label,
         path,
-        isLast: idx === pathSegments.length - 1,
+        isLast: idx === pathSegments.length - 1
       };
-    }),
+    })
   ];
 
   return (
     <Box sx={{ mb: 2 }}>
       <MuiBreadcrumbs
         separator={<NavigateNextIcon sx={{ fontSize: 16 }} />}
-        aria-label="breadcrumb"
-        sx={{ 
-          '& .MuiBreadcrumbs-separator': { 
+        aria-label='breadcrumb'
+        sx={{
+          '& .MuiBreadcrumbs-separator': {
             mx: 0.5,
-            color: 'text.secondary' 
+            color: 'text.secondary'
           }
         }}
       >
         {breadcrumbs.map((crumb, idx) => {
           if (crumb.isLast) {
             return (
-              <Typography 
-                key={idx} 
-                color="text.primary" 
-                variant="body2"
-                sx={{ fontWeight: 600 }}
-              >
+              <Typography key={idx} color='text.primary' variant='body2' sx={{ fontWeight: 600 }}>
                 {crumb.label}
               </Typography>
             );
@@ -70,11 +64,11 @@ const AppBreadcrumbs = () => {
               key={idx}
               component={RouterLink}
               to={crumb.path}
-              underline="hover"
-              color="text.secondary"
-              variant="body2"
-              sx={{ 
-                display: 'flex', 
+              underline='hover'
+              color='text.secondary'
+              variant='body2'
+              sx={{
+                display: 'flex',
                 alignItems: 'center',
                 '&:hover': { color: 'primary.main' }
               }}

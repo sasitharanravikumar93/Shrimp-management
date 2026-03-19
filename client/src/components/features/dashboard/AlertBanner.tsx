@@ -1,9 +1,9 @@
-import { 
-  Warning as WarningIcon, 
-  Error as ErrorIcon, 
-  CheckCircle as CheckCircleIcon, 
-  Info as InfoIcon, 
-  Close as CloseIcon 
+import {
+  Warning as WarningIcon,
+  Error as ErrorIcon,
+  CheckCircle as CheckCircleIcon,
+  Info as InfoIcon,
+  Close as CloseIcon
 } from '@mui/icons-material';
 import { Box, Typography, IconButton, Paper, useTheme, SxProps, Theme } from '@mui/material';
 import { motion } from 'framer-motion';
@@ -17,12 +17,12 @@ export interface AlertBannerProps {
   sx?: SxProps<Theme>;
 }
 
-const AlertBanner: React.FC<AlertBannerProps> = ({ 
-  severity = 'info', 
-  message, 
-  onClose, 
-  dismissible = false, 
-  sx = {} 
+const AlertBanner: React.FC<AlertBannerProps> = ({
+  severity = 'info',
+  message,
+  onClose,
+  dismissible = false,
+  sx = {}
 }) => {
   const theme = useTheme();
 
@@ -87,7 +87,7 @@ const AlertBanner: React.FC<AlertBannerProps> = ({
       >
         <Box sx={{ mr: 1.5, mt: 0.25 }}>{icon}</Box>
         <Typography
-          variant="body2"
+          variant='body2'
           sx={{
             color,
             flexGrow: 1,
@@ -98,7 +98,7 @@ const AlertBanner: React.FC<AlertBannerProps> = ({
           {message}
         </Typography>
         {dismissible && onClose && (
-          <IconButton size="small" onClick={onClose} sx={{ ml: 1 }}>
+          <IconButton size='small' onClick={onClose} sx={{ ml: 1 }}>
             <CloseIcon sx={{ fontSize: 16, color }} />
           </IconButton>
         )}

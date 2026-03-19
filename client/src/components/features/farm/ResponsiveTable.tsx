@@ -39,7 +39,7 @@ const ResponsiveTable: React.FC<ResponsiveTableProps> = ({ columns, data, onRowC
         {data.map((row, index) => (
           <Card
             key={rowKey ? row[rowKey] : index}
-            variant="outlined"
+            variant='outlined'
             onClick={() => onRowClick && onRowClick(row)}
             sx={{
               cursor: onRowClick ? 'pointer' : 'default',
@@ -49,10 +49,10 @@ const ResponsiveTable: React.FC<ResponsiveTableProps> = ({ columns, data, onRowC
             <CardContent>
               {columns.map(column => (
                 <Box key={column.id} sx={{ mb: 1 }}>
-                  <Typography variant="caption" color="text.secondary">
+                  <Typography variant='caption' color='text.secondary'>
                     {column.label}
                   </Typography>
-                  <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>
+                  <Typography variant='body2' sx={{ wordBreak: 'break-word' }}>
                     {column.render ? column.render(row[column.id], row) : row[column.id]}
                   </Typography>
                 </Box>

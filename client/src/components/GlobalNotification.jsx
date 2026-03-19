@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
 import { Snackbar, Alert } from '@mui/material';
+import React, { useState, useEffect } from 'react';
 
 const GlobalNotification = () => {
   const [open, setOpen] = useState(false);
@@ -7,13 +7,13 @@ const GlobalNotification = () => {
   const [severity, setSeverity] = useState('error');
 
   useEffect(() => {
-    const handleApiError = (event) => {
+    const handleApiError = event => {
       setMessage(event.detail || 'An unexpected server error occurred.');
       setSeverity('error');
       setOpen(true);
     };
-    
-    const handleApiSuccess = (event) => {
+
+    const handleApiSuccess = event => {
       setMessage(event.detail || 'Operation successful.');
       setSeverity('success');
       setOpen(true);
@@ -34,13 +34,13 @@ const GlobalNotification = () => {
   };
 
   return (
-    <Snackbar 
-      open={open} 
-      autoHideDuration={5000} 
+    <Snackbar
+      open={open}
+      autoHideDuration={5000}
       onClose={handleClose}
       anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
     >
-      <Alert onClose={handleClose} severity={severity} variant="filled" sx={{ width: '100%' }}>
+      <Alert onClose={handleClose} severity={severity} variant='filled' sx={{ width: '100%' }}>
         {message}
       </Alert>
     </Snackbar>

@@ -68,7 +68,7 @@ const InventoryForm = ({ open, onClose, item, onSave }) => {
   }, [item]);
 
   // Handle form input changes
-  const handleChange = (e) => {
+  const handleChange = e => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
     if (errors[name]) {
@@ -76,7 +76,7 @@ const InventoryForm = ({ open, onClose, item, onSave }) => {
     }
   };
 
-  const handleDateChange = (date) => {
+  const handleDateChange = date => {
     setFormData({ ...formData, purchaseDate: date });
     if (errors.purchaseDate) {
       setErrors({ ...errors, purchaseDate: null });
@@ -139,22 +139,22 @@ const InventoryForm = ({ open, onClose, item, onSave }) => {
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="md">
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth='md'>
       <DialogTitle>{item ? t('edit_inventory_item') : t('add_new_inventory_item')}</DialogTitle>
       <DialogContent>
         {!selectedSeason && (
-          <Alert severity="warning" sx={{ mb: 2 }}>
+          <Alert severity='warning' sx={{ mb: 2 }}>
             {t('please_select_a_season_before_adding_inventory_items')}
           </Alert>
         )}
         <LocalizationProvider dateAdapter={AdapterDateFns}>
-          <Box component="form" noValidate autoComplete="off" sx={{ mt: 2 }}>
+          <Box component='form' noValidate autoComplete='off' sx={{ mt: 2 }}>
             <Grid container spacing={2}>
               <Grid item xs={12}>
                 <TextField
                   fullWidth
                   label={t('itemName')}
-                  name="itemName"
+                  name='itemName'
                   value={formData.itemName}
                   onChange={handleChange}
                   error={!!errors.itemName}
@@ -166,13 +166,13 @@ const InventoryForm = ({ open, onClose, item, onSave }) => {
                 <FormControl fullWidth error={!!errors.itemType}>
                   <InputLabel>{t('itemType')}</InputLabel>
                   <Select
-                    name="itemType"
+                    name='itemType'
                     value={formData.itemType}
                     label={t('itemType')}
                     onChange={handleChange}
                     disabled={!selectedSeason}
                   >
-                    {itemTypes.map((type) => (
+                    {itemTypes.map(type => (
                       <MenuItem key={type} value={type}>
                         {t(type.toLowerCase())}
                       </MenuItem>
@@ -185,7 +185,7 @@ const InventoryForm = ({ open, onClose, item, onSave }) => {
                 <TextField
                   fullWidth
                   label={t('supplier')}
-                  name="supplier"
+                  name='supplier'
                   value={formData.supplier}
                   onChange={handleChange}
                   disabled={!selectedSeason}
@@ -196,7 +196,7 @@ const InventoryForm = ({ open, onClose, item, onSave }) => {
                   label={t('purchaseDate')}
                   value={formData.purchaseDate}
                   onChange={handleDateChange}
-                  renderInput={(params) => (
+                  renderInput={params => (
                     <TextField
                       {...params}
                       fullWidth
@@ -211,13 +211,13 @@ const InventoryForm = ({ open, onClose, item, onSave }) => {
                 <FormControl fullWidth error={!!errors.unit}>
                   <InputLabel>{t('unit')}</InputLabel>
                   <Select
-                    name="unit"
+                    name='unit'
                     value={formData.unit}
                     label={t('unit')}
                     onChange={handleChange}
                     disabled={!selectedSeason}
                   >
-                    {units.map((unit) => (
+                    {units.map(unit => (
                       <MenuItem key={unit} value={unit}>
                         {unit}
                       </MenuItem>
@@ -230,8 +230,8 @@ const InventoryForm = ({ open, onClose, item, onSave }) => {
                 <TextField
                   fullWidth
                   label={t('costPerUnit')}
-                  name="costPerUnit"
-                  type="number"
+                  name='costPerUnit'
+                  type='number'
                   value={formData.costPerUnit}
                   onChange={handleChange}
                   error={!!errors.costPerUnit}
@@ -243,8 +243,8 @@ const InventoryForm = ({ open, onClose, item, onSave }) => {
                 <TextField
                   fullWidth
                   label={t('quantity_bought')}
-                  name="quantityBought"
-                  type="number"
+                  name='quantityBought'
+                  type='number'
                   value={formData.quantityBought}
                   onChange={handleChange}
                   error={!!errors.quantityBought}
@@ -258,7 +258,7 @@ const InventoryForm = ({ open, onClose, item, onSave }) => {
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>{t('cancel')}</Button>
-        <Button onClick={handleSubmit} variant="contained" disabled={!selectedSeason}>
+        <Button onClick={handleSubmit} variant='contained' disabled={!selectedSeason}>
           {item ? t('save_changes') : t('add_item')}
         </Button>
       </DialogActions>
