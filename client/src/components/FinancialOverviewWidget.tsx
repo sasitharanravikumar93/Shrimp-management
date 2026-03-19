@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { AccountBalanceWallet as WalletIcon } from '@mui/icons-material';
 import { 
   Card, 
   CardContent, 
@@ -10,26 +10,31 @@ import {
   Divider,
   Alert
 } from '@mui/material';
-import { AccountBalanceWallet as WalletIcon } from '@mui/icons-material';
+import React, { useState, useEffect } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from 'recharts';
+
 import { useSeason } from '../context/SeasonContext';
 import { getFinancialSummary } from '../services/api';
 
 const COLORS = ['#2563EB', '#10B981', '#F59E0B', '#7C3AED', '#6D28D9', '#EC4899', '#EF4444'];
 
-const FinancialOverviewWidget = ({ pondId }) => {
+export interface FinancialOverviewWidgetProps {
+  pondId?: string;
+}
+
+const FinancialOverviewWidget: React.FC<FinancialOverviewWidgetProps> = ({ pondId }) => {
   const { selectedSeason } = useSeason();
-  const [data, setData] = useState(null);
+  const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchFinance = async () => {
       try {
         setLoading(true);
         setError(null);
-        // Ensure seasonId is passed properly
-        const response = await getFinancialSummary(selectedSeason?._id || selectedSeason?.id, pondId);
+        const seasonId = (selectedSeason as any)?._id || (selectedSeason as any)?.id;
+        const response = await getFinancialSummary(seasonId, pondId);
         setData(response);
       } catch (err) {
         console.error('Error fetching financial summary:', err);
@@ -66,11 +71,11 @@ const FinancialOverviewWidget = ({ pondId }) => {
 
   if (!data) return null;
 
-  const chartData = Object.entries(data.breakdown)
-    .filter(([_, value]) => value > 0)
+  const chartData = Object.entries(data.breakdown || {})
+    .filter(([_, value]) => (value as number) > 0)
     .map(([key, value]) => ({
       name: key.charAt(0).toUpperCase() + key.slice(1),
-      value
+      value: value as number
     }));
 
   return (
@@ -78,7 +83,7 @@ const FinancialOverviewWidget = ({ pondId }) => {
       <CardHeader title="Financial Overview (Cost of Production)" avatar={<WalletIcon color="primary" />} />
       <CardContent>
         <Typography variant="h4" color="primary" gutterBottom>
-          ${data.totalOperationalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          ${data.totalOperationalCost?.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) || '0.00'}
         </Typography>
         <Typography variant="body2" color="text.secondary" gutterBottom>
           Total Operational Cost for {pondId ? 'this Pond' : 'all Ponds'}
@@ -105,7 +110,7 @@ const FinancialOverviewWidget = ({ pondId }) => {
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <RechartsTooltip formatter={(value) => `$${value.toFixed(2)}`} />
+                    <RechartsTooltip formatter={(value: number) => `$${value.toFixed(2)}`} />
                     <Legend />
                   </PieChart>
                 </ResponsiveContainer>

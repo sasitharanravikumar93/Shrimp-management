@@ -10,7 +10,6 @@
   padding: 2px 6px;
   font-size: 0.82rem;
   border: 0;
-<<<<<<< HEAD:client/src/components/CalendarOverrides.css
   box-shadow: 0 1px 3px rgba(0,0,0,0.08);
   font-weight: 500;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
@@ -24,9 +23,6 @@
 .rbc-event:focus {
   outline: 2px solid rgba(37, 99, 235, 0.5);
   outline-offset: 1px;
-=======
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
->>>>>>> main:client/src/components/features/shared/forms/CalendarOverrides.css
 }
 
 .rbc-event-content {
@@ -55,11 +51,7 @@
   border: 1px solid rgba(0,0,0,0.08);
   border-radius: 12px;
   overflow: hidden;
-<<<<<<< HEAD:client/src/components/CalendarOverrides.css
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-=======
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
->>>>>>> main:client/src/components/features/shared/forms/CalendarOverrides.css
   height: 100%;
 }
 
@@ -71,11 +63,7 @@
   border: 1px solid rgba(0,0,0,0.08);
   border-radius: 12px;
   overflow: hidden;
-<<<<<<< HEAD:client/src/components/CalendarOverrides.css
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-=======
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
->>>>>>> main:client/src/components/features/shared/forms/CalendarOverrides.css
   height: 100%;
 }
 
@@ -125,7 +113,6 @@
   background-color: rgba(248, 250, 252, 0.5);
 }
 
-<<<<<<< HEAD:client/src/components/CalendarOverrides.css
 /* Event type specific styles — new palette */
 .rbc-event.rbc-event-routine,
 .rbc-event.rbc-event-feeding {
@@ -139,27 +126,6 @@
 
 .rbc-event.rbc-event-maintenance {
   background-color: #F59E0B;
-=======
-/* Event type specific styles */
-.rbc-event.rbc-event-routine {
-  background-color: #007bff;
-}
-
-.rbc-event.rbc-event-monitoring {
-  background-color: #28a745;
-}
-
-.rbc-event.rbc-event-maintenance {
-  background-color: #fd7e14;
-}
-
-.rbc-event.rbc-event-feeding {
-  background-color: #007bff;
-}
-
-.rbc-event.rbc-event-water-quality {
-  background-color: #28a745;
->>>>>>> main:client/src/components/features/shared/forms/CalendarOverrides.css
 }
 
 .rbc-event.rbc-event-growth-sampling {
@@ -172,42 +138,27 @@
     flex-direction: column;
     align-items: stretch;
   }
-<<<<<<< HEAD:client/src/components/CalendarOverrides.css
-=======
 
->>>>>>> main:client/src/components/features/shared/forms/CalendarOverrides.css
   .rbc-toolbar button {
     margin-bottom: 5px;
     padding: 10px;
     border-radius: 8px;
   }
-<<<<<<< HEAD:client/src/components/CalendarOverrides.css
-=======
 
->>>>>>> main:client/src/components/features/shared/forms/CalendarOverrides.css
   .rbc-header {
     font-size: 0.78rem;
     padding: 8px 0;
   }
-<<<<<<< HEAD:client/src/components/CalendarOverrides.css
-=======
 
->>>>>>> main:client/src/components/features/shared/forms/CalendarOverrides.css
   .rbc-event {
     font-size: 0.72rem;
     padding: 1px 3px;
   }
-<<<<<<< HEAD:client/src/components/CalendarOverrides.css
-  .rbc-time-header-content {
-    border-left: none;
-  }
-=======
 
   .rbc-time-header-content {
     border-left: none;
   }
 
->>>>>>> main:client/src/components/features/shared/forms/CalendarOverrides.css
   .rbc-month-view,
   .rbc-time-view {
     min-height: 400px;
@@ -219,17 +170,11 @@
     font-size: 12px;
     padding: 8px 12px;
   }
-<<<<<<< HEAD:client/src/components/CalendarOverrides.css
-  .rbc-header {
-    font-size: 0.7rem;
-  }
-=======
 
   .rbc-header {
     font-size: 0.7rem;
   }
 
->>>>>>> main:client/src/components/features/shared/forms/CalendarOverrides.css
   .rbc-month-view,
   .rbc-time-view {
     min-height: 350px;
@@ -254,24 +199,14 @@
 }
 
 [data-theme="dark"] .rbc-toolbar button.rbc-active {
-<<<<<<< HEAD:client/src/components/CalendarOverrides.css
   background-color: #3B82F6;
   border-color: #3B82F6;
-=======
-  background-color: #007bff;
-  border-color: #007bff;
->>>>>>> main:client/src/components/features/shared/forms/CalendarOverrides.css
 }
 
 [data-theme="dark"] .rbc-month-view,
 [data-theme="dark"] .rbc-time-view {
-<<<<<<< HEAD:client/src/components/CalendarOverrides.css
   border: 1px solid #334155;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-=======
-  border: 1px solid #34495e;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
->>>>>>> main:client/src/components/features/shared/forms/CalendarOverrides.css
 }
 
 [data-theme="dark"] .rbc-header,
@@ -296,29 +231,18 @@
 }
 
 [data-theme="dark"] .rbc-toolbar button:focus {
-<<<<<<< HEAD:client/src/components/CalendarOverrides.css
   outline: 2px solid #3B82F6;
-=======
-  outline: 2px solid #007bff;
->>>>>>> main:client/src/components/features/shared/forms/CalendarOverrides.css
   outline-offset: 2px;
 }
 
 [data-theme="dark"] .rbc-day-slot .rbc-time-slot:hover {
-  background-color: rgba(59, 130, 246, 0.04);
+  background-color: rgba(59, 130, 246, 0.08);
 }
 
 .rbc-day-slot .rbc-time-slot:hover {
   background-color: rgba(37, 99, 235, 0.02);
 }
 
-<<<<<<< HEAD:client/src/components/CalendarOverrides.css
-=======
-[data-theme="dark"] .rbc-day-slot .rbc-time-slot:hover {
-  background-color: rgba(0, 123, 255, 0.05);
-}
-
->>>>>>> main:client/src/components/features/shared/forms/CalendarOverrides.css
 .rbc-date-cell {
   padding: 5px;
 }

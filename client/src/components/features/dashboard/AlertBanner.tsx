@@ -1,41 +1,31 @@
-<<<<<<<< HEAD:client/src/components/AlertBanner.jsx
-import React from 'react';
 import { 
-  Box, 
-  Typography, 
-  IconButton,
-  Paper,
-  useTheme
-} from '@mui/material';
-import { 
-========
-import {
->>>>>>>> main:client/src/components/features/dashboard/AlertBanner.js
-  Warning as WarningIcon,
-  Error as ErrorIcon,
-  CheckCircle as CheckCircleIcon,
-  Info as InfoIcon,
-  Close as CloseIcon
+  Warning as WarningIcon, 
+  Error as ErrorIcon, 
+  CheckCircle as CheckCircleIcon, 
+  Info as InfoIcon, 
+  Close as CloseIcon 
 } from '@mui/icons-material';
-import { Box, Typography, IconButton, Paper } from '@mui/material';
+import { Box, Typography, IconButton, Paper, useTheme, SxProps, Theme } from '@mui/material';
 import { motion } from 'framer-motion';
-import PropTypes from 'prop-types';
 import React from 'react';
 
-<<<<<<<< HEAD:client/src/components/AlertBanner.jsx
-const AlertBanner = ({ 
+export interface AlertBannerProps {
+  severity?: 'error' | 'warning' | 'success' | 'info';
+  message: string;
+  onClose?: () => void;
+  dismissible?: boolean;
+  sx?: SxProps<Theme>;
+}
+
+const AlertBanner: React.FC<AlertBannerProps> = ({ 
   severity = 'info', 
   message, 
-  onClose,
-  dismissible = false,
-  sx = {}
+  onClose, 
+  dismissible = false, 
+  sx = {} 
 }) => {
   const theme = useTheme();
 
-========
-const AlertBanner = ({ severity = 'info', message, onClose, dismissible = false, sx = {} }) => {
-  // Define colors and icons based on severity
->>>>>>>> main:client/src/components/features/dashboard/AlertBanner.js
   const getAlertStyles = () => {
     const isDark = theme.palette.mode === 'dark';
     switch (severity) {
@@ -73,8 +63,10 @@ const AlertBanner = ({ severity = 'info', message, onClose, dismissible = false,
 
   const { backgroundColor, borderColor, color, icon } = getAlertStyles();
 
+  const MotionDiv = motion.div as any;
+
   return (
-    <motion.div
+    <MotionDiv
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
@@ -95,7 +87,7 @@ const AlertBanner = ({ severity = 'info', message, onClose, dismissible = false,
       >
         <Box sx={{ mr: 1.5, mt: 0.25 }}>{icon}</Box>
         <Typography
-          variant='body2'
+          variant="body2"
           sx={{
             color,
             flexGrow: 1,
@@ -106,29 +98,13 @@ const AlertBanner = ({ severity = 'info', message, onClose, dismissible = false,
           {message}
         </Typography>
         {dismissible && onClose && (
-          <IconButton size='small' onClick={onClose} sx={{ ml: 1 }}>
+          <IconButton size="small" onClick={onClose} sx={{ ml: 1 }}>
             <CloseIcon sx={{ fontSize: 16, color }} />
           </IconButton>
         )}
       </Paper>
-    </motion.div>
+    </MotionDiv>
   );
 };
 
 export default AlertBanner;
-
-// Add PropTypes validation
-AlertBanner.propTypes = {
-  severity: PropTypes.oneOf(['error', 'warning', 'success', 'info']),
-  message: PropTypes.string.isRequired,
-  onClose: PropTypes.func,
-  dismissible: PropTypes.bool,
-  sx: PropTypes.object
-};
-
-// Add default props
-AlertBanner.defaultProps = {
-  severity: 'info',
-  dismissible: false,
-  sx: {}
-};

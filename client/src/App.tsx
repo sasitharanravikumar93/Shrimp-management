@@ -10,7 +10,7 @@ import Layout from './components/features/shared/layout/Layout';
 import { OfflineSyncProvider } from './context/OfflineSyncContext';
 import { SeasonProvider } from './context/SeasonContext';
 import i18n from './i18n';
-import theme, { darkTheme } from './theme.ts';
+import theme, { darkTheme } from './theme';
 import { RTLProvider, useRTL, createRTLTheme } from './utils/rtlUtils';
 import GlobalNotification from './components/GlobalNotification';
 
@@ -79,7 +79,7 @@ const AppContent: React.FC = () => {
           <SeasonProvider>
             <OfflineSyncProvider>
               <Layout toggleDarkMode={toggleDarkMode} darkMode={darkMode}>
-                <AnimatePresence mode='wait'>
+                <AnimatePresence exitBeforeEnter>
                   <Suspense fallback={<LoadingComponent />}>
                     <Routes>
                       <Route path='/' element={<DashboardPage />} />

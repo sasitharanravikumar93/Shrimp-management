@@ -79,7 +79,7 @@ const FarmOverview: React.FC = () => {
   // Stable event handlers
   const handleFilterChange = useStableCallback((event: any, newValue: string | null) => {
     if (newValue !== null) setFilter(newValue);
-  }, []);
+  });
 
   // Fetch all ponds data
   const {
@@ -140,7 +140,7 @@ const FarmOverview: React.FC = () => {
   if (allPondsError) {
     return (
       <Container maxWidth={false} sx={{ mt: 2, mb: 4 }}>
-        <ErrorDisplay error={allPondsError} context={{ onRetry: refetchPonds }} />
+        <ErrorDisplay error={allPondsError} onRetry={refetchPonds} />
       </Container>
     );
   }

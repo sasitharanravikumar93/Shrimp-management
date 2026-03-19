@@ -30,7 +30,7 @@ import AdjustmentHistoryModal from '../components/features/inventory/AdjustmentH
 import CurrentStockView from '../components/features/inventory/CurrentStockView';
 import InventoryForm from '../components/features/inventory/InventoryForm';
 import { useSeason } from '../context/SeasonContext';
-import useApi from '../hooks/useApi';
+import { getInventoryItems, deleteInventoryItem } from '../services/api';
 
 const InventoryManagementPage: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -46,7 +46,6 @@ const InventoryManagementPage: React.FC = () => {
   const [historyItem, setHistoryItem] = useState<any>(null);
   const [view, setView] = useState('bought'); // 'bought' or 'stock'
 
-  const api = useApi();
 
   const fetchInventoryItems = useCallback(async () => {
     if (!selectedSeason || !(selectedSeason._id || selectedSeason.id)) {
@@ -59,15 +58,12 @@ const InventoryManagementPage: React.FC = () => {
     setError(null);
     try {
       const seasonId = selectedSeason._id || selectedSeason.id;
-      const response = await api.get(`/inventory-items?seasonId=${seasonId}`);
-      setInventoryItems(Array.isArray(response) ? response : (response.data || []));
+      const response = await getInventoryItems(seasonId);
+      setInventoryItems(Array.isArray(response) ? response : []);
     } catch (err: any) {
       console.error('Error fetching inventory items:', err);
-      setError(t('failed_to_fetch_inventory_items'));
-    } finally {
-      setLoading(false);
     }
-  }, [selectedSeason, api, t]);
+  }, [selectedSeason, t]);
 
   useEffect(() => {
     if (view === 'bought') {
@@ -119,7 +115,7 @@ const InventoryManagementPage: React.FC = () => {
   const handleDeleteItem = async (id: string) => {
     if (window.confirm(`${t('areYouSure')} ${t('delete')} ${t('inventory_item')}?`)) {
       try {
-        await api.delete(`/inventory-items/${id}`);
+        await deleteInventoryItem(id);
         fetchInventoryItems();
       } catch (err) {
         console.error('Error deleting inventory item:', err);

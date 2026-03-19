@@ -19,19 +19,28 @@ import {
   Paper,
   Stack,
   Collapse,
-  Chip
+  Chip,
+  AlertProps
 } from '@mui/material';
-import PropTypes from 'prop-types';
 import React from 'react';
 
 import { useErrorHandler } from '../../../../utils/errorHandling';
 
-/**\n * Enhanced Error Display Component\n * Shows user-friendly error messages with recovery actions\n */
-const ErrorDisplay = ({
+export interface ErrorDisplayProps extends Omit<AlertProps, 'error' | 'variant'> {
+  error: any;
+  context?: any;
+  showDetails?: boolean;
+  displayVariant?: 'standard' | 'minimal' | 'detailed';
+  onRetry?: () => void;
+  onDismiss?: () => void;
+  className?: string;
+}
+
+const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
   error,
   context = {},
-  showDetails: _showDetails = false, // Prefixed with _ as it's not used
-  variant = 'standard', // 'standard', 'minimal', 'detailed'
+  showDetails: _showDetails = false,
+  displayVariant = 'standard',
   onRetry,
   onDismiss,
   className,
@@ -40,7 +49,6 @@ const ErrorDisplay = ({
   const [showTechnicalDetails, setShowTechnicalDetails] = React.useState(false);
   const { handleError } = useErrorHandler();
 
-  // Handle the error to get user-friendly information
   const errorInfo = React.useMemo(() => {
     if (!error) return null;
     return handleError(error, { ...context, onRetry });
@@ -48,49 +56,20 @@ const ErrorDisplay = ({
 
   if (!error || !errorInfo) return null;
 
-  // Get appropriate icon based on severity
-  const getSeverityIcon = severity => {
+  const getSeverityIcon = (severity: 'error' | 'warning' | 'info' | 'success') => {
     switch (severity) {
       case 'error':
-        return <ErrorIcon color='error' />;
+        return <ErrorIcon color="error" />;
       case 'warning':
-        return <WarningIcon color='warning' />;
+        return <WarningIcon color="warning" />;
       case 'info':
-        return <InfoIcon color='info' />;
+        return <InfoIcon color="info" />;
       default:
-        return <ErrorIcon color='error' />;
+        return <ErrorIcon color="error" />;
     }
   };
 
-  // Render recovery action buttons
-  const renderRecoveryActions = () => {
-    if (!errorInfo.recoveryActions?.length) return null;
-
-    return (
-      <Stack direction='row' spacing={1} sx={{ mt: 2 }}>
-        {errorInfo.recoveryActions.map((action, _index) => (
-          <Button
-            key={action.name}
-            variant={action.primary ? 'contained' : 'outlined'}
-            size='small'
-            onClick={() => {
-              action.action?.();
-              if (action.name === 'retry') {
-                onRetry?.();
-              }
-            }}
-            startIcon={getActionIcon(action.name)}
-            color={action.primary ? 'primary' : 'inherit'}
-          >
-            {action.label}
-          </Button>
-        ))}
-      </Stack>
-    );
-  };
-
-  // Get icon for action
-  const getActionIcon = actionName => {
+  const getActionIcon = (actionName: string) => {
     switch (actionName) {
       case 'retry':
         return <RefreshIcon />;
@@ -107,14 +86,39 @@ const ErrorDisplay = ({
     }
   };
 
-  // Minimal variant for inline errors
-  if (variant === 'minimal') {
+  const renderRecoveryActions = () => {
+    if (!errorInfo.recoveryActions?.length) return null;
+
+    return (
+      <Stack direction="row" spacing={1} sx={{ mt: 2 }}>
+        {errorInfo.recoveryActions.map((action: any) => (
+          <Button
+            key={action.name}
+            variant={action.primary ? 'contained' : 'outlined'}
+            size="small"
+            onClick={() => {
+              if (action.action) action.action();
+              if (action.name === 'retry' && onRetry) {
+                onRetry();
+              }
+            }}
+            startIcon={getActionIcon(action.name)}
+            color={action.primary ? 'primary' : 'inherit'}
+          >
+            {action.label}
+          </Button>
+        ))}
+      </Stack>
+    );
+  };
+
+  if (displayVariant === 'minimal') {
     return (
       <Alert
-        severity={errorInfo.severity}
+        severity={errorInfo.severity as any}
         action={
           onRetry && (
-            <Button size='small' onClick={onRetry} startIcon={<RefreshIcon />}>
+            <Button size="small" onClick={onRetry} startIcon={<RefreshIcon />}>
               Retry
             </Button>
           )
@@ -128,38 +132,35 @@ const ErrorDisplay = ({
     );
   }
 
-  // Standard variant
-  if (variant === 'standard') {
+  if (displayVariant === 'standard') {
     return (
       <Alert
-        severity={errorInfo.severity}
-        icon={getSeverityIcon(errorInfo.severity)}
+        severity={errorInfo.severity as any}
+        icon={getSeverityIcon(errorInfo.severity as any)}
         onClose={onDismiss}
         className={className}
         {...props}
       >
         <AlertTitle>{errorInfo.title}</AlertTitle>
-        <Typography variant='body2' sx={{ mb: 1 }}>
+        <Typography variant="body2" sx={{ mb: 1 }}>
           {errorInfo.message}
         </Typography>
 
-        {/* Error ID for support */}
         {errorInfo.errorId && (
           <Chip
             label={`Error ID: ${errorInfo.errorId}`}
-            size='small'
-            variant='outlined'
+            size="small"
+            variant="outlined"
             sx={{ mb: 1 }}
           />
         )}
 
         {renderRecoveryActions()}
 
-        {/* Technical details toggle (development only) */}
         {process.env.NODE_ENV === 'development' && (
           <Box sx={{ mt: 2 }}>
             <Button
-              size='small'
+              size="small"
               onClick={() => setShowTechnicalDetails(!showTechnicalDetails)}
               startIcon={showTechnicalDetails ? <ExpandLessIcon /> : <ExpandMoreIcon />}
               sx={{ textTransform: 'none' }}
@@ -169,14 +170,14 @@ const ErrorDisplay = ({
 
             <Collapse in={showTechnicalDetails}>
               <Box sx={{ mt: 1, p: 1, bgcolor: 'grey.100', borderRadius: 1 }}>
-                <Typography variant='caption' component='div'>
-                  <strong>Error Type:</strong> {errorInfo.classifiedError.type}
+                <Typography variant="caption" component="div">
+                  <strong>Error Type:</strong> {errorInfo.classifiedError?.type}
                   <br />
-                  <strong>Original Message:</strong> {errorInfo.originalError.message}
+                  <strong>Original Message:</strong> {errorInfo.originalError?.message}
                   <br />
                   <strong>Stack:</strong>
                   <pre style={{ fontSize: '0.75em', overflow: 'auto', maxHeight: '100px' }}>
-                    {errorInfo.originalError.stack}
+                    {errorInfo.originalError?.stack}
                   </pre>
                 </Typography>
               </Box>
@@ -187,7 +188,6 @@ const ErrorDisplay = ({
     );
   }
 
-  // Detailed variant for full-page errors
   return (
     <Paper
       elevation={3}
@@ -199,74 +199,30 @@ const ErrorDisplay = ({
         textAlign: 'center'
       }}
       className={className}
-      {...props}
     >
-      <Box sx={{ mb: 3 }}>{getSeverityIcon(errorInfo.severity)}</Box>
+      <Box sx={{ mb: 3 }}>{getSeverityIcon(errorInfo.severity as any)}</Box>
 
-      <Typography variant='h5' component='h2' gutterBottom>
+      <Typography variant="h5" component="h2" gutterBottom>
         {errorInfo.title}
       </Typography>
 
-      <Typography variant='body1' color='text.secondary' paragraph>
+      <Typography variant="body1" color="text.secondary" paragraph>
         {errorInfo.message}
       </Typography>
 
-      {/* Error ID for support */}
       {errorInfo.errorId && (
         <Box sx={{ mb: 3 }}>
-          <Chip label={`Error ID: ${errorInfo.errorId}`} variant='outlined' />
+          <Chip label={`Error ID: ${errorInfo.errorId}`} variant="outlined" />
         </Box>
       )}
 
       {renderRecoveryActions()}
 
-      {/* Additional help text */}
-      <Typography variant='caption' color='text.secondary' sx={{ mt: 3, display: 'block' }}>
+      <Typography variant="caption" color="text.secondary" sx={{ mt: 3, display: 'block' }}>
         If this problem persists, please contact support with the Error ID above.
       </Typography>
     </Paper>
   );
 };
 
-/**
- * Error Fallback Component for use with Error Boundaries
- */
-export const ErrorFallback = ({ error, resetErrorBoundary, context = {} }) => {
-  return (
-    <ErrorDisplay
-      error={error}
-      context={{ ...context, onRetry: resetErrorBoundary }}
-      variant='detailed'
-    />
-  );
-};
-
-ErrorFallback.propTypes = {
-  error: PropTypes.object,
-  resetErrorBoundary: PropTypes.func,
-  context: PropTypes.object
-};
-
-/**
- * Inline Error Component for form fields and small sections
- */
-export const InlineError = ({ error, onRetry, ...props }) => {
-  return <ErrorDisplay error={error} onRetry={onRetry} variant='minimal' {...props} />;
-};
-
-InlineError.propTypes = {
-  error: PropTypes.object,
-  onRetry: PropTypes.func
-};
-
 export default ErrorDisplay;
-
-ErrorDisplay.propTypes = {
-  error: PropTypes.object,
-  context: PropTypes.object,
-  showDetails: PropTypes.bool,
-  variant: PropTypes.oneOf(['standard', 'minimal', 'detailed']),
-  onRetry: PropTypes.func,
-  onDismiss: PropTypes.func,
-  className: PropTypes.string
-};

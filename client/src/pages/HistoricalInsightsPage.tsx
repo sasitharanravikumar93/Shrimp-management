@@ -234,10 +234,10 @@ const HistoricalInsightsPage: React.FC = () => {
               {mode === 'current' ? (
                 <>
                   <Grid item xs={12} md={6}>
-                    <DatePicker label={t('start_date')} value={startDate} onChange={setStartDate} renderInput={(params) => <TextField {...params} fullWidth />} />
+                    <DatePicker label={t('start_date')} value={startDate} onChange={setStartDate} slotProps={{ textField: { fullWidth: true } }} />
                   </Grid>
                   <Grid item xs={12} md={6}>
-                    <DatePicker label={t('end_date')} value={endDate} onChange={setEndDate} renderInput={(params) => <TextField {...params} fullWidth />} />
+                    <DatePicker label={t('end_date')} value={endDate} onChange={setEndDate} slotProps={{ textField: { fullWidth: true } }} />
                   </Grid>
                   <Grid item xs={12} md={6}>
                     <FormControl fullWidth>

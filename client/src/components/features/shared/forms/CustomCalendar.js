@@ -22,39 +22,29 @@ const CustomCalendar = ({
   date,
   view = Views.WEEK,
   onViewChange,
-  toolbar: _toolbar = true // Prefixed with _ as it's not used
+  toolbar: _toolbar = true
 }) => {
   // Event styles for calendar
-<<<<<<<< HEAD:client/src/components/CustomCalendar.jsx
   const eventStyleGetter = (event) => {
     let backgroundColor = '#2563EB';
-========
-  const eventStyleGetter = event => {
-    let backgroundColor = '#007BFF';
->>>>>>>> main:client/src/components/features/shared/forms/CustomCalendar.js
     let className = 'rbc-event-routine';
 
     if (event.type === 'Routine') {
       backgroundColor = '#2563EB';
       className = 'rbc-event-routine';
-    }
-    if (event.type === 'Monitoring') {
+    } else if (event.type === 'Monitoring') {
       backgroundColor = '#28A745';
       className = 'rbc-event-monitoring';
-    }
-    if (event.type === 'Maintenance') {
+    } else if (event.type === 'Maintenance') {
       backgroundColor = '#FD7E14';
       className = 'rbc-event-maintenance';
-    }
-    if (event.type === 'Feeding') {
+    } else if (event.type === 'Feeding') {
       backgroundColor = '#2563EB';
       className = 'rbc-event-feeding';
-    }
-    if (event.type === 'Water Quality') {
+    } else if (event.type === 'Water Quality') {
       backgroundColor = '#28A745';
       className = 'rbc-event-water-quality';
-    }
-    if (event.type === 'Growth Sampling') {
+    } else if (event.type === 'Growth Sampling') {
       backgroundColor = '#6f42c1';
       className = 'rbc-event-growth-sampling';
     }
@@ -75,7 +65,7 @@ const CustomCalendar = ({
   };
 
   // Map MUI view names to react-big-calendar view names
-  const getViewValue = viewName => {
+  const getViewValue = (viewName) => {
     switch (viewName) {
       case 'day':
         return Views.DAY;
@@ -87,7 +77,7 @@ const CustomCalendar = ({
   };
 
   // Map react-big-calendar view names to MUI view names
-  const getMuiViewName = viewValue => {
+  const getMuiViewName = (viewValue) => {
     switch (viewValue) {
       case Views.DAY:
         return 'day';
@@ -109,7 +99,7 @@ const CustomCalendar = ({
   return (
     <Card elevation={3} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <CardHeader
-        title='Events Calendar'
+        title="Events Calendar"
         action={
           <ToggleButtonGroup
             value={getMuiViewName(view)}
@@ -119,16 +109,16 @@ const CustomCalendar = ({
                 onViewChange(getViewValue(newView));
               }
             }}
-            size='small'
+            size="small"
             sx={{ height: 36 }}
           >
-            <ToggleButton value='month' aria-label='month view'>
+            <ToggleButton value="month" aria-label="month view">
               <MonthViewIcon />
             </ToggleButton>
-            <ToggleButton value='week' aria-label='week view'>
+            <ToggleButton value="week" aria-label="week view">
               <WeekViewIcon />
             </ToggleButton>
-            <ToggleButton value='day' aria-label='day view'>
+            <ToggleButton value="day" aria-label="day view">
               <DayViewIcon />
             </ToggleButton>
           </ToggleButtonGroup>
@@ -147,8 +137,8 @@ const CustomCalendar = ({
           <Calendar
             localizer={localizer}
             events={processedEvents}
-            startAccessor='start'
-            endAccessor='end'
+            startAccessor="start"
+            endAccessor="end"
             style={{ height: '100%' }}
             onSelectEvent={onEventSelect}
             onNavigate={onDateChange}
@@ -158,7 +148,7 @@ const CustomCalendar = ({
             views={[Views.MONTH, Views.WEEK, Views.DAY]}
             view={view}
             date={date}
-            toolbar={false} // We're using our own toolbar
+            toolbar={false}
             formats={{
               dateFormat: 'd',
               dayFormat: 'ddd D/M',
