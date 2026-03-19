@@ -13,10 +13,22 @@ import {
   useMediaQuery
 } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
-import PropTypes from 'prop-types';
 import React from 'react';
 
-const ResponsiveTable = ({ columns, data, onRowClick, rowKey }) => {
+interface Column {
+  id: string;
+  label: string;
+  render?: (value: any, row: any) => React.ReactNode;
+}
+
+interface ResponsiveTableProps {
+  columns: Column[];
+  data: any[];
+  onRowClick?: (row: any) => void;
+  rowKey?: string;
+}
+
+const ResponsiveTable: React.FC<ResponsiveTableProps> = ({ columns, data, onRowClick, rowKey }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -27,7 +39,7 @@ const ResponsiveTable = ({ columns, data, onRowClick, rowKey }) => {
         {data.map((row, index) => (
           <Card
             key={rowKey ? row[rowKey] : index}
-            variant='outlined'
+            variant="outlined"
             onClick={() => onRowClick && onRowClick(row)}
             sx={{
               cursor: onRowClick ? 'pointer' : 'default',
@@ -37,10 +49,10 @@ const ResponsiveTable = ({ columns, data, onRowClick, rowKey }) => {
             <CardContent>
               {columns.map(column => (
                 <Box key={column.id} sx={{ mb: 1 }}>
-                  <Typography variant='caption' color='text.secondary'>
+                  <Typography variant="caption" color="text.secondary">
                     {column.label}
                   </Typography>
-                  <Typography variant='body2' sx={{ wordBreak: 'break-word' }}>
+                  <Typography variant="body2" sx={{ wordBreak: 'break-word' }}>
                     {column.render ? column.render(row[column.id], row) : row[column.id]}
                   </Typography>
                 </Box>
@@ -89,16 +101,3 @@ const ResponsiveTable = ({ columns, data, onRowClick, rowKey }) => {
 };
 
 export default ResponsiveTable;
-
-ResponsiveTable.propTypes = {
-  columns: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.string.isRequired,
-      label: PropTypes.string.isRequired,
-      render: PropTypes.func
-    })
-  ).isRequired,
-  data: PropTypes.arrayOf(PropTypes.object).isRequired,
-  onRowClick: PropTypes.func,
-  rowKey: PropTypes.string
-};
