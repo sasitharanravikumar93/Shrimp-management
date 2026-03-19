@@ -64,12 +64,7 @@ jest.mock('mongoose', () => {
   };
 });
 
-// Mock external services that should not be called during tests
-jest.mock('nodemailer', () => ({
-  createTransport: jest.fn(() => ({
-    sendMail: jest.fn().mockResolvedValue({ messageId: 'test-message-id' })
-  }))
-}));
+// No longer mocking nodemailer as it is not installed
 
 // Mock file system operations for tests
 jest.mock('fs', () => ({

@@ -1,0 +1,670 @@
+src/serviceWorker.js:127 - unregister (used in module)
+src/theme.ts:4 - motion
+src/theme.ts:441 - getHealthColor
+src/theme.ts:448 - getStatusColor
+src/__mocks__/axios.js:8 - default
+src/components/AnimatedComponent.jsx:72 - default
+src/components/AquacultureTooltip.jsx:55 - default
+src/components/EmptyState.jsx:96 - default (used in module)
+src/components/EventSuggestions.jsx:201 - default
+src/components/FeedCalculator.jsx:136 - default
+src/components/FinancialOverviewWidget.tsx:28 - FinancialOverviewWidgetProps (used in module)
+src/components/GlobalErrorBoundary.jsx:57 - default
+src/components/HarvestProjection.jsx:103 - default
+src/components/index.js:6 - PondCard
+src/components/index.js:7 - PondDetail
+src/components/index.js:6 - InventoryForm
+src/components/index.js:7 - InventoryAdjustmentModal
+src/components/index.js:8 - AdjustmentHistoryModal
+src/components/index.js:9 - CurrentStockView
+src/components/index.js:6 - ExpenseDashboard
+src/components/index.js:7 - ExpenseForm
+src/components/index.js:8 - ExpenseList
+src/components/index.js:9 - ExpenseReports
+src/components/index.js:6 - FeedCalculator
+src/components/index.js:7 - FeedLog
+src/components/index.js:8 - GrowthSamplingLog
+src/components/index.js:9 - HarvestProjection
+src/components/index.js:6 - KPICard
+src/components/index.js:7 - QuickActions
+src/components/index.js:8 - AlertBanner
+src/components/index.js:9 - PredictiveInsight
+src/components/index.js:6 - FarmOverview
+src/components/index.js:7 - MobileFarmOverview
+src/components/index.js:8 - MobileOptimized
+src/components/index.js:9 - EventSuggestions
+src/components/index.js:10 - AquacultureTooltip
+src/components/index.js:11 - ResponsiveTable
+src/components/index.js:6 - SalaryManagement
+src/components/index.js:6 - WaterQualityAlert
+src/components/index.js:7 - WaterQualityLog
+src/components/index.js:8 - HealthScore
+src/components/index.js:47 - DataVisualization
+src/components/index.js:47 - CHART_TYPES
+src/components/index.js:50 - MetricsGrid
+src/components/index.js:52 - METRIC_TYPES
+src/components/index.js:53 - GRID_LAYOUTS
+src/components/index.js:54 - DashboardMetrics
+src/components/index.js:55 - PerformanceMetrics
+src/components/index.js:56 - CompactMetrics
+src/components/index.js:57 - FinancialMetrics
+src/components/index.js:58 - createMetric
+src/components/index.js:59 - createFinancialMetric
+src/components/index.js:60 - createPercentageMetric
+src/components/index.js:61 - formatters
+src/components/index.js:65 - DataTable
+src/components/index.js:65 - CELL_TYPES
+src/components/index.js:68 - FilterPanel
+src/components/index.js:68 - FILTER_TYPES
+src/components/index.js:71 - DataDashboard
+src/components/index.js:78 - ChartTypes
+src/components/index.js:79 - MetricTypes
+src/components/index.js:80 - CellTypes
+src/components/index.js:81 - FilterTypes
+src/components/index.js:82 - GridLayouts
+src/components/index.js:6 - StyledComponents
+src/components/index.js:7 - AnimatedComponent
+src/components/index.js:8 - Widget
+src/components/index.js:9 - RTLDemo
+src/components/index.js:6 - ValidatedDatePicker
+src/components/index.js:7 - ValidatedSelect
+src/components/index.js:8 - ValidatedTextField
+src/components/index.js:9 - CustomCalendar
+src/components/index.js:6 - ErrorBoundary
+src/components/index.js:7 - ErrorBoundaryTS
+src/components/index.js:8 - SectionErrorBoundary
+src/components/index.js:9 - ErrorDisplay
+src/components/index.js:10 - EnhancedErrorBoundary
+src/components/index.js:13 - GlobalErrorModal
+src/components/index.js:15 - GlobalErrorProvider
+src/components/index.js:16 - useGlobalError
+src/components/index.js:17 - withGlobalErrorHandling
+src/components/index.js:19 - GlobalErrorBoundary
+src/components/index.js:22 - ErrorPage
+src/components/index.js:6 - LoadingComponents
+src/components/index.js:6 - OptimizedCharts
+src/components/index.js:7 - DataTrend
+src/components/index.js:6 - Layout
+src/components/index.js:7 - Sidebar
+src/components/index.js:8 - LanguageSwitcher
+src/components/KPICard.jsx:110 - CircularKPICard
+src/components/KPICard.jsx:202 - default
+src/components/LanguageSwitcher.js:43 - default
+src/components/Layout.jsx:567 - default
+src/components/PondCard.jsx:171 - default
+src/components/SkeletonLoader.jsx:15 - KPICardSkeleton (used in module)
+src/components/SkeletonLoader.jsx:31 - ChartCardSkeleton (used in module)
+src/components/SkeletonLoader.jsx:48 - PondCardSkeleton (used in module)
+src/components/SkeletonLoader.jsx:75 - TableSkeleton
+src/components/SkeletonLoader.jsx:92 - DashboardSkeleton (used in module)
+src/components/SkeletonLoader.jsx:138 - default
+src/components/WaterQualityAlert.jsx:198 - default
+src/components/Widget.jsx:45 - default
+src/config/environment.js:10 - Environment (used in module)
+src/config/environment.js:576 - default (used in module)
+src/config/environment.js:580 - NODE_ENV (used in module)
+src/config/environment.js:581 - REACT_APP_API_BASE_URL (used in module)
+src/config/environment.js:582 - REACT_APP_API_TIMEOUT (used in module)
+src/config/environment.js:583 - REACT_APP_VERSION (used in module)
+src/config/environment.js:584 - REACT_APP_DEBUG_ENABLED (used in module)
+src/config/environment.js:585 - REACT_APP_DEFAULT_LANGUAGE (used in module)
+src/config/environment.js:589 - isProduction (used in module)
+src/config/environment.js:590 - isDevelopment (used in module)
+src/config/environment.js:591 - isTest (used in module)
+src/config/environment.js:592 - getConfig
+src/config/environment.js:593 - getAllConfig
+src/constants/index.js:47 - UI (used in module)
+src/constants/index.js:93 - FORM (used in module)
+src/constants/index.js:118 - POND (used in module)
+src/constants/index.js:172 - FEED (used in module)
+src/constants/index.js:209 - WATER_QUALITY (used in module)
+src/constants/index.js:244 - FINANCE (used in module)
+src/constants/index.js:272 - TIME (used in module)
+src/constants/index.js:313 - SEASON (used in module)
+src/constants/index.js:339 - CHART (used in module)
+src/constants/index.js:364 - PERFORMANCE (used in module)
+src/constants/index.js:386 - NOTIFICATION (used in module)
+src/constants/index.js:416 - SECURITY (used in module)
+src/constants/index.js:440 - ERROR (used in module)
+src/constants/index.js:467 - DEFAULTS (used in module)
+src/constants/index.js:492 - REGEX (used in module)
+src/constants/index.js:507 - INVENTORY (used in module)
+src/constants/index.js:551 - TIME_UNITS
+src/constants/index.js:552 - SIZE_UNITS (used in module)
+src/constants/index.js:578 - default
+src/context/OfflineSyncContext.js:144 - default
+src/examples/CacheIntegrationExamples.js:495 - PondListTraditional (used in module)
+src/examples/CacheIntegrationExamples.js:496 - PondListOptimized (used in module)
+src/examples/CacheIntegrationExamples.js:497 - ExpenseFormTraditional (used in module)
+src/examples/CacheIntegrationExamples.js:498 - ExpenseFormOptimized (used in module)
+src/examples/CacheIntegrationExamples.js:499 - CacheAwareDashboard (used in module)
+src/examples/CacheIntegrationExamples.js:500 - PondDetailWithCache (used in module)
+src/examples/CacheIntegrationExamples.js:501 - PerformanceComparison (used in module)
+src/examples/CacheIntegrationExamples.js:504 - default
+src/hooks/index.js:7 - useModal
+src/hooks/index.js:7 - useConfirmation
+src/hooks/index.js:7 - useToggle
+src/hooks/index.js:7 - useLocalStorage
+src/hooks/index.js:10 - useDataTable
+src/hooks/index.js:10 - useCrudOperations
+src/hooks/index.js:10 - useSelection
+src/hooks/index.js:14 - useAsyncOperation
+src/hooks/index.js:15 - useAsyncOperations
+src/hooks/index.js:16 - useErrorHandler
+src/hooks/index.js:17 - useCancellation
+src/hooks/index.js:22 - useCachedData
+src/hooks/index.js:23 - useCachedForm
+src/hooks/index.js:24 - useCacheInvalidation
+src/hooks/index.js:25 - useCacheMetrics
+src/hooks/index.js:26 - useCacheWarmup
+src/hooks/index.js:27 - useCachedComputation
+src/hooks/index.js:28 - useCacheDependencies
+src/hooks/index.js:29 - useCachedState
+src/hooks/index.js:33 - useApiData
+src/hooks/index.js:37 - useDebounce
+src/hooks/index.js:38 - useThrottle
+src/hooks/index.js:39 - useStableMemo
+src/hooks/index.js:40 - useStableObject
+src/hooks/index.js:41 - useStableArray
+src/hooks/index.js:45 - useRTL
+src/hooks/index.js:46 - useLanguage
+src/hooks/index.js:49 - useOfflineForm
+src/hooks/useApi.ts:6 - ApiError (used in module)
+src/hooks/useApi.ts:12 - ApiResponse (used in module)
+src/hooks/useApi.ts:21 - UseApiDataReturn (used in module)
+src/hooks/useApi.ts:29 - UseApiMutationOptions (used in module)
+src/hooks/useApi.ts:36 - MutationResult (used in module)
+src/hooks/useApi.ts:41 - UseApiMutationReturn (used in module)
+src/hooks/useApi.ts:48 - ApiFunction (used in module)
+src/hooks/useApi.ts:51 - MutationFunction (used in module)
+src/hooks/useApi.ts:366 - useCacheManagement (used in module)
+src/hooks/useApi.ts:382 - usePaginatedApi (used in module)
+src/hooks/useApi.ts:435 - apiCall (used in module)
+src/hooks/useCaching.js:448 - default
+src/hooks/useDataValidation.js:22 - useFormValidation (used in module)
+src/hooks/useDataValidation.js:330 - useBulkValidation (used in module)
+src/hooks/useDataValidation.js:409 - useRealtimeValidation (used in module)
+src/hooks/useDataValidation.js:470 - useValidationState (used in module)
+src/hooks/useDataValidation.js:551 - default
+src/hooks/useDebug.js:27 - useComponentDebug (used in module)
+src/hooks/useDebug.js:121 - usePerformanceDebug (used in module)
+src/hooks/useDebug.js:183 - useUserActionDebug (used in module)
+src/hooks/useDebug.js:248 - useErrorContext (used in module)
+src/hooks/useDebug.js:291 - useStateDebug (used in module)
+src/hooks/useDebug.js:354 - useApiDebug (used in module)
+src/hooks/useDebug.js:419 - useEffectDebug (used in module)
+src/hooks/useDebug.js:480 - useDebug (used in module)
+src/hooks/useDebug.js:533 - default
+src/hooks/useFormManagement.js:3 - useFormManagement
+src/hooks/useOptimizedData.js:28 - useOptimizedApiData (used in module)
+src/hooks/useOptimizedData.js:142 - useOptimizedList (used in module)
+src/hooks/useOptimizedData.js:348 - useOptimizedPagination (used in module)
+src/hooks/useOptimizedData.js:435 - useOptimizedSorting (used in module)
+src/hooks/useOptimizedData.js:597 - default
+src/i18n/index.js:79 - defaultLanguage (used in module)
+src/i18n/index.js:213 - i18nUtils (used in module)
+src/i18n/index.js:341 - default
+src/routes/LazyRoutes.js:9 - LazyDashboardPage (used in module)
+src/routes/LazyRoutes.js:14 - LazyExpenseManagementPage (used in module)
+src/routes/LazyRoutes.js:19 - LazyFarmOverview (used in module)
+src/routes/LazyRoutes.js:21 - LazyPondDetail (used in module)
+src/routes/LazyRoutes.js:23 - LazyExpenseDashboard (used in module)
+src/routes/LazyRoutes.js:25 - LazyExpenseList (used in module)
+src/routes/LazyRoutes.js:27 - LazySalaryManagement (used in module)
+src/routes/LazyRoutes.js:29 - LazyExpenseReports (used in module)
+src/routes/LazyRoutes.js:32 - LazyExpenseForm (used in module)
+src/routes/LazyRoutes.js:34 - LazyInventoryForm (used in module)
+src/routes/LazyRoutes.js:37 - LazyAdjustmentHistoryModal (used in module)
+src/routes/LazyRoutes.js:41 - LazyInventoryAdjustmentModal (used in module)
+src/routes/LazyRoutes.js:46 - LazyDataTrend (used in module)
+src/routes/LazyRoutes.js:48 - LazyOptimizedCharts (used in module)
+src/routes/LazyRoutes.js:51 - LazyCustomCalendar (used in module)
+src/routes/LazyRoutes.js:54 - lazyRoutes (used in module)
+src/routes/LazyRoutes.js:83 - preloadStrategies (used in module)
+src/routes/LazyRoutes.js:99 - default
+src/scripts/analyzePropInterfaces.js:Infinity - prototype
+src/services/api.ts:73 - getSeasonById
+src/services/api.ts:84 - getPondsBySeasonId
+src/services/api.ts:92 - getFeedInputById
+src/services/api.ts:95 - getFeedInputsByDateRange
+src/services/api.ts:98 - updateFeedInput
+src/services/api.ts:100 - deleteFeedInput
+src/services/api.ts:103 - getGrowthSamplings
+src/services/api.ts:104 - getGrowthSamplingById
+src/services/api.ts:107 - getGrowthSamplingsByDateRange
+src/services/api.ts:111 - updateGrowthSampling
+src/services/api.ts:113 - deleteGrowthSampling
+src/services/api.ts:118 - getWaterQualityInputById
+src/services/api.ts:121 - getWaterQualityInputsByDateRange
+src/services/api.ts:125 - updateWaterQualityInput
+src/services/api.ts:127 - deleteWaterQualityInput
+src/services/api.ts:133 - getNurseryBatchesBySeasonId
+src/services/api.ts:151 - getInventoryItemById
+src/services/api.ts:158 - getInventoryItemsByType
+src/services/api.ts:165 - createInventoryItem
+src/services/api.ts:172 - updateInventoryItem
+src/services/api.ts:186 - getInventoryAdjustments
+src/services/api.ts:194 - getEvents
+src/services/api.ts:195 - getEventById
+src/services/api.ts:197 - getEventsByNurseryBatchId
+src/services/api.ts:199 - getEventsBySeasonId
+src/services/api.ts:201 - getEventsByDateRange
+src/services/api.ts:204 - updateEvent
+src/services/api.ts:221 - getExpenseById
+src/services/api.ts:249 - getHarvestById
+src/services/api.ts:251 - deleteHarvest
+src/services/api.ts:256 - getSaleById
+src/services/api.ts:258 - deleteSale
+src/services/cachedApiService.js:402 - cachedApi (used in module)
+src/services/cachedApiService.js:421 - cachedEntityApi
+src/services/cachedApiService.js:466 - migrateToCache
+src/services/cachedApiService.js:483 - default
+src/services/cachedApiService.js:484 - cachedApiService (used in module)
+src/services/cachedApiService.js:484 - ENDPOINT_CONFIG (used in module)
+src/services/cachedApiService.js:484 - INVALIDATION_PATTERNS (used in module)
+src/services/validatedApiService.js:399 - useValidatedApi
+src/services/validatedApiService.js:439 - useEntityValidation
+src/services/validatedApiService.js:457 - ValidationErrorBoundary
+src/services/validatedApiService.js:495 - default
+src/theme/designTokens.js:7 - colors (used in module)
+src/theme/designTokens.js:162 - spacing (used in module)
+src/theme/designTokens.js:196 - typography (used in module)
+src/theme/designTokens.js:307 - borderRadius (used in module)
+src/theme/designTokens.js:321 - shadows (used in module)
+src/theme/designTokens.js:334 - transitions (used in module)
+src/theme/designTokens.js:357 - zIndex (used in module)
+src/theme/designTokens.js:373 - breakpoints (used in module)
+src/theme/designTokens.js:400 - components (used in module)
+src/theme/designTokens.js:458 - layout (used in module)
+src/theme/designTokens.js:504 - default
+src/theme/theme.js:376 - createAppTheme (used in module)
+src/theme/theme.js:392 - lightTheme (used in module)
+src/theme/theme.js:395 - darkTheme
+src/theme/theme.js:398 - default
+src/types/componentProps.ts:26 - BaseComponentProps (used in module)
+src/types/componentProps.ts:46 - ChildrenProps (used in module)
+src/types/componentProps.ts:54 - ThemeProps (used in module)
+src/types/componentProps.ts:70 - ModalProps (used in module)
+src/types/componentProps.ts:92 - FormModalProps
+src/types/componentProps.ts:114 - FormProps
+src/types/componentProps.ts:130 - FormFieldProps (used in module)
+src/types/componentProps.ts:156 - SelectFieldProps
+src/types/componentProps.ts:176 - KPICardProps
+src/types/componentProps.ts:202 - TableColumn (used in module)
+src/types/componentProps.ts:220 - DataTableProps
+src/types/componentProps.ts:252 - NavigationItem (used in module)
+src/types/componentProps.ts:270 - NavigationProps
+src/types/componentProps.ts:288 - ActionButton (used in module)
+src/types/componentProps.ts:308 - ActionBarProps
+src/types/componentProps.ts:326 - AlertProps
+src/types/componentProps.ts:344 - LoadingProps
+src/types/componentProps.ts:362 - ContainerProps
+src/types/componentProps.ts:376 - GridProps
+src/types/componentProps.ts:402 - ImageProps
+src/types/componentProps.ts:428 - EventCallback (used in module)
+src/types/componentProps.ts:433 - AsyncCallback
+src/types/componentProps.ts:438 - ComponentWithRef
+src/types/componentProps.ts:443 - ResponsiveValue
+src/types/componentProps.ts:456 - CommonEventHandlers
+src/types/componentProps.ts:470 - ReactNode (used in module)
+src/types/componentProps.ts:470 - ComponentType (used in module)
+src/types/componentProps.ts:470 - CSSProperties (used in module)
+src/types/componentProps.ts:470 - MouseEvent (used in module)
+src/types/index.ts:7 - BaseEntity (used in module)
+src/types/index.ts:14 - User (used in module)
+src/types/index.ts:23 - Season (used in module)
+src/types/index.ts:32 - WaterQuality (used in module)
+src/types/index.ts:41 - PondLocation (used in module)
+src/types/index.ts:47 - Pond (used in module)
+src/types/index.ts:65 - Expense (used in module)
+src/types/index.ts:80 - FeedInput
+src/types/index.ts:95 - WaterQualityInput
+src/types/index.ts:117 - GrowthSampling
+src/types/index.ts:133 - HarvestRecord
+src/types/index.ts:146 - InventoryItem (used in module)
+src/types/index.ts:169 - InventoryAdjustment
+src/types/index.ts:180 - NurseryBatch
+src/types/index.ts:190 - Employee (used in module)
+src/types/index.ts:204 - SalaryRecord
+src/types/index.ts:218 - FormFieldValidation (used in module)
+src/types/index.ts:228 - FormField (used in module)
+src/types/index.ts:240 - ApiResponse
+src/types/index.ts:258 - ApiError (used in module)
+src/types/index.ts:265 - PaginationParams
+src/types/index.ts:272 - FilterParams (used in module)
+src/types/index.ts:282 - BaseComponentProps (used in module)
+src/types/index.ts:288 - LoadingProps
+src/types/index.ts:294 - ErrorProps
+src/types/index.ts:300 - ModalProps
+src/types/index.ts:307 - FormProps
+src/types/index.ts:316 - ChartDataPoint (used in module)
+src/types/index.ts:323 - ChartProps
+src/types/index.ts:335 - KPIData
+src/types/index.ts:347 - AsyncState (used in module)
+src/types/index.ts:354 - ListState
+src/types/index.ts:366 - SeasonContextType
+src/types/index.ts:375 - UserContextType
+src/types/index.ts:385 - UseApiDataReturn
+src/types/index.ts:393 - UseApiMutationReturn
+src/types/index.ts:400 - DeepPartial (used in module)
+src/types/index.ts:404 - RequiredFields
+src/types/index.ts:406 - OptionalFields
+src/types/index.ts:408 - ID
+src/types/index.ts:410 - Timestamp
+src/types/index.ts:412 - Currency
+src/types/index.ts:415 - Environment
+src/types/index.ts:423 - CustomEventMap
+src/types/index.ts:432 - PerformanceMetrics
+src/types/index.ts:442 - ErrorContext
+src/types/index.ts:452 - ComponentType (used in module)
+src/types/index.ts:453 - FC (used in module)
+src/types/index.ts:454 - ReactElement (used in module)
+src/types/index.ts:455 - ReactNode (used in module)
+src/types/index.ts:456 - CSSProperties (used in module)
+src/types/index.ts:459 - TestProps
+src/types/index.ts:465 - ValidationResult
+src/types/index.ts:471 - FormState
+src/types/index.ts:480 - CacheEntry
+src/types/index.ts:487 - CacheStats
+src/types/index.ts:496 - UserType
+src/types/index.ts:496 - SeasonType
+src/types/index.ts:496 - PondType
+src/types/index.ts:496 - ExpenseType
+src/utils/apiCache.js:226 - CacheStrategies (used in module)
+src/utils/apiCache.js:264 - cachedApiCall (used in module)
+src/utils/apiCache.js:408 - batchApiCalls (used in module)
+src/utils/apiCache.js:417 - preloadData (used in module)
+src/utils/apiCache.js:431 - clearCache (used in module)
+src/utils/apiCache.js:441 - getCacheStats (used in module)
+src/utils/apiCache.js:457 - default
+src/utils/cacheManager.js:169 - CacheManager (used in module)
+src/utils/cacheManager.js:764 - default
+src/utils/constants.js:15 - TIME (used in module)
+src/utils/constants.js:22 - TIMEOUT (used in module)
+src/utils/constants.js:32 - SIZES (used in module)
+src/utils/constants.js:39 - SPACING (used in module)
+src/utils/constants.js:47 - BREAKPOINTS (used in module)
+src/utils/constants.js:56 - PROGRESS (used in module)
+src/utils/constants.js:64 - OPACITY (used in module)
+src/utils/constants.js:70 - DIMENSIONS (used in module)
+src/utils/constants.js:80 - TEST (used in module)
+src/utils/constants.js:92 - VALIDATION (used in module)
+src/utils/constants.js:103 - FILE_LIMITS (used in module)
+src/utils/constants.js:113 - SECURITY (used in module)
+src/utils/constants.js:124 - HTTP_STATUS (used in module)
+src/utils/constants.js:139 - ERROR_CODES (used in module)
+src/utils/constants.js:151 - CHART (used in module)
+src/utils/constants.js:184 - default
+src/utils/corsPreflightHandler.js:215 - corsAwareFetch (used in module)
+src/utils/corsPreflightHandler.js:305 - enableCORSProtection (used in module)
+src/utils/corsPreflightHandler.js:331 - shouldShowCORSErrorPage (used in module)
+src/utils/corsPreflightHandler.js:338 - resetCORSFailures (used in module)
+src/utils/corsPreflightHandler.js:345 - getCORSStats (used in module)
+src/utils/corsPreflightHandler.js:357 - useCORSStatus (used in module)
+src/utils/corsPreflightHandler.js:379 - CorsPreflightHandler (used in module)
+src/utils/corsPreflightHandler.js:388 - default
+src/utils/dataValidation.js:21 - ValidationTypes (used in module)
+src/utils/dataValidation.js:40 - ValidationSeverity (used in module)
+src/utils/dataValidation.js:597 - validateValue (used in module)
+src/utils/dataValidation.js:714 - default (used in module)
+src/utils/debugUtils.js:89 - ComponentDebugger
+src/utils/debugUtils.js:202 - PerformanceDebugger (used in module)
+src/utils/debugUtils.js:312 - NetworkDebugger (used in module)
+src/utils/debugUtils.js:374 - UserActionDebugger (used in module)
+src/utils/debugUtils.js:424 - ErrorContextEnhancer (used in module)
+src/utils/debugUtils.js:484 - DebugConsole (used in module)
+src/utils/debugUtils.js:565 - debugStore (used in module)
+src/utils/debugUtils.js:565 - DEBUG_CONFIG (used in module)
+src/utils/debugUtils.js:577 - default
+src/utils/errorHandling.js:20 - ErrorTypes (used in module)
+src/utils/errorHandling.js:34 - getErrorMessage (used in module)
+src/utils/errorHandling.js:118 - classifyError (used in module)
+src/utils/errorHandling.js:173 - getRecoveryActions (used in module)
+src/utils/errorHandling.js:347 - reportError (used in module)
+src/utils/errorHandling.js:367 - default
+src/utils/formValidation.js:16 - validationRules (used in module)
+src/utils/formValidation.js:142 - validateField (used in module)
+src/utils/formValidation.js:159 - validateForm (used in module)
+src/utils/formValidation.js:208 - useFormValidation (used in module)
+src/utils/formValidation.js:310 - commonSchemas (used in module)
+src/utils/formValidation.js:397 - default
+src/utils/layoutUtils.js:20 - getResponsiveSpacing (used in module)
+src/utils/layoutUtils.js:35 - getContainerSize (used in module)
+src/utils/layoutUtils.js:50 - LayoutGrid (used in module)
+src/utils/layoutUtils.js:62 - ResponsiveStack (used in module)
+src/utils/layoutUtils.js:75 - Section (used in module)
+src/utils/layoutUtils.js:90 - PageLayout (used in module)
+src/utils/layoutUtils.js:131 - CardLayout (used in module)
+src/utils/layoutUtils.js:150 - TwoColumnLayout (used in module)
+src/utils/layoutUtils.js:193 - SidebarLayout (used in module)
+src/utils/layoutUtils.js:247 - CenteredLayout (used in module)
+src/utils/layoutUtils.js:282 - ResponsiveGrid (used in module)
+src/utils/layoutUtils.js:325 - MasonryGrid (used in module)
+src/utils/layoutUtils.js:361 - StickyContainer (used in module)
+src/utils/layoutUtils.js:383 - layoutUtils (used in module)
+src/utils/layoutUtils.js:429 - default (used in module)
+src/utils/lazyLoading.js:37 - createLazyComponent (used in module)
+src/utils/lazyLoading.js:167 - createLazyModal (used in module)
+src/utils/lazyLoading.js:175 - createLazyFeature (used in module)
+src/utils/lazyLoading.js:184 - usePreload (used in module)
+src/utils/lazyLoading.js:203 - bundleOptimization (used in module)
+src/utils/lazyLoading.js:243 - optimizeImports (used in module)
+src/utils/lazyLoading.js:272 - default
+src/utils/offlineSync.js:20 - saveOfflineData (used in module)
+src/utils/offlineSync.js:35 - getOfflineData (used in module)
+src/utils/offlineSync.js:49 - removeOfflineData (used in module)
+src/utils/offlineSync.js:67 - addToSyncQueue (used in module)
+src/utils/offlineSync.js:171 - clearSyncQueue (used in module)
+src/utils/offlineSync.js:193 - default
+src/utils/optimizedDataStructures.js:334 - SortedIndex (used in module)
+src/utils/optimizedDataStructures.js:425 - useIndexedCollection (used in module)
+src/utils/optimizedDataStructures.js:477 - useOptimizedSelection (used in module)
+src/utils/optimizedDataStructures.js:523 - useSearchIndex (used in module)
+src/utils/optimizedDataStructures.js:682 - optimizeArrayOperations (used in module)
+src/utils/optimizedDataStructures.js:744 - default
+src/utils/optimizedImports.js:7 - createOptimizedMUIImports (used in module)
+src/utils/optimizedImports.js:77 - createOptimizedIconImports (used in module)
+src/utils/optimizedImports.js:116 - createOptimizedRechartsImports (used in module)
+src/utils/optimizedImports.js:147 - createOptimizedDateImports (used in module)
+src/utils/optimizedImports.js:163 - createOptimizedFramerImports (used in module)
+src/utils/optimizedImports.js:174 - bundleAnalyzer (used in module)
+src/utils/optimizedImports.js:215 - treeShakingOptimization (used in module)
+src/utils/optimizedImports.js:256 - default (used in module)
+src/utils/performanceOptimization.js:14 - deepMemo (used in module)
+src/utils/performanceOptimization.js:123 - LazyComponent (used in module)
+src/utils/performanceOptimization.js:158 - withPerformanceOptimization (used in module)
+src/utils/performanceOptimization.js:170 - useOptimizedList (used in module)
+src/utils/performanceOptimization.js:195 - useStableEventHandlers (used in module)
+src/utils/performanceOptimization.js:208 - performanceMonitor (used in module)
+src/utils/performanceOptimization.js:242 - default
+src/utils/propTypes.js:20 - baseComponentPropTypes (used in module)
+src/utils/propTypes.js:32 - baseComponentDefaultProps (used in module)
+src/utils/propTypes.js:40 - childrenPropTypes (used in module)
+src/utils/propTypes.js:47 - themePropTypes (used in module)
+src/utils/propTypes.js:53 - themeDefaultProps (used in module)
+src/utils/propTypes.js:66 - modalPropTypes (used in module)
+src/utils/propTypes.js:78 - modalDefaultProps (used in module)
+src/utils/propTypes.js:90 - formModalPropTypes
+src/utils/propTypes.js:100 - formModalDefaultProps
+src/utils/propTypes.js:115 - formPropTypes (used in module)
+src/utils/propTypes.js:124 - formDefaultProps (used in module)
+src/utils/propTypes.js:133 - formFieldPropTypes (used in module)
+src/utils/propTypes.js:147 - formFieldDefaultProps (used in module)
+src/utils/propTypes.js:156 - selectFieldPropTypes
+src/utils/propTypes.js:169 - selectFieldDefaultProps
+src/utils/propTypes.js:209 - tableColumnPropType (used in module)
+src/utils/propTypes.js:221 - dataTablePropTypes
+src/utils/propTypes.js:235 - dataTableDefaultProps
+src/utils/propTypes.js:252 - navigationItemPropType (used in module)
+src/utils/propTypes.js:264 - navigationPropTypes
+src/utils/propTypes.js:272 - navigationDefaultProps
+src/utils/propTypes.js:285 - actionButtonPropType (used in module)
+src/utils/propTypes.js:298 - actionBarPropTypes
+src/utils/propTypes.js:306 - actionBarDefaultProps
+src/utils/propTypes.js:320 - alertPropTypes
+src/utils/propTypes.js:331 - alertDefaultProps
+src/utils/propTypes.js:342 - loadingPropTypes
+src/utils/propTypes.js:350 - loadingDefaultProps
+src/utils/propTypes.js:363 - containerPropTypes
+src/utils/propTypes.js:372 - containerDefaultProps
+src/utils/propTypes.js:383 - gridPropTypes
+src/utils/propTypes.js:396 - gridDefaultProps
+src/utils/propTypes.js:410 - imagePropTypes
+src/utils/propTypes.js:422 - imageDefaultProps
+src/utils/propTypes.js:438 - createStandardPropTypes (used in module)
+src/utils/propTypes.js:454 - validateStandardProps (used in module)
+src/utils/propTypes.js:489 - withStandardProps (used in module)
+src/utils/propTypes.js:525 - createFormComponent
+src/utils/propTypes.js:534 - createModalComponent
+src/utils/propTypes.js:543 - createDataComponent
+src/utils/propTypes.js:558 - default
+src/utils/responsiveUtils.js:23 - responsiveUtils (used in module)
+src/utils/responsiveUtils.js:113 - useResponsive (used in module)
+src/utils/responsiveUtils.js:166 - useResponsiveValue (used in module)
+src/utils/responsiveUtils.js:188 - createResponsiveSpacing (used in module)
+src/utils/responsiveUtils.js:199 - createResponsiveGrid (used in module)
+src/utils/responsiveUtils.js:229 - createMobileFirstStyles (used in module)
+src/utils/responsiveUtils.js:249 - createResponsiveTypography (used in module)
+src/utils/responsiveUtils.js:280 - touchTargets (used in module)
+src/utils/responsiveUtils.js:296 - viewport (used in module)
+src/utils/responsiveUtils.js:318 - responsivePatterns (used in module)
+src/utils/responsiveUtils.js:376 - default
+src/utils/robustTesting.js:14 - robustSelectors (used in module)
+src/utils/robustTesting.js:74 - robustAssertions (used in module)
+src/utils/robustTesting.js:178 - robustInteractions (used in module)
+src/utils/robustTesting.js:265 - testDataBuilders (used in module)
+src/utils/robustTesting.js:328 - createPageObject (used in module)
+src/utils/robustTesting.js:408 - retryAssertion (used in module)
+src/utils/robustTesting.js:442 - default
+src/utils/rtlUtils.js:17 - rtlLanguages (used in module)
+src/utils/rtlUtils.js:20 - createRTLCache (used in module)
+src/utils/rtlUtils.js:28 - createLTRCache (used in module)
+src/utils/rtlUtils.js:210 - RTLBox (used in module)
+src/utils/rtlUtils.js:247 - rtlUtils (used in module)
+src/utils/rtlUtils.js:317 - rtlCSS (used in module)
+src/utils/rtlUtils.js:360 - RTLContainer (used in module)
+src/utils/rtlUtils.js:375 - LanguageSwitcherRTL (used in module)
+src/utils/rtlUtils.js:423 - default
+src/utils/safeNavigation.js:14 - safeNavigate (used in module)
+src/utils/safeNavigation.js:34 - safeFallbackNavigation (used in module)
+src/utils/safeNavigation.js:130 - createSafeNavigator (used in module)
+src/utils/safeNavigation.js:157 - default
+src/utils/sanitization.js:106 - sanitizeURL (used in module)
+src/utils/sanitization.js:124 - sanitizeFileName (used in module)
+src/utils/sanitization.js:136 - sanitizeSearchTerm (used in module)
+src/utils/sanitization.js:146 - sanitizeHTMLContent (used in module)
+src/utils/sanitization.js:154 - sanitizeFormData (used in module)
+src/utils/sanitization.js:192 - validateInput (used in module)
+src/utils/sanitization.js:231 - default
+src/utils/secureStorage.js:225 - storage (used in module)
+src/utils/secureStorage.js:267 - migrateFromLocalStorage
+src/utils/secureStorage.js:288 - default
+src/utils/stateManagement.js:11 - ActionTypes (used in module)
+src/utils/stateManagement.js:32 - createListState (used in module)
+src/utils/stateManagement.js:139 - useAsyncState (used in module)
+src/utils/stateManagement.js:151 - useListState (used in module)
+src/utils/stateManagement.js:181 - createStandardContext (used in module)
+src/utils/stateManagement.js:237 - handleAsyncOperation (used in module)
+src/utils/stateManagement.js:272 - createStateMiddleware (used in module)
+src/utils/stateManagement.js:284 - loggingMiddleware (used in module)
+src/utils/stateManagement.js:297 - createPersistenceMiddleware (used in module)
+src/utils/stateManagement.js:334 - default
+src/utils/testUtils.js:24 - waitUtils (used in module)
+src/utils/testUtils.js:98 - mockUtils (used in module)
+src/utils/testUtils.js:189 - renderUtils (used in module)
+src/utils/testUtils.js:228 - testDataFactories (used in module)
+src/utils/testUtils.js:274 - assertionHelpers (used in module)
+src/utils/testUtils.js:335 - testSetup (used in module)
+src/utils/testUtils.js:393 - performanceUtils (used in module)
+src/utils/testUtils.js:444 - default
+src/components/nursery/NurseryBatchFormFields.js:61 - default
+src/components/features/dashboard/AlertBanner.tsx:12 - AlertBannerProps (used in module)
+src/components/features/dashboard/KPICard.standardized.js:388 - default
+src/components/features/dashboard/KPICard.tsx:23 - KPICardProps (used in module)
+src/components/features/dashboard/KPICard.tsx:155 - CircularKPICardProps (used in module)
+src/components/features/dashboard/KPICard.tsx:166 - CircularKPICard (used in module)
+src/components/features/expenses/ExpenseForm.refactored.js:281 - default
+src/components/features/expenses/ExpenseForm.validated.js:402 - default
+src/components/features/farm/MobileOptimized.js:50 - MobileNavBar (used in module)
+src/components/features/farm/MobileOptimized.js:95 - MobileDrawer (used in module)
+src/components/features/farm/MobileOptimized.js:179 - MobileBottomNav (used in module)
+src/components/features/farm/MobileOptimized.js:227 - MobileSpeedDial (used in module)
+src/components/features/farm/MobileOptimized.js:371 - MobileDialog (used in module)
+src/components/features/farm/MobileOptimized.js:599 - useMobileViewport (used in module)
+src/components/features/feeding/FeedLog.tsx:31 - FeedLogProps (used in module)
+src/components/features/inventory/InventoryAdjustmentModal.refactored.js:170 - default
+src/components/features/inventory/InventoryForm.refactored.js:321 - default
+src/components/features/ponds/PondCard.tsx:7 - Pond (used in module)
+src/components/features/ponds/PondCard.tsx:20 - PondCardProps (used in module)
+src/components/features/shared/DataTable.js:579 - createColumn (used in module)
+src/components/features/shared/DataTable.js:599 - createActionColumn
+src/components/features/shared/DataVisualization.js:342 - MetricsBarChart (used in module)
+src/components/features/shared/DataVisualization.js:362 - TrendLineChart (used in module)
+src/components/features/shared/DataVisualization.js:382 - DistributionPieChart (used in module)
+src/components/features/shared/DataVisualization.js:402 - GrowthAreaChart (used in module)
+src/components/features/shared/FilterPanel.js:561 - createFilter (used in module)
+src/components/features/shared/FilterPanel.js:581 - createSelectFilter
+src/components/features/shared/FilterPanel.js:590 - createDateRangeFilter
+src/components/features/shared/FilterPanel.js:597 - createTextFilter
+src/components/features/shared/FilterPanel.js:605 - createNumberFilter
+src/components/features/shared/OptimizedDataTable.js:459 - default
+src/components/features/shared/charts/OptimizedCharts.js:48 - OptimizedBarChart (used in module)
+src/components/features/shared/charts/OptimizedCharts.js:161 - OptimizedLineChart (used in module)
+src/components/features/shared/charts/OptimizedCharts.js:281 - OptimizedPieChart (used in module)
+src/components/features/shared/charts/OptimizedCharts.js:340 - OptimizedTooltip (used in module)
+src/components/features/shared/charts/OptimizedCharts.js:398 - chartPerformanceUtils (used in module)
+src/components/features/shared/debug/DebugProvider.jsx:417 - DebugContext (used in module)
+src/components/features/shared/debug/index.js:6 - DebugPanel
+src/components/features/shared/debug/index.js:7 - DebugProvider
+src/components/features/shared/debug/index.js:7 - useDebugContext
+src/components/features/shared/debug/index.js:11 - ComponentDebugger
+src/components/features/shared/debug/index.js:12 - PerformanceDebugger
+src/components/features/shared/debug/index.js:13 - NetworkDebugger
+src/components/features/shared/debug/index.js:14 - UserActionDebugger
+src/components/features/shared/debug/index.js:15 - ErrorContextEnhancer
+src/components/features/shared/debug/index.js:16 - DebugConsole
+src/components/features/shared/debug/index.js:17 - debugStore
+src/components/features/shared/debug/index.js:18 - DEBUG_CONFIG
+src/components/features/shared/debug/index.js:23 - useComponentDebug
+src/components/features/shared/debug/index.js:24 - usePerformanceDebug
+src/components/features/shared/debug/index.js:25 - useUserActionDebug
+src/components/features/shared/debug/index.js:26 - useErrorContext
+src/components/features/shared/debug/index.js:27 - useStateDebug
+src/components/features/shared/debug/index.js:28 - useApiDebug
+src/components/features/shared/debug/index.js:29 - useEffectDebug
+src/components/features/shared/debug/index.js:30 - useDebug
+src/components/features/shared/error-handling/ApiErrorHandler.js:315 - default
+src/components/features/shared/error-handling/ErrorBoundary.tsx:6 - ErrorBoundaryState (used in module)
+src/components/features/shared/error-handling/ErrorBoundary.tsx:13 - ErrorBoundaryProps (used in module)
+src/components/features/shared/error-handling/ErrorBoundary.tsx:19 - ErrorFallbackProps (used in module)
+src/components/features/shared/error-handling/ErrorBoundary.tsx:177 - withErrorBoundary
+src/components/features/shared/error-handling/ErrorBoundary.tsx:196 - useErrorHandler
+src/components/features/shared/error-handling/ErrorDisplay.tsx:29 - ErrorDisplayProps (used in module)
+src/components/features/shared/error-handling/GlobalErrorProvider.js:204 - default
+src/components/features/shared/loading/LoadingComponents.js:57 - LinearLoader (used in module)
+src/components/features/shared/loading/LoadingComponents.js:79 - SkeletonCard (used in module)
+src/components/features/shared/loading/LoadingComponents.js:121 - SkeletonChart (used in module)
+src/components/features/shared/loading/LoadingComponents.js:134 - PageLoader (used in module)
+src/components/features/shared/loading/LoadingComponents.js:164 - SectionLoader (used in module)
+src/components/features/shared/loading/LoadingComponents.js:210 - LoadingButton (used in module)
+src/components/features/shared/loading/LoadingComponents.js:247 - useLoadingStates (used in module)
+src/components/features/shared/ui/StyledComponents.js:22 - AppContainer (used in module)
+src/components/features/shared/ui/StyledComponents.js:30 - PageHeader (used in module)
+src/components/features/shared/ui/StyledComponents.js:46 - ContentSection (used in module)
+src/components/features/shared/ui/StyledComponents.js:54 - GridContainer (used in module)
+src/components/features/shared/ui/StyledComponents.js:123 - MetricCard (used in module)
+src/components/features/shared/ui/StyledComponents.js:178 - SecondaryButton (used in module)
+src/components/features/shared/ui/StyledComponents.js:192 - GhostButton (used in module)
+src/components/features/shared/ui/StyledComponents.js:244 - Badge (used in module)
+src/components/features/shared/ui/StyledComponents.js:262 - SectionTitle (used in module)
+src/components/features/shared/ui/StyledComponents.js:270 - SectionSubtitle (used in module)
+src/components/features/shared/ui/StyledComponents.js:278 - Label (used in module)
+src/components/features/shared/ui/StyledComponents.js:288 - FormSection (used in module)
+src/components/features/shared/ui/StyledComponents.js:309 - FieldGroup (used in module)
+src/components/features/shared/ui/StyledComponents.js:326 - EmptyState (used in module)
+src/components/features/shared/ui/StyledComponents.js:350 - LoadingBox (used in module)
+src/components/features/shared/ui/StyledComponents.js:366 - Divider (used in module)
+src/components/features/shared/ui/StyledComponents.js:382 - Spacer (used in module)
+src/components/features/shared/ui/StyledComponents.js:396 - FlexContainer (used in module)
+src/components/features/shared/ui/StyledComponents.js:425 - SurfaceCard (used in module)
+src/components/features/shared/ui/StyledComponents.js:438 - HighlightBox (used in module)

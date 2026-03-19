@@ -1,7 +1,7 @@
 import { Box } from '@mui/material';
 import React, { useState, useEffect } from 'react';
 
-import AlertBanner from './AlertBanner';
+import AlertBanner from './features/dashboard/AlertBanner';
 
 // Assuming inventory api calls are not in api.ts maybe they are in 'services/inventory' or in 'api.ts'. I will fetch directly since we're in Vite.
 const API_BASE_URL = 'http://localhost:5001/api';
